@@ -1,0 +1,38 @@
+binning:
+  binsperdec: 8
+  binsz: 0.08
+  coordsys: CEL
+  projtype: WCS
+  roiwidth: 12
+data:
+  evfile: ./fermi/EV00.lst
+  ltcube: null
+  scfile: ./fermi/SC00.fits
+fileio:
+  logfile: ./log/fermipy.log
+  outdir: ./fermi/
+  usescratch: false
+gtlike:
+  edisp: true
+  edisp_disable:
+  - isodiff
+  - galdiff
+  irfs: P8R3_SOURCE_V3
+model:
+  catalogs: /home/Research/scripts/vts-fermi/vtspy/refdata/gll_psc_v22.fit
+  galdiff: $FERMI_DIFFUSE_DIR/gll_iem_v07.fits
+  isodiff: $FERMI_DIFFUSE_DIR/iso_P8R3_SOURCE_V3_v1.txt
+  src_roiwidth: 12
+selection:
+  dec: 22.01447088341406
+  emax: 300000
+  emin: 100
+  evclass: 128
+  evtype: 3
+  glat: -5.784181097832889
+  glon: 184.5575981870483
+  ra: 83.63333155231746
+  target: null
+  tmax: 371865603.0
+  tmin: 371779203.0
+  zmax: 105
