@@ -11,9 +11,10 @@ Welcome to vtspy's documentation!
    :caption: Contents:
 
    README
-   api
-   examples
-
+   install
+   examples/index
+   api/index
+   
 
 Indices and tables
 ==================
