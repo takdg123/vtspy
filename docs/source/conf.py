@@ -10,17 +10,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-import sys
-import shutil
-import vtspy
-sys.path.insert(0, os.path.abspath('..'))
-
-# Notebooks
-notebook_dir = '../examples/notebooks/'
-os.makedirs('examples', exist_ok=True)
-[shutil.copy(notebook_dir + file, 'examples') for file in os.listdir(notebook_dir) if file.endswith('.ipynb')]
-
+# import os
+# import sys
+# sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- Project information -----------------------------------------------------
@@ -29,9 +21,6 @@ project = 'vtspy'
 copyright = '2022, Donggeun Tak'
 author = 'Donggeun Tak'
 
-# The full version, including alpha/beta/rc tags
-release = vtspy.__version__
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -39,13 +28,7 @@ release = vtspy.__version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinxarg.ext',
-    'sphinx.ext.napoleon',
-    'nbsphinx',
-    'myst_parser',
 ]
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -53,16 +36,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
-source_suffix = [
-    '.rst',
-    '.md',
-]
-
-# nbsphinx
-nbsphinx_allow_errors = False
-nbsphinx_execute = 'always'  # disable with 'never', force with 'always'
+exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
