@@ -5,4 +5,4 @@ Examples
    :maxdepth: 2
    :caption: Contents:
 
-   notebooks/Crab.ipynb
+   notebooks/crab.ipynb
