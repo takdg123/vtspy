@@ -3,9 +3,9 @@ import os, sys
 import urllib
 import time
 import yaml
+import html2text
 
 from astropy.io import fits
-from GtBurst import html2text
 
 import re
 
