@@ -12,16 +12,7 @@
 #
 import os
 import sys
-import shutil
 
-sys.path.insert(0, os.path.abspath('.'))
-
-sys.path.insert(0, os.path.abspath('..'))
-
-# Notebooks
-notebook_dir = '../examples/notebooks/'
-os.makedirs('examples', exist_ok=True)
-[shutil.copy(notebook_dir + file, 'examples') for file in os.listdir(notebook_dir) if file.endswith('.ipynb')]
 
 # -- Project information -----------------------------------------------------
 
