@@ -1,7 +1,0 @@
-sphinx>=3
-nbsphinx
-sphinx-rtd-theme
-myst-parser
-ipykernel
-sphinx-argparse
-pygments==2.7.4

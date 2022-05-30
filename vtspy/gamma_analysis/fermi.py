@@ -68,6 +68,7 @@ def calc_scale(factor):
     else:    
         scale = 10**(int(np.log10(factor))-1)
     return scale
+    
 class FermiUtils(GTAnalysis):
     def __init__(self, file='config_fermi.yaml', roi = "initial",  verbosity=True, overwrite=False, **kwargs):
         
