@@ -21,11 +21,11 @@ conda:
 # formats:
 #    - pdf
 
-# Optionally declare the Python requirements required to build your docs
-python:
-  version: 3
-  install:
-    - requirements: docs/requirements.txt
-    - method: pip
-      path: .
-  system_packages: true
+# # Optionally declare the Python requirements required to build your docs
+# python:
+#   version: 3
+#   install:
+#     - requirements: docs/requirements.txt
+#     - method: pip
+#       path: .
+#   system_packages: true
