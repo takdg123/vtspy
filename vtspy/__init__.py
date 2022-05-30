@@ -8,3 +8,10 @@ from .utils import *
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+from .version import __version__
+
+plt.style.use(astropy_mpl_style)
+
+quantity_support()
+
