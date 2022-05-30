@@ -1,4 +1,3 @@
-
 import os
 from astropy.time import Time
 import yaml
