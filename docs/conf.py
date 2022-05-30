@@ -30,14 +30,14 @@ release = vtspy.__version__
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.mathjax',
-              'sphinx.ext.autodoc',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.napoleon',
-              'sphinx.ext.intersphinx',
-              'sphinx.ext.coverage',
-              'nbsphinx'
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinxarg.ext',
+    'sphinx.ext.napoleon',
+    'nbsphinx',
+    'myst_parser',
 ]
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -47,8 +47,15 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-# The master toctree document.
-master_doc = 'index'
+source_suffix = [
+    '.rst',
+    '.md',
+]
+
+# nbsphinx
+nbsphinx_allow_errors = False
+nbsphinx_execute = 'always'  # disable with 'never', force with 'always'
+
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -61,40 +68,3 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-
-# -- Extension configuration -------------------------------------------------
-
-# nbpshinx
-nbsphinx_execute = 'never'
-
-# Autodoc
-autodoc_member_order = 'bysource'
-
-# Extensions to theme docs
-
-# Fix issue with Napoleon RTD that displays "Variables" instead of "Attributes"
-# credit - https://michaelgoerz.net/notes/extending-sphinx-napoleon-docstring-sections.html
-
-from sphinx.ext.napoleon.docstring import GoogleDocstring
-
-# first, we define new methods for any new sections and add them to the class
-def parse_keys_section(self, section):
-    return self._format_fields('Keys', self._consume_fields())
-GoogleDocstring._parse_keys_section = parse_keys_section
-
-def parse_attributes_section(self, section):
-    return self._format_fields('Attributes', self._consume_fields())
-GoogleDocstring._parse_attributes_section = parse_attributes_section
-
-def parse_class_attributes_section(self, section):
-    return self._format_fields('Class Attributes', self._consume_fields())
-GoogleDocstring._parse_class_attributes_section = parse_class_attributes_section
-
-# we now patch the parse method to guarantee that the the above methods are
-# assigned to the _section dict
-def patched_parse(self):
-    self._sections['keys'] = self._parse_keys_section
-    self._sections['class attributes'] = self._parse_class_attributes_section
-    self._unpatched_parse()
-GoogleDocstring._unpatched_parse = GoogleDocstring._parse
-GoogleDocstring._parse = patched_parse
