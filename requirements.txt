@@ -1,0 +1,9 @@
+
+gammapy
+fermipy
+html2text
+uproot
+
+# for Jupiter notebook
+jupyterlab
+ipykernel
