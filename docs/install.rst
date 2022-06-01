@@ -1,35 +1,32 @@
 Installation
 ============
 
-===========
-Pre-requisite
-===========
-
 This package is mainly based on three packages: `Gammapy
 <https://gammapy.org/>`_, `Fermi Science Tools
 <http://fermi.gsfc.nasa.gov/ssc/data/analysis/documentation/>`_, and `Fermipy
-<https://fermipy.readthedocs.io/en/latest/>`_. We recommand to install Fermitool first.
+<https://fermipy.readthedocs.io/en/latest/>`_. 
 
-Run::
+FermiTools
+~~~~~~~~~~
 
-  conda create -n fermi -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1
+We recommand to install Fermitools first. Run::
+
+  conda create -n vtspy -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1
  
-For details, see `Installation-Instructions <https://github.com/fermi-lat/Fermitools-conda/wiki/Installation-Instructions/>`_::
+This will generate a ``conda`` environment called ``vtspy``. For details, see `Installation-Instructions <https://github.com/fermi-lat/Fermitools-conda/wiki/Installation-Instructions/>`_.
 
-Then, install fermipy within the conda environment (fermi)::
+Gammapy and Fermipy
+~~~~~~~~~~
 
-  conda activate fermi
-  
+Then, install fermipy within the ``conda`` environment (``vtspy``), see also `install <https://fermipy.readthedocs.io/en/latest/install.html#install/>`_::
+
+  conda activate vtspy
   pip install fermipy
-  
-For details, see `Installation-Instructions <https://fermipy.readthedocs.io/en/latest/install.html#install/>`_::
 
-The gammapy package is one of dependencies of the fermipy package so that you do not need to install it separately.
+The gammapy package is one of dependencies of the fermipy package so that you do not need to install it additionally.
 
-===========
 vtspy
-===========
-
+~~~~~~~~~~
 
 Run::
   
