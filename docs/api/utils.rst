@@ -2,7 +2,7 @@ Utils
 ======================
 
 Configuration
----------------------
+~~~~~~~~~
       
 .. automodule:: vtspy.utils.config
    :members:
@@ -10,15 +10,15 @@ Configuration
    :special-members:
 
 Download
----------------------
+~~~~~~~~~
 
 .. automodule:: vtspy.utils.download
    :members:
    :undoc-members:
    :special-members:
 
-Utils
----------------------
+Others
+~~~~~~~~~
 
 .. automodule:: vtspy.gamma_analysis.basic
    :members:
