@@ -1,26 +1,26 @@
-Gamma-ray analysis
+Utils
 ======================
 
-VERITAS + Fermi-LAT analysis (gammapy)
+Configuration
 ---------------------
       
-.. automodule:: vtspy.gamma_analysis.analysis
+.. automodule:: vtspy.utils.config
    :members:
    :undoc-members:
    :special-members:
 
-Fermi-LAT Utils
+Download
 ---------------------
 
-.. automodule:: vtspy.gamma_analysis.fermi
+.. automodule:: vtspy.utils.download
    :members:
    :undoc-members:
    :special-members:
 
-VERITAS Utils
+Utils
 ---------------------
 
-.. automodule:: vtspy.gamma_analysis.veritas
+.. automodule:: vtspy.gamma_analysis.basic
    :members:
    :undoc-members:
    :special-members:

@@ -273,7 +273,7 @@ class FermipyConfig:
 					'src_roiwidth': 12,
 					'galdiff': f'$FERMI_DIFFUSE_DIR/{gald}',
 					'isodiff': f'$FERMI_DIFFUSE_DIR/{iso}',
-					'catalogs': SCRIPT_DIR+'/vtspy/refdata/gll_psc_v22.fit'
+					'catalogs': SCRIPT_DIR+'/refdata/gll_psc_v22.fit'
 					},
 				'fileio': {
 					'outdir' : "./fermi/",

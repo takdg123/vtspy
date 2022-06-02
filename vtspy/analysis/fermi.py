@@ -29,7 +29,7 @@ def generatePSF(config):
     gtpsf.run()
 
 class FermiAnalysis(GTAnalysis):
-    def __init__(self, file='config_fermi.yaml', roi = "initial", overwrite=False, verbosity=True, removeNaN = False, **kwargs):
+    def __init__(self, file='config.yaml', roi = "initial", overwrite=False, verbosity=True, removeNaN = False, **kwargs):
         
         loglevel = 3 if verbosity==2 else 1 
         self.verbosity = verbosity

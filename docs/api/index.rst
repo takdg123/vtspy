@@ -4,6 +4,6 @@ API
    :maxdepth: 2
    :caption: Contents:
 
-   fermi
-   gamma
+   analysis
+   utils
    
