@@ -25,6 +25,6 @@ conda:
 python:
   install:
     - requirements: docs/requirements.txt
-#     - method: pip
-#       path: .
-#   system_packages: true
+    - method: pip
+      path: .
+  system_packages: true
