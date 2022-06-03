@@ -2,8 +2,12 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
+
 import logging
 logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=20)
+
+from pathlib import Path
+SCRIPT_DIR = str(Path(__file__).parent.absolute())
 
 def logger(verbosity = 1):
     """

@@ -7,13 +7,12 @@ import uproot
 
 from astropy.io import fits
 
-from . import SCRIPT_DIR
 from . import utils
-from .utils import logger
+from .utils import logger, SCRIPT_DIR
 
 from pathlib import Path
 
-class FermipyConfig:
+class FermiConfig:
 	"""
 	This is to generate the configuration file compatible to
 	the Fermipy configuration. The input file is the VERITAS

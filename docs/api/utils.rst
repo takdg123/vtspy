@@ -4,7 +4,7 @@ Utils
 FermipyConfig
 ----------------------
 
-.. autoclass:: vtspy.FermipyConfig
+.. autoclass:: vtspy.FermiConfig
    :show-inheritance:
    :members:
    :inherited-members:
