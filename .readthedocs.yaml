@@ -9,6 +9,13 @@ version: 2
 sphinx:
    configuration: docs/conf.py
 
+python:
+  install:
+    - requirements: docs/requirements.txt
+    - method: pip
+      path: .
+  system_packages: true
+
 build:
   os: "ubuntu-20.04"
   tools:
@@ -22,9 +29,3 @@ conda:
 #    - pdf
 
 # # Optionally declare the Python requirements required to build your docs
-python:
-  install:
-    - requirements: docs/requirements.txt
-    - method: pip
-      path: .
-  system_packages: true
