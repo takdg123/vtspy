@@ -7,9 +7,9 @@ import uproot
 
 from astropy.io import fits
 
-from .. import SCRIPT_DIR
-from . import basic as utils
-from .basic import logger
+from . import SCRIPT_DIR
+from . import utils
+from .utils import logger
 
 from pathlib import Path
 

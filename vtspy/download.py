@@ -10,7 +10,7 @@ from astropy.io import fits
 import re
 
 from .config import FermipyConfig as config
-from .basic import logger
+from .utils import logger
 
 class DownloadFermiData:
     """
