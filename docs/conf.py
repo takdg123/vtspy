@@ -43,6 +43,14 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
+source_suffix = [
+    '.rst',
+    '.md',
+]
+
+# nbsphinx
+nbsphinx_allow_errors = False
+nbsphinx_execute = 'always'  # disable with 'never', force with 'always'
 
 # -- Options for HTML output -------------------------------------------------
 
