@@ -1,24 +1,23 @@
 Utils
 ======================
 
-vtspy.config class
+FermipyConfig
 ----------------------
 
-.. autoclass:: vtspy.config
+.. autoclass:: vtspy.FermipyConfig
    :show-inheritance:
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-vtspy.download class
+   :members:
+   :inherited-members:
+   
+DownloadFermiData
 ----------------------
 
-.. autoclass:: vtspy.download
+.. autoclass:: vtspy.DownloadFermiData
    :show-inheritance:
    :members:
    :inherited-members:
 
-vtspy.utils module
+Others
 ----------------------
 
 .. automodule:: vtspy.utils
