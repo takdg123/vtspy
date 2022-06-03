@@ -1,11 +1,3 @@
-#from .fermi_analysis.download import DownloadFermiData
-#from .fermi_analysis.config import config
-#from .fermi_analysis.analysis import FermiAnalysis
-
-#from .gamma_analysis.analysis import GammaAnalysis
-
-#from .utils import *
-
 import numpy as np
 import matplotlib.pyplot as plt
 

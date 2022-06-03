@@ -7,11 +7,12 @@ logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S
 
 def logger(verbosity = 1):
     """
-    Set a log level.
-    1: info, warning, error
-    2: debug, info, warning, error
-    0: warning, error
-    -1: error
+    Set a log level:
+
+    * 1: info, warning, error
+    * 2: debug, info, warning, error
+    * 0: warning, error
+    * -1: error
 
     Args:
         verbosity (int)
