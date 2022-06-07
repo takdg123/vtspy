@@ -1,17 +1,17 @@
 from fermipy.gtanalysis import GTAnalysis
-from fermipy.plotting import ROIPlotter, SEDPlotter
 from fermipy.roi_model import Source
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from scipy.stats import chi2
-from scipy.stats import norm
+from ..utils import logger
+from ..plotting import fermi_plotter as plotter
 
 import warnings
+warnings.filterwarnings('ignore')
 
-warnings.filterwarnings('ignore', category=UserWarning)
+import glob
 
 def generatePSF(config):  
     from GtApp import GtApp
@@ -28,350 +28,494 @@ def generatePSF(config):
     gtpsf['chatter'] = 0
     gtpsf.run()
 
-class FermiAnalysis(GTAnalysis):
-    def __init__(self, file='config.yaml', roi = "initial", overwrite=False, verbosity=True, removeNaN = False, **kwargs):
-        
-        loglevel = 3 if verbosity==2 else 1 
-        self.verbosity = verbosity
+class FermiAnalysis():
+    """
+    This is to perform a simple Fermi-LAT analysis. All fermipy.GTanalysis
+    functions and attributes can be accessed with the 'gta' arribute. e.g.,  
 
-        super().__init__(file, logging={'verbosity' : loglevel}, **kwargs)
-        if self.verbosity: 
-            print("[Log] Initializing the Fermi-LAT analysis...")
-        if overwrite or not(os.path.isfile("./{}/initial.fits".format(self.config['fileio']['outdir']))):
-            if self.verbosity: 
-                if overwrite:
-                    print("[Log] Overwriting the Fermi-LAT setup...")
-                else:
-                    print("[Log] Initial setup and configuration are not found. Performing the data reduction...")
-            self.setup(overwrite=overwrite, loglevel=50)
-            self.optimize(loglevel=40 if verbosity else 10)
-            if removeNaN:
-                self.RemoveNaN()
-            generatePSF(self.config)
-            self.saveStatus("initial")
-            if self.verbosity: 
-                print("[Log] Initial setup and configuration are saved [roi = initial].")
-        else:
-            if self.verbosity: 
-                print("[Log] Initial setup and configuration [roi = {}] are found. Loading the configuration...".format(roi))
+        fermi = FermiAnalysis()
+        fermi.gta.optimize()
+
+    All information about the state of the analysis (See fermipy documentation 
+    for details) will be saved in the numpy array format (npy).
+    
+    Args:
+        config_file (str): Fermi config filename (yaml)
+            Default: config.yaml
+        state_file (str): state filename (npy)
+        overwrite (bool): overwrite the state
+            Default: False
+        remove_weak_srcs (bool): remove sources with TS of nan or 0
+            Default: False 
+        verbosity (int)
+        **kwargs: passed to fermipy.GTAnalysis module
+    """
+
+
+
+    def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, remove_weak_srcs = False, verbosity=True, **kwargs):
+        
+        self._verbosity = verbosity
+        self._logging = logger(self.verbosity)
+
+        self._logging.info("Initializing the Fermi-LAT analysis...")
+
+        self.gta = GTAnalysis(config_file, logging={'verbosity' : self.verbosity+1}, **kwargs)
+
+        if overwrite or not(os.path.isfile("./{}/initial.fits".format(self.gta.config['fileio']['outdir']))):
             
-            self.loadStatus(roi)
+            if overwrite:
+                self._logging.info("Overwriting the Fermi-LAT setup...")
+            else:
+                self._logging.info("Initial setup and configuration are not found. Performing the data reduction...")
+            
+            self._logging.debug("Generating fermipy files...")
+            self.gta.setup(overwrite=overwrite)
+            
+            self._logging.debug("Optimizing the ROI...")
+            self.gta.optimize()
+            
+            if remove_weak_srcs:
+                self.remove_weak_srcs()
+            
+            self._logging.debug("Generating PSF...")
+            generatePSF(self.gta.config)
+            
+            self._logging.debug("Saving the information...")
+            self.save_state("initial", init=True, **kwargs)
+            
+            self._logging.info("The initial setup and configuration is saved [state_file = initial].")
+        else:
+            self._logging.info("The setup and configuration is found [state_file = {}]. Loading the configuration...".format(state_file))
+            
+            self._logging.debug("Loading the information...")
+            flag = self.load_state(state_file)
+
+            if flag == -1:
+                return
 
         try:
             self.output = np.load("./fermi/output.npy", allow_pickle=True).item()
         except:
             self.output = {}
 
-        if self.verbosity: 
-            print("[Log] Initialization of Fermi-LAT has been completed.")
+        self._test_model = {'Index' : 2.0, 'SpatialModel' : 'PointSource' }
+        self._find_target()
+        self._logging.info("Initialization of Fermi-LAT has been completed.")
         
-        self._target = self.roi.sources[0]
-        self._target_id = 0
+    def save_state(self, state_file, init=False):
+        """
+        Save the state
+        
+        Args:
+            state_file (str): passed to fermipy.write_roi
+            init (bool): check whether this is the initial analysis.
+                Default: False
+        """
+        
+        if (init==False) and (state_file == "initial"):
+            self._logging.warning("The 'inital' state is overwritten. This is not recommended.")
+            self._logging.warning("The original 'inital' state is archived in the '_orig' folder.")
+            os.system("mkdir ./fermi/_orig")
+            for file in glob.glob("./fermi/*initial*"):
+                os.sytem("mv {file} ./fermi/_orig/")
 
-    def saveStatus(self, name):
-        self.write_roi(name, save_model_map=True, loglevel=self.loglevel)
+        self.gta.write_roi(state_file, save_model_map=True)
 
-    def loadStatus(self, name):
-        self.load_roi(name)
+    def load_state(self, state_file):
+        """
+        Load the state
+        
+        Args:
+            state_file (str): passed to fermipy.write_roi
+        """
+        try:
+            self.gta.load_roi(state_file)
+        except:
+            self._logging.error("The state file does not exist. Check the name again")
+            return -1
+
 
     @property
     def target(self):
+        """
+        Return:
+            fermipy.roi_model.Source
+        """
         return self._target
+
+    @property
+    def target_name(self):
+        """
+        Return:
+            str: target name
+        """
+        return self._target_name
     
     @property
     def target_id(self):
+        """
+        Return:
+            int: target id
+        """
         return self._target_id
     
     @property
-    def printAssociation(self):
-        i = 1
-        for src in self.roi.sources:
-            
+    def print_association(self):
+        """
+        Print sources within ROI and their associations.
+        """
+
+        for i, src in enumerate(self.gta.roi.sources):
             if src.name == "isodiff" or src.name=="galdiff":
                 continue
             
-            print(i, ":", src.name)
-            print("\t", src.associations)
-            i+=1
-    @property
-    def printTaget(self):
-        print(self.roi.sources[self.target_id])
+            self._logging.info(str(i)+") "+src.name+":"+str(src.associations[1:]))
 
-    def RemoveNaN(self):
-        for src in self.roi.sources:
-            if np.isnan(src['ts']):
-                self.delete_source(src.name)
+    @property
+    def print_target(self):
+        """
+        Print the target properties
+        """
+        self._logging.info(self.gta.roi.sources[self.target_id])
+
+    @property
+    def print_model(self):
+        """
+        Print source models within ROI
+        """
+        return self.gta.print_model(loglevel=40)
+
+    @property
+    def print_params(self):
+        """
+        Print parameters of sources within ROI
+        """
+        return self.gta.print_params(True, loglevel=40)
+
     
-    def setTarget(self, target):
+    @property
+    def verbosity(self):
+        """
+        return int
+        """
+        return self._verbosity
+
+    @property
+    def test_model(self):
+        return self._test_model 
+
+    def set_target(self, target):
+        """
+        Set/change the target 
+        
+        Args:
+            target (str or int): target name or id
+        """
         if type(target)==int:
-            self._target = self.roi.sources[target-1]
-            self._target_id = target-1
-            print("[Log] A target is set to", self.roi.sources[target-1].name)
+            self._target = self.gta.roi.sources[target]
+            self._target_id = target
+            self._logging.info(f"The target is set to {self.gta.roi.sources[target].name}")
             return
         elif type(target)==str:
-            i = 0
-            for src in self.roi.sources:
-                if src.name == "isodiff" or src.name=="galdiff":
-                    continue
-                elif target in src.associations:
-                    self._target = self.roi.sources[i]
+            self._find_target(name=target)
+            self._logging.info(f"The target is set to {src.name}")
+        self._logging.warning("The entered target is not found. Check sources by using print_association.")
+
+    def remove_weak_srcs(self):
+        N = 0
+        for src in self.gta.roi.sources:
+            if src.name == "isodiff" or src.name=="galdiff":
+                continue
+            if np.isnan(src['ts']) or src['ts'] < 0.1:
+                self.gta.delete_source(src.name)
+                N+=1
+        self._logging.info(f"{N} sources are deleted.")
+
+    def _find_target(self, name=None):
+        if name is None:
+            name = self.gta.config['selection']['target']
+
+        flag = False
+        for i, src in enumerate(self.gta.roi.sources):
+            if src.name == "isodiff" or src.name=="galdiff":
+                continue
+
+            for n in src.associations:
+                if n.replace(" ", "") == name:
+                    self._target = self.gta.roi.sources[i]
+                    self._target_name = self.gta.roi.sources[i].name
                     self._target_id = i
-                    print("[Log] A target is set to", src.name)
-                    return
-                else:
-                    i+=1
-        print("[Warning] The entered target is not found. Check sources by using printAssociation.")
+                    list_of_association = src.associations
+                    flag = True
+            if flag:
+                break
 
-
-    @property
-    def printModel(self):
-        return self.print_model(loglevel=40)
-
-    def createSource(self, name="source"):
-        src = Source(name, {'ra': self.config['selection']['ra'], 'dec': self.config['selection']['dec']})
-        print(src)
-        return src
-
-    def addSource(self, src):
-        return self.add_source(src.name, src)
-
-    def simpleAnalysis(self, free_all=False, min_ts=5, roi_cut=None, fix_index=False, optimizer = 'MINUIT', output=False):
-        
-        if free_all:
-            self.free_sources(free=True, loglevel=self.loglevel)    
+        if flag:
+            self._logging.info("The target, {}, is associated with {} source(s).".format(self.target_name, len(list_of_association)-1))
+            self._logging.debug(list_of_association)
         else:
-            self.free_sources(free=False, loglevel=self.loglevel)
+            self._logging.warning("The target name defined in the config file is not found.")
+            self._target = self.gta.roi.sources[0]
+            self._target_name = self.target.name
+            self._target_id = 0
 
-            self.free_sources(free=True, distance=roi_cut,  pars='norm', loglevel=self.loglevel)
+    def simple_fit(self, state_file="simple", pre_state=None, 
+        free_all=False, free_target=True,
+        remove_weak_srcs=False, fix_index=False, 
+        min_ts=5, distance=3.0, optimizer = 'NEWMINUIT', return_output=False, **kwargs):
+        """
+        Perform a simple fitting with various cuts
+        
+        Args:
+            state_file (str): output state filename (npy)
+                Default: simple
+            pre_state (str): input state filename (npy). If not defined, starting from
+                the current state.
+                Default: None
+            free_all (bool): make the target's all parameters free
+                Default: True
+            free_all (bool): make all sources parameters free
+                Default: False
+            remove_weak_srcs (bool): remove sources with TS of nan or 0. This setting 
+                will trigger another round of fit process after the first run.
+                Default: False
+            fix_index (bool): fix spectral shapes for sources for TS less than min_ts
+                Default: False
+            min_ts (int): minimum TS value for fixing a spectral shape
+                Default: 5
+            distance (float): parameters for sources outside of a certain distance 
+                from the center are fixed, except for the normalization
+                Default: 3.0 
+            optimizer (str): either MINUIT or NEWMINUIT
+                Default: NEWMINUIT
+            return_output (bool): return the fitting result (dict)
+                Default: False
+            **kwargs: passed to fermipy.GTAnalysis.free_sources function
+
+        Return
+            dict: the output of the fitting when return_output is True 
+        """
+        if pre_state is not None:
+            self.load_state(pre_state)
+
+        if free_all:
+            self.gta.free_sources(free=True, **kwargs) 
+        else:
+            self.gta.free_sources(free=False)
+
+            self.gta.free_sources(free=True, distance=distance,  pars='norm', **kwargs)
 
             if not(fix_index):
-                self.free_sources(free=True, minmax_ts=[min_ts, None], loglevel=self.loglevel)
+                self.gta.free_sources(free=True, minmax_ts=[min_ts, None], **kwargs)
         
-        o = self.fit(optimizer=optimizer, verbosity=self.verbosity)
+        if free_target:
+            self.gta.free_sources_by_name(self.target_name, free=True, pars=None)
+
+        o = self.gta.fit(optimizer=optimizer, verbosity=False)
         
-        self.saveStatus("simple")
-        if output:
+        if remove_weak_srcs:
+            self.remove_weak_srcs()
+            o = self.gta.fit(optimizer=optimizer, verbosity=False)
+                
+        self.save_state(state_file)
+        if return_output:
             return o
 
+    def analysis(self, jobs = ["ts", "resid", "sed"], 
+        filename = "output", **kwargs):
+        """
+        Perform various analyses: TS map, Residual map, and SED.
+        
+        Args:
+            jobs (list): list of jobs, 'ts', 'resid', and/or 'sed'.
+                Default: ['ts', 'resid', 'sed']
+            filename (str): read and write the output
+            **kwargs: passed to GTanalysis.sed
 
-    def makeOutput(self, jobs = ["ts", "resid", "sed", "lc"], bins = 1, bin_def="time", free_radius=3.0):
+        """
 
         try:
-            output = np.load("./fermi/output.npy", allow_pickle=True).item()
+            output = np.load(f"./fermi/{output}.npy", allow_pickle=True).item()
         except:
             output = {}
         
-        model = {'Index' : 2.0, 'SpatialModel' : 'PointSource' }
+        model = kwargs.get("model", self.test_model)
+        energy_bins = kwargs.get("energy_bins", [2.0,2.5,3.0,3.5,4.0,4.5,5.0])
 
-        free = self.get_free_param_vector()
-
-        target = self.target.name
+        free = self.gta.get_free_param_vector()
         
-        done = 0
         if "ts" in jobs:
-            if self.verbosity: 
-                print("[Log] Working on the TS map... [{}/{}]".format(done, len(jobs)), end='\r')
-            self.free_sources(free=False)
-            self.free_sources(pars="norm")
-            ts_output = self.tsmap('ts',model=model, write_fits=True, write_npy=True)
-            output['tsmap'] = ts_output
-            done+=1
-            if self.verbosity: 
-                print("[Log] Completed [{}/{}].                      ".format(done, len(jobs)), end='\r')
-            
+            o = self._ts_map(model=model)
+            output['ts'] = o
 
         if "resid" in jobs:
-            if self.verbosity: 
-                print("[Log] Working on the residual map... [{}/{}]".format(done, len(jobs)), end='\r')
-            self.free_sources(free=False)
-            self.free_sources(pars="norm")
-            resid_output = self.residmap('resid',model=model, write_fits=True, write_npy=True)
-            output['resid'] = resid_output
-            done+=1
-            if self.verbosity: 
-                print("[Log] Completed [{}/{}].                      ".format(done, len(jobs)), end='\r')
-
+            o = self._resid_dist(model=model)
+            output['resid'] = o
+            
         if "sed" in jobs:
-            if self.verbosity: 
-                print("[Log] Working on the spectral energy distribution (SED)... [{}/{}]".format(done, len(jobs)), end='\r')
-            
-            self.free_sources(free=False)
-            self.free_sources(skydir=self.roi[target].skydir, distance=[free_radius], free=True)
-            sed_output = self.sed(target, outfile='sed.fits', bin_index=2.2, loge_bins=[2.0,2.5,3.0,3.5,4.0,4.5,5.0], write_fits=True, write_npy=True)
-            output['sed'] = sed_output
-            done+=1
-            if self.verbosity: 
-                print("[Log] Completed [{}/{}].                                                ".format(done, len(jobs)), end='\r')
+            o = self._calc_sed(**kwargs)
+            output['sed'] = o
 
-        if "lc" in jobs:
-            if self.verbosity: 
-                print("[Log] Working on the residual map... [{}/{}]".format(done, len(jobs)), end='\r')
-            
-            if bin_def == "time":
-                lcbin = {"binsz": bins*86400.}
-            elif bin_def == "num":
-                lcbin = {"nbins": bins}
-            elif bin_def == "edge":
-                lcbin = {"time_bins": bins}
-
-            self.free_sources(free=False)
-            lc_output = self.lightcurve(target, free_radius=free_radius, multithread=False, nthread=4, use_scaled_srcmap=True, **lcbin)
-
-            output['lc'] = lc_output
-            done+=1
-            if self.verbosity: 
-                print("[Log] Completed [{}/{}].                               ".format(done, len(jobs)), end='\r')
-
-        self.set_free_param_vector(free)
+        self.gta.set_free_param_vector(free)
 
         self.output = output
-        np.save("./fermi/output", output)
-
-    def plotTSMap(self, show=["sqrt_ts", "ts_hist"]):
-        try:
-            self.output = np.load("./fermi/output.npy", allow_pickle=True).item()
-        except:
-            print("[Error] Please run makeOutput(jobs=['ts']) first.")
-            return
-
-        fig = plt.figure(figsize=(14,6))
-
-        size = len(show)
-        loc = 1
-
-        if "sqrt_ts" in show:
-            subplot = int("1"+str(size)+str(loc))
-            ROIPlotter(self.output['tsmap']['sqrt_ts'], roi=self.roi).plot(levels=[0,3,5,7],vmin=0,vmax=5,subplot=subplot,cmap='magma')
-            plt.gca().set_title('Sqrt(TS)')
-            loc+=1
-
-        if "npred" in show:
-            subplot = int("1"+str(size)+str(loc))
-            ROIPlotter(self.output['tsmap']['npred'], roi=self.roi).plot(vmin=0,vmax=100,subplot=subplot,cmap='magma')
-            plt.gca().set_title('NPred')
-            loc+=1
-
-        if "ts_hist" in show:
-            subplot = int("1"+str(size)+str(loc))
-            self._ts_hist(subplot)
-            plt.gca().set_title('TS histogram')
-            loc+=1
-
-        plt.show(block=False)
-
-    def plotResidMap(self, show=["sigma", "hist"]):
-        try:
-            self.output = np.load("./fermi/output.npy", allow_pickle=True).item()
-        except:
-            print("[Error] Please run makeOutput(jobs=['resid']) first.")
-            return
-
-        size = len(show)
-        if size > 3:
-            print("[Error] The number of input panels is too large; len(show)>3). Use two canvases." )
-            return
-
-        loc = 1
-
-        fig = plt.figure(figsize=(14,6))
-        if "data" in show:
-            subplot = int("1"+str(size)+str(loc))
-            ROIPlotter(self.output['resid']['data'],roi=self.roi).plot(vmin=50,vmax=400,subplot=121,cmap='magma')
-            plt.gca().set_title('Data')
-            loc+=1
-
-        if "model" in show:
-            subplot = int("1"+str(size)+str(loc))
-            ROIPlotter(self.output['resid']['model'],roi=self.roi).plot(vmin=50,vmax=400,subplot=122,cmap='magma')
-            plt.gca().set_title('Model')
-            loc+=1
-
-        if "sigma" in show:
-            subplot = int("1"+str(size)+str(loc))
-            ROIPlotter(self.output['resid']['sigma'],roi=self.roi).plot(vmin=-5,vmax=5,levels=[-5,-3,3,5],subplot=121,cmap='RdBu_r')
-            plt.gca().set_title('Significance')
-            loc+=1
-
-        if "excess" in show:
-            subplot = int("1"+str(size)+str(loc))
-            ROIPlotter(self.output['resid']['excess'],roi=self.roi).plot(vmin=-100,vmax=100,subplot=122,cmap='RdBu_r')
-            plt.gca().set_title('Excess')
-            loc+=1
-
-        if "hist" in show:
-            subplot = int("1"+str(size)+str(loc))
-            self._sigma_hist(subplot)
-            plt.gca().set_title('Residual histogram')
-            loc+=1
-
-        plt.show(block=False)  
+        np.save("./fermi/"+filename, output)
 
 
-    def plotSED(self, ylim=None, showlnl=False):
-        try:
-            self.output = np.load("./fermi/output.npy", allow_pickle=True).item()
-        except:
-            print("[Error] Please run makeOutput(jobs=['sed']) first.")
-            return
+    def plotting(self, plots, filename="output", **kwargs):
 
-        fig = plt.figure(figsize=(6,4))
-        SEDPlotter(self.output["sed"]).plot(showlnl=showlnl)
-        plt.gca().set_ylim(ylim)
-
-        plt.show(block=False)            
-
-    def _ts_hist(self, subplot):
-        fig = plt.gcf()
-        ax = fig.add_subplot(subplot)
-        bins = np.linspace(0, 25, 101)
-
-        data = np.nan_to_num(self.output['tsmap']['ts'].data.T)
-        data[data > 25.0] = 25.0
-        data[data < 0.0] = 0.0
-        n, bins, patches = ax.hist(data.flatten(), bins, density=True,
-                                   histtype='stepfilled',
-                                   facecolor='green', alpha=0.75)
-
-        ax.plot(bins, 0.5 * chi2.pdf(bins, 1.0), color='k',
-                label=r"$\chi^2_{1} / 2$")
-        ax.set_yscale('log')
-        ax.set_ylim(1E-4)
-        ax.legend(loc='upper right', frameon=False)
-
-        # labels and such
-        ax.set_xlabel('TS')
-        ax.set_ylabel('Probability')
-
-    def _sigma_hist(self, subplot):
-        fig = plt.gcf()
-        ax = fig.add_subplot(subplot)
-
-        nBins = np.linspace(-6, 6, 121)
-        data = np.nan_to_num(self.output['resid']['sigma'].data)
-
-        # find best fit parameters
-        mu, sigma = norm.fit(data.flatten())
+        """
+        Perform various analyses: TS map, Residual map, and SED.
         
-        # make and draw the histogram
-        data[data > 6.0] = 6.0
-        data[data < -6.0] = -6.0
+        Args:
+            plots (list): list of plots to show
+                Options: ["sqrt_ts", "npred", "ts_hist", 
+                          "data", "model", "sigma", 
+                          "excess", "resid", "sed"]
+            filename (str): read the output (from FermiAnalysis.analysis)
+        """
 
-        n, bins, patches = ax.hist(data.flatten(), nBins, density=True,
-                                   histtype='stepfilled',
-                                   facecolor='green', alpha=0.75)
-        # make and draw best fit line
-        y = norm.pdf(bins, mu, sigma)
-        ax.plot(bins, y, 'r--', linewidth=2, label="Best-fit")
-        y = norm.pdf(bins, 0.0, 1.0)
-        ax.plot(bins, y, 'k', linewidth=1, label=r"$\mu$ = 0, $\sigma$ = 1")
+        try:
+            self._logging.info("Loading the output file...")
+            self.output = np.load(f"./fermi/{filename}.npy", allow_pickle=True).item()
+        except:
+            self._logging.error("Run FermiAnalysis.analysis first.")
+            return
 
-        # labels and such
-        ax.set_xlabel(r'Significance ($\sigma$)')
-        ax.set_ylabel('Probability')
-        paramtext = 'Gaussian fit:\n'
-        paramtext += '$\\mu=%.2f$\n' % mu
-        paramtext += '$\\sigma=%.2f$' % sigma
-        ax.text(0.05, 0.95, paramtext, verticalalignment='top',
-                horizontalalignment='left', transform=ax.transAxes)
+        list_of_fig = ["sqrt_ts", "npred", "ts_hist", 
+                        "data", "model", "sigma", "excess", "resid",
+                        "sed"]
 
-        ax.legend()
+        if type(plots) == str:
+            plots = [plots]
+
+        for o in plots:
+            if o not in list_of_fig:
+                plots.remove(o)
+
+        if len(plots) == 1:
+            sub = "11"
+        elif len(plots) <= 3:
+            sub = "1"+str(len(plots))
+            f = plt.figure(figsize=(4*len(plots), 4))
+        elif len(plots) == 4:
+            sub = "22"
+            f = plt.figure(figsize=(8, 8))
+        elif len(plots) == 6:
+            sub = "23"
+            f = plt.figure(figsize=(12, 8))
+
+        for i, o in enumerate(plots):
+
+            subplot = int(sub+f"{i+1}")
+            plotter.fermi_plotter(o, self.output, self.gta.roi, self.gta.config, subplot=subplot, **kwargs)
+
+        plt.tight_layout()
+
+    
+    def create_source(self, name=None):
+        """
+        Create a target based on the location defined in the config file.  
+        
+        Args:
+            name (str): target name
+                Default: config.yaml
+        Return:
+            fermipy.roi_model.Source
+        """
+
+        if name is None:
+            name = self.gta.config["selection"]["target"]
+
+        src = Source(name, {'ra': self.gta.config['selection']['ra'], 'dec': self.gta.config['selection']['dec']})
+        self._logging.info(src)
+        return src
+
+    def add_source(self, src):
+        """
+        Add a source to the model. 
+        
+        Args:
+            src (fermipy.roi_model.Source)
+        """
+        if np.size(src)> 1:
+            for s in src:
+                self.gta.add_source(src.name, src)
+        else:
+            self.gta.add_source(src.name, src)
+
+    def find_sources(self, state_file = "wt_new_srcs", re_fit=True, **kwargs):
+        """
+        Find sources within the ROI (using GTanalysis.find_sources). 
+        
+        Args:
+            state_file (str): output state filename (npy)
+                Default: wt_new_srcs
+            re_fit (bool): re fit the ROI with new sources
+            **kwargs: passed to simple_fit.
+
+        Return:
+            dict: output of GTanalysis.find_sources
+        """
+        srcs = self.gta.find_sources(model=self.test_model, sqrt_ts_threshold=5.0,
+                        min_separation=0.5)
+
+        self._logging.info("{} sources are found. They will be added into the model list.".format(len(srcs["sources"])))
+
+        if re_fit:
+            self.simple_fit(state_file=state_file, **kwargs)
+        else:
+            self.save_state(state_file)
+
+        return srcs
+
+    def _ts_map(self, model):
+        self._logging.info("Generating a TS map...")
+        self.gta.free_sources(free=False)
+        self.gta.free_sources(pars="norm")
+        o = self.gta.tsmap('ts', model=model, write_fits=True, write_npy=True, make_plots=True)
+        self._logging.info("Generating the TS map is completed.")
+        return o
+
+    def _resid_dist(self, model):
+        self._logging.info("Generating a residual distribution...")
+        self.gta.free_sources(free=False)
+        self.gta.free_sources(pars="norm")
+        o = self.gta.residmap('resid',model=model, write_fits=True, write_npy=True)
+        self._logging.info("Generating the residual distribution is completed.")
+        return o
+
+    def _calc_sed(self, target=None, **kwargs):
+        self._logging.info("Generating a SED... ")
+
+        if target is None:
+            target = self.target_name
+        
+        distance = kwargs.pop("distance", 3.0)
+        loge_bins = kwargs.pop("loge_bins", [2.0,2.5,3.0,3.5,4.0,4.5,5.0])
+        
+        
+        self.gta.free_sources(free=False)
+        self.gta.free_sources(skydir=self.gta.roi[target].skydir, distance=[distance], free=True)
+        o = self.gta.sed(self.target.name, outfile='sed.fits', bin_index=2.2, write_fits=True, write_npy=True, **kwargs)
+        self._logging.info("Generating the SED is completed.")
+        return o
+
+    def _lightcurve(self, target=None, **kwargs):
+
+        self._logging.info("Generating a light curve...")
+
+        if target is None:
+            target = self.target_name
+    
+        free_radius = kwargs.pop("free_radius", 3.0)
+        
+        self.gta.free_sources(free=False)
+        self.gta.free_sources(pars="norm")
+
+        o = self.gta.lightcurve(target, free_radius=free_radius, multithread=True, 
+            nthread=4, use_scaled_srcmap=True, **kwargs)
+
+        self._logging.info("Generating the lightcurve is completed.")
+        return o

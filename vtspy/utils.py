@@ -4,10 +4,11 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 
 import logging
-logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=20)
+logging.basicConfig(format=('%(asctime)s %(levelname)-8s: %(message)s'), datefmt='%Y-%m-%d %H:%M:%S', level=20)
 
 from pathlib import Path
 SCRIPT_DIR = str(Path(__file__).parent.absolute())
+
 
 def logger(verbosity = 1):
     """
@@ -25,20 +26,17 @@ def logger(verbosity = 1):
     Return:
         astorpy.time: UTC time
     """
-    if verbosity == 1:
-        level = 20
-    elif verbosity == 2:
-        level = 10
-    elif verbosity == 0:
-        level = 40
-    elif verbosity == -1:
-        level = 50
-    else:
-        level = 20
+    levels_dict = {2: 10,
+                   1: 20,
+                   0: 30,
+                   -1: 40,
+                   -2: 50}
+                   
+    level = levels_dict[verbosity]
     logging.getLogger().setLevel(level)
     return logging
 
-def METtoUTC(met):
+def MET2UTC(met):
     """
     Convert Fermi MET (Mission Elapsed Time) to UTC (Coordinated 
     Universal Time).
@@ -54,7 +52,7 @@ def METtoUTC(met):
     dt = TimeDelta(met, format='sec')
     return (refMET+dt).iso
 
-def UTCtoMET(utc):
+def UTC2MET(utc):
     """
     Convert UTC to Fermi MET (mission elapsed time).
 
@@ -79,7 +77,7 @@ def METnow():
 	currentTime = Time.now()
 	return float((currentTime-refMET).sec)
 
-def MJDtoUTC(mjd):
+def MJD2UTC(mjd):
 	"""
     Convert MJD (Modified Julian Day) to UTC.
 
@@ -92,7 +90,7 @@ def MJDtoUTC(mjd):
 	refMJD = Time(mjd, format='mjd')
 	return refMJD.isot
 
-def CELtoGAL(ra, dec):
+def CEL2GAL(ra, dec):
 	"""
     Convert CEL (celestial) coordinates to GAL (galactic) coordinates.
 
@@ -106,7 +104,7 @@ def CELtoGAL(ra, dec):
 	c = SkyCoord(ra=float(ra)*u.degree, dec=float(dec)*u.degree, frame='icrs')
 	return c.galactic.l.deg, c.galactic.b.deg
 
-def GALtoCEL(l, b):
+def GAL2CEL(l, b):
 	"""
     Convert MJD (Modified Julian Day) to UTC.
 
