@@ -1,17 +1,53 @@
-from fermipy.gtanalysis import GTAnalysis
-from fermipy.roi_model import Source
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import glob
 
 from ..utils import logger
-from ..plotting import fermi_plotter as plotter
+from ..plotting import fermi_plotter
 
-import warnings
-warnings.filterwarnings('ignore')
+import matplotlib.patheffects as PathEffects
+import matplotlib.patches as Patches
 
-import glob
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+
+from gammapy.data import EventList
+from gammapy.datasets import Datasets, MapDataset
+
+from gammapy.irf import PSFMap, EDispMap
+from gammapy.maps import Map, MapAxis, WcsGeom
+
+from gammapy.utils.scripts import make_path
+
+from gammapy.modeling.models import (
+    ConstantSpatialModel,
+    PointSpatialModel,
+    GaussianSpatialModel,
+    TemplateSpatialModel,
+    SkyModel,
+    Models,
+)
+
+from gammapy.modeling.models import (
+    PowerLawSpectralModel,
+    PowerLawNormSpectralModel,
+    LogParabolaSpectralModel,
+    ExpCutoffPowerLawSpectralModel,
+    TemplateSpectralModel,    
+)
+
+from gammapy.modeling import Fit
+
+from fermipy.gtanalysis import GTAnalysis
+from fermipy.roi_model import Source
+
+import fermipy.wcs_utils as wcs_utils
+import fermipy.utils as fermi_utils
+
+from regions import CircleSkyRegion
+from pathlib import Path
 
 def generatePSF(config):  
     from GtApp import GtApp
@@ -51,8 +87,6 @@ class FermiAnalysis():
         **kwargs: passed to fermipy.GTAnalysis module
     """
 
-
-
     def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, remove_weak_srcs = False, verbosity=True, **kwargs):
         
         self._verbosity = verbosity
@@ -61,8 +95,12 @@ class FermiAnalysis():
         self._logging.info("Initializing the Fermi-LAT analysis...")
 
         self.gta = GTAnalysis(config_file, logging={'verbosity' : self.verbosity+1}, **kwargs)
+        self._outdir = self.gta.config['fileio']['outdir']
 
-        if overwrite or not(os.path.isfile("./{}/initial.fits".format(self.gta.config['fileio']['outdir']))):
+        # This is for the gammapy
+        self.datasets = {'data': {}, 'irf': {}}
+
+        if overwrite or not(os.path.isfile("./{}/initial.fits".format(self._outdir))):
             
             if overwrite:
                 self._logging.info("Overwriting the Fermi-LAT setup...")
@@ -95,7 +133,7 @@ class FermiAnalysis():
                 return
 
         try:
-            self.output = np.load("./fermi/output.npy", allow_pickle=True).item()
+            self.output = np.load(f"./{self._outdir}/output.npy", allow_pickle=True).item()
         except:
             self.output = {}
 
@@ -103,39 +141,6 @@ class FermiAnalysis():
         self._find_target()
         self._logging.info("Initialization of Fermi-LAT has been completed.")
         
-    def save_state(self, state_file, init=False):
-        """
-        Save the state
-        
-        Args:
-            state_file (str): passed to fermipy.write_roi
-            init (bool): check whether this is the initial analysis.
-                Default: False
-        """
-        
-        if (init==False) and (state_file == "initial"):
-            self._logging.warning("The 'inital' state is overwritten. This is not recommended.")
-            self._logging.warning("The original 'inital' state is archived in the '_orig' folder.")
-            os.system("mkdir ./fermi/_orig")
-            for file in glob.glob("./fermi/*initial*"):
-                os.sytem("mv {file} ./fermi/_orig/")
-
-        self.gta.write_roi(state_file, save_model_map=True)
-
-    def load_state(self, state_file):
-        """
-        Load the state
-        
-        Args:
-            state_file (str): passed to fermipy.write_roi
-        """
-        try:
-            self.gta.load_roi(state_file)
-        except:
-            self._logging.error("The state file does not exist. Check the name again")
-            return -1
-
-
     @property
     def target(self):
         """
@@ -205,6 +210,70 @@ class FermiAnalysis():
     def test_model(self):
         return self._test_model 
 
+    def peek_events(self):
+        if "eventlist" not in self.datasets["data"].keys():
+            self._logging.error("Run FermiAnalysis.construct_dataset first.")
+            return 
+
+        self.datasets["data"]["eventlist"].peek()
+        
+    def peek_irfs(self):
+        if "edisp" not in self.datasets["irf"].keys():
+            self._logging.error("Run FermiAnalysis.construct_dataset first.")
+            return
+
+        e_true = self.datasets["irf"]["edisp"].edisp_map.geom.axes[1]
+        e_reco = MapAxis.from_energy_bounds(
+            e_true.edges.min(),
+            e_true.edges.max(),
+            nbin=len(e_true.center),
+            name="energy",
+        )
+
+        edisp_kernel = self.datasets["irf"]["edisp"].get_edisp_kernel(energy_axis=e_reco)
+
+        
+        f, ax = plt.subplots(2,2, figsize=(10, 6))
+        edisp_kernel.plot_bias(ax = ax[0][0])
+        ax[0][0].set_xlabel(f"$E_\\mathrm{{True}}$ [MeV]")
+
+        edisp_kernel.plot_matrix(ax = ax[0][1])
+        self.datasets['irf']['psf'].plot_containment_radius_vs_energy(ax = ax[1][0])
+        self.datasets['irf']['psf'].plot_psf_vs_rad(ax = ax[1][1])
+        plt.tight_layout()
+
+    def save_state(self, state_file, init=False):
+        """
+        Save the state
+        
+        Args:
+            state_file (str): passed to fermipy.write_roi
+            init (bool): check whether this is the initial analysis.
+                Default: False
+        """
+        
+        if (init==False) and (state_file == "initial"):
+            self._logging.warning("The 'inital' state is overwritten. This is not recommended.")
+            self._logging.warning("The original 'inital' state is archived in the '_orig' folder.")
+            os.system(f"mkdir ./{self._outdir}/_orig")
+            for file in glob.glob(f"./{self._outdir}/*initial*"):
+                os.sytem(f"mv {file} ./{self._outdir}/_orig/")
+
+        self.gta.write_roi(state_file, save_model_map=True)
+
+    def load_state(self, state_file):
+        """
+        Load the state
+        
+        Args:
+            state_file (str): passed to fermipy.write_roi
+        """
+        try:
+            self.gta.load_roi(state_file)
+        except:
+            self._logging.error("The state file does not exist. Check the name again")
+            return -1
+
     def set_target(self, target):
         """
         Set/change the target 
@@ -221,17 +290,7 @@ class FermiAnalysis():
             self._find_target(name=target)
             self._logging.info(f"The target is set to {src.name}")
         self._logging.warning("The entered target is not found. Check sources by using print_association.")
-
-    def remove_weak_srcs(self):
-        N = 0
-        for src in self.gta.roi.sources:
-            if src.name == "isodiff" or src.name=="galdiff":
-                continue
-            if np.isnan(src['ts']) or src['ts'] < 0.1:
-                self.gta.delete_source(src.name)
-                N+=1
-        self._logging.info(f"{N} sources are deleted.")
-
+    
     def _find_target(self, name=None):
         if name is None:
             name = self.gta.config['selection']['target']
@@ -259,6 +318,20 @@ class FermiAnalysis():
             self._target = self.gta.roi.sources[0]
             self._target_name = self.target.name
             self._target_id = 0
+
+    def remove_weak_srcs(self):
+        """
+        Remove sources within ROI if they are too weak (TS < 0.1 or nan).
+        """
+        N = 0
+        for src in self.gta.roi.sources:
+            if src.name == "isodiff" or src.name=="galdiff":
+                continue
+            if np.isnan(src['ts']) or src['ts'] < 0.1:
+                self.gta.delete_source(src.name)
+                N+=1
+        self._logging.info(f"{N} sources are deleted.")
+
 
     def simple_fit(self, state_file="simple", pre_state=None, 
         free_all=False, free_target=True,
@@ -322,7 +395,7 @@ class FermiAnalysis():
         if return_output:
             return o
 
-    def analysis(self, jobs = ["ts", "resid", "sed"], 
+    def simple_analysis(self, jobs = ["ts", "resid", "sed"], 
         filename = "output", **kwargs):
         """
         Perform various analyses: TS map, Residual map, and SED.
@@ -336,7 +409,7 @@ class FermiAnalysis():
         """
 
         try:
-            output = np.load(f"./fermi/{output}.npy", allow_pickle=True).item()
+            output = np.load(f"./{self._outdir}/{output}.npy", allow_pickle=True).item()
         except:
             output = {}
         
@@ -360,7 +433,7 @@ class FermiAnalysis():
         self.gta.set_free_param_vector(free)
 
         self.output = output
-        np.save("./fermi/"+filename, output)
+        np.save(f"./{self._outdir}/"+filename, output)
 
 
     def plotting(self, plots, filename="output", **kwargs):
@@ -373,14 +446,14 @@ class FermiAnalysis():
                 Options: ["sqrt_ts", "npred", "ts_hist", 
                           "data", "model", "sigma", 
                           "excess", "resid", "sed"]
-            filename (str): read the output (from FermiAnalysis.analysis)
+            filename (str): read the output (from FermiAnalysis.simple_analysis)
         """
 
         try:
             self._logging.info("Loading the output file...")
-            self.output = np.load(f"./fermi/{filename}.npy", allow_pickle=True).item()
+            self.output = np.load(f"./{self._outdir}/{filename}.npy", allow_pickle=True).item()
         except:
-            self._logging.error("Run FermiAnalysis.analysis first.")
+            self._logging.error("Run FermiAnalysis.simple_analysis first.")
             return
 
         list_of_fig = ["sqrt_ts", "npred", "ts_hist", 
@@ -409,7 +482,7 @@ class FermiAnalysis():
         for i, o in enumerate(plots):
 
             subplot = int(sub+f"{i+1}")
-            plotter.fermi_plotter(o, self.output, self.gta.roi, self.gta.config, subplot=subplot, **kwargs)
+            fermi_plotter(o, self.output, self.gta.roi, self.gta.config, subplot=subplot, **kwargs)
 
         plt.tight_layout()
 
@@ -495,10 +568,9 @@ class FermiAnalysis():
         distance = kwargs.pop("distance", 3.0)
         loge_bins = kwargs.pop("loge_bins", [2.0,2.5,3.0,3.5,4.0,4.5,5.0])
         
-        
         self.gta.free_sources(free=False)
         self.gta.free_sources(skydir=self.gta.roi[target].skydir, distance=[distance], free=True)
-        o = self.gta.sed(self.target.name, outfile='sed.fits', bin_index=2.2, write_fits=True, write_npy=True, **kwargs)
+        o = self.gta.sed(self.target.name, outfile='sed.fits', bin_index=2.2, loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
         self._logging.info("Generating the SED is completed.")
         return o
 
@@ -519,3 +591,57 @@ class FermiAnalysis():
 
         self._logging.info("Generating the lightcurve is completed.")
         return o
+
+    def _load_fermi_events(self, eventlist = "ft1_00.fits"):
+
+        events = EventList.read(Path(self._outdir)/ f"{eventlist}")
+
+        glon = self.gta.config['selection']['glon']
+        glat = self.gta.config['selection']['glat']
+        energy_bins = np.logspace(2, 5.5, 8)* u.MeV
+        src_pos = SkyCoord(glon, glat, unit="deg", frame="galactic")
+        energy_axis = MapAxis.from_edges(energy_bins, name="energy", unit="MeV", interp="log")
+        counts = Map.create(skydir=src_pos, width=self.gta.config['binning']['roiwidth'], 
+            proj=self.gta.config['binning']['proj'], binsz=self.gta.config['binning']['binsz'], 
+            frame='galactic', axes=[energy_axis], dtype=float)
+        counts.fill_by_coord({"skycoord": events.radec, "energy": events.energy})
+        
+        self.datasets['data']['eventlist'] = events
+        self.datasets['data']['counts'] = counts
+
+
+    def _load_fermi_irfs(self, exposure = "bexpmap_00.fits", psf = "gtpsf_00.fits"):
+        # Exposure
+        counts = self.datasets['data']['counts']
+
+        expmap = Map.read(Path(self._outdir) / f"{exposure}")
+        axis = MapAxis.from_nodes(
+            counts.geom.axes[0].center, 
+            name="energy_true",
+            unit="MeV", 
+            interp="log"
+        )
+
+        geom = WcsGeom(wcs=counts.geom.wcs, npix=counts.geom.npix, axes=[axis])
+        exposure = expmap.interp_to_geom(geom)
+        self.datasets['irf']['exposure'] = exposure
+        
+        # PSF
+        psf = PSFMap.read(Path(self._outdir) / f"{psf}", format="gtpsf")
+        self.datasets['irf']['psf'] = psf
+
+        # Energy dispersion
+        e_true = exposure.geom.axes["energy_true"]
+        edisp = EDispMap.from_diagonal_response(energy_axis_true=e_true)
+        self.datasets['irf']['edisp'] = edisp
+
+    def construct_dataset(self, 
+                        eventlist = "ft1_00.fits", 
+                        exposure = "bexpmap_00.fits", 
+                        psf = "gtpsf_00.fits"):
+        self._logging.info("Loading the Fermi-LAT events...")
+        self._load_fermi_events(eventlist=eventlist)
+        self._logging.info("Loading the Fermi-LAT IRFs...")
+        self._load_fermi_irfs(exposure=exposure, psf=psf)
+        self._logging.info("Loading the Fermi-LAT models...")
+        

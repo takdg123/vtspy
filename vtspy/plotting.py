@@ -30,7 +30,7 @@ def fermi_plotter(name, output, roi, config, subplot = None, **kwargs):
     kwargs.setdefault('cmap', config['plotting']['cmap'])
     kwargs.setdefault('catalogs', config['plotting']['catalogs'])
 
-    ylim = kwargs.get('ymin', None)
+    ymin = kwargs.get('ymin', None)
     showlnl = kwargs.get('showlnl', False)
     
     if subplot is None:

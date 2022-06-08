@@ -1,50 +1,3 @@
-import os
-import numpy as np
-
-import matplotlib.pyplot as plt
-import matplotlib.patheffects as PathEffects
-import matplotlib.patches as Patches
-
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-
-from fermipy.gtanalysis import GTAnalysis
-
-from gammapy.data import EventList
-from gammapy.datasets import Datasets, MapDataset
-
-from gammapy.irf import EnergyDependentTablePSF, PSFMap, EDispMap
-from gammapy.maps import Map, MapAxis, WcsGeom
-
-from gammapy.utils.scripts import make_path
-
-from gammapy.modeling.models import (
-    ConstantSpatialModel,
-    PointSpatialModel,
-    GaussianSpatialModel,
-    TemplateSpatialModel,
-    SkyModel,
-    Models,
-)
-
-from gammapy.modeling.models import (
-    PowerLawSpectralModel,
-    PowerLawNormSpectralModel,
-    LogParabolaSpectralModel,
-    ExpCutoffPowerLawSpectralModel,
-    TemplateSpectralModel,    
-)
-
-from gammapy.modeling import Fit
-
-import fermipy.wcs_utils as wcs_utils
-import fermipy.utils as fermi_utils
-
-from regions import CircleSkyRegion
-from pathlib import Path
-
-from fermipy.roi_model import Source
-
 
 paramCovf2g = {'norm': ['amplitude', 1],
             'Prefactor': ['amplitude', 1],
@@ -166,40 +119,7 @@ class FermiUtils(GTAnalysis):
             self._diff_bkg = self._set_fermi_diffuse_bkg(self.roi)
         self._models = Models(sources+self._diff_bkg)        
 
-    def _load_fermi_events(self):
-        events = EventList.read(self._fermi_outdir / "ft1_00.fits")
-        src_pos = SkyCoord(self.config['selection']['glon'], self.config['selection']['glat'], unit="deg", frame="galactic")
-        energy_axis = MapAxis.from_edges(self._fermi_energy_bin, name="energy", unit="MeV", interp="log")
-        counts = Map.create(skydir=src_pos, width=self.config['binning']['roiwidth'], proj=self.config['binning']['proj'], binsz=self.config['binning']['binsz'], frame='galactic', axes=[energy_axis], dtype=float,)
-        counts.fill_by_coord({"skycoord": events.radec, "energy": events.energy})
-        self.fermi_data['counts'] = counts
-
-
-    def _load_fermi_irfs(self):
-        # Exposure
-        counts = self.fermi_data['counts']
-
-        expmap = Map.read(self._fermi_outdir / "bexpmap_00.fits")
-        axis = MapAxis.from_nodes(
-            counts.geom.axes[0].center, 
-            name="energy_true",
-            unit="MeV", 
-            interp="log"
-        )
-
-        geom = WcsGeom(wcs=counts.geom.wcs, npix=counts.geom.npix, axes=[axis])
-        exposure = expmap.interp_to_geom(geom)
-        self.fermi_data['exposure'] = exposure
-        
-        # PSF
-        psf_table = EnergyDependentTablePSF.read(self._fermi_outdir / "gtpsf_00.fits")
-        psf = PSFMap.from_energy_dependent_table_psf(psf_table)
-        self.fermi_data['psf'] = psf
-
-        # Energy dispersion
-        e_true = exposure.geom.axes["energy_true"]
-        edisp = EDispMap.from_diagonal_response(energy_axis_true=e_true)
-        self.fermi_data['edisp'] = edisp
+    
 
     def _fermipy_2_gammpy_models(self):
         for src in self.roi.sources:
