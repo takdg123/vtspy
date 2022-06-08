@@ -19,7 +19,6 @@ from gammapy.datasets import Datasets, MapDataset
 from gammapy.irf import PSFMap, EDispMap
 from gammapy.maps import Map, MapAxis, WcsGeom
 
-from gammapy.utils.scripts import make_path
 
 from gammapy.modeling.models import (
     ConstantSpatialModel,

@@ -18,8 +18,8 @@ model_dict = {
 }
 
 params = {
-    "PowerLaw": {"index": float, "amplitude": float, "reference": float}
-    "LogParabola": {"alpha": float, "beta": float, "amplitude": float, "reference": float}
+    "PowerLaw": {"Index": "index", "Prefactor": "amplitude", "Scale": "reference"}
+    "LogParabola": {"alpha": "Index1", "beta": "Index2", "amplitude": "norm", "reference": "Eb"}
 }
 
 def fermi_galactic_diffuse_bkg(config, norm = 1):
@@ -62,19 +62,7 @@ def spectral_model(src):
             reference="{:.5f} MeV".format(src['spectral_pars']['Eb']['value'])
         )
         self._re_scaling(spectral_model, src, "norm")
-        
-    elif src['SpectrumType'] == 'PLSuperExpCutoff':
-        factor = src['spectral_pars']['Prefactor']['scale']
-        lambda_temp = 1./src['spectral_pars']['Cutoff']['value']*1e6
-        spectral_model = ExpCutoffPowerLawSpectralModel(
-            index=src['spectral_pars']['Index1']['value'], 
-            lambda_="{:.5f} TeV-1".format(lambda_temp),
-            alpha=src['spectral_pars']['Index2']['value'], 
-            amplitude="{:.3e} cm-2 s-1 MeV-1".format(src['spectral_pars']['Prefactor']['value']*factor),
-            reference="{:.5f} MeV".format(src['spectral_pars']['Scale']['value'])
-        )
-        self._re_scaling(spectral_model, src, "Prefactor")
-        
+  
     else:
         print("[Error] This type of the spectral model is not yet supported;", src['SpectrumType'])
         raise
