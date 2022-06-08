@@ -102,30 +102,28 @@ class FermiAnalysis():
         if overwrite or not(os.path.isfile("./{}/initial.fits".format(self._outdir))):
             
             if overwrite:
-                self._logging.info("Overwriting the Fermi-LAT setup...")
+                self._logging.info("Overwrite the Fermi-LAT setup.")
             else:
                 self._logging.info("Initial setup and configuration are not found. Performing the data reduction...")
             
-            self._logging.debug("Generating fermipy files...")
+            self._logging.debug("Generate fermipy files.")
             self.gta.setup(overwrite=overwrite)
             
-            self._logging.debug("Optimizing the ROI...")
+            self._logging.debug("Optimize the ROI.")
             self.gta.optimize()
             
             if remove_weak_srcs:
                 self.remove_weak_srcs()
             
-            self._logging.debug("Generating PSF...")
+            self._logging.debug("Generate PSF.")
             generatePSF(self.gta.config)
             
-            self._logging.debug("Saving the information...")
             self.save_state("initial", init=True, **kwargs)
             
             self._logging.info("The initial setup and configuration is saved [state_file = initial].")
         else:
             self._logging.info("The setup and configuration is found [state_file = {}]. Loading the configuration...".format(state_file))
             
-            self._logging.debug("Loading the information...")
             flag = self.load_state(state_file)
 
             if flag == -1:
@@ -138,7 +136,7 @@ class FermiAnalysis():
 
         self._test_model = {'Index' : 2.0, 'SpatialModel' : 'PointSource' }
         self._find_target()
-        self._logging.info("Initialization of Fermi-LAT has been completed.")
+        self._logging.info("Completed (Fermi-LAT initialization).")
         
     @property
     def target(self):
@@ -389,7 +387,12 @@ class FermiAnalysis():
         if remove_weak_srcs:
             self.remove_weak_srcs()
             o = self.gta.fit(optimizer=optimizer, verbosity=False)
-                
+        
+        if o["fit_success"]:
+            self._logging.info("Fit successfully.")
+        else:
+            self._logging.error("Fit fails.")
+
         self.save_state(state_file)
         if return_output:
             return o

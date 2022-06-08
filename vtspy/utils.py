@@ -1,3 +1,6 @@
+import os
+import numpy as np
+
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -8,6 +11,7 @@ logging.basicConfig(format=('%(asctime)s %(levelname)-8s: %(message)s'), datefmt
 
 from pathlib import Path
 SCRIPT_DIR = str(Path(__file__).parent.absolute())
+
 
 
 def logger(verbosity = 1):
@@ -116,3 +120,23 @@ def GAL2CEL(l, b):
     """
 	c = SkyCoord(l=float(l)*u.degree, b=float(b)*u.degree, frame='galactic')
 	return c.icrs.ra.deg, c.icrs.dec.deg 
+
+def bright_source_list(source = "Hipparcos_MAG8_1997", save_npy=True):
+
+    if os.path.exists(SCRIPT_DIR+"/refdata/"+source+".npy"):
+        bright_sources = np.load(SCRIPT_DIR+"/refdata/"+source+".npy")
+    else:
+        bright_sources = []
+        with open(SCRIPT_DIR+"/refdata/"+source+".dat") as f: 
+            for line in f.readlines()[27:]:
+                info = line.split()
+                if len(info) == 5:
+                    ra = info[0]
+                    dec = info[1]
+                    bright = info[3]
+                    brightbv = info[4]
+
+                    bright_sources.append([float(ra), float(dec), float(bright), float(brightbv)])
+            if save_npy:
+                np.save(SCRIPT_DIR+"/refdata/"+source, bright_sources)
+    return np.asarray(bright_sources)

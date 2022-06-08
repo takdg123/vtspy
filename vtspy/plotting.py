@@ -1,6 +1,9 @@
 import numpy as np
 
 from fermipy.plotting import ROIPlotter, SEDPlotter
+
+from gammapy.visualization import plot_spectrum_datasets_off_regions
+
 import matplotlib.pyplot as plt
 
 from scipy.stats import chi2
@@ -158,3 +161,35 @@ def plot_sigma_hist(output, subplot=None):
     ax.legend()
 
     return ax
+
+def veritas_plotter(name, output):
+    if name == "fit":
+        output.plot_fit()
+
+    elif name == "flux":
+        ax = plt.gca()
+        output.plot(ax, sed_type="e2dnde", color="lightblue", label="1E S1218+304")
+        output.plot_ts_profiles(ax=ax, sed_type="e2dnde");
+        ax.legend()
+
+    elif name == "sed":
+        kwargs_spectrum = {"kwargs_model": {"color":"blue", "label":"Pwl"}, "kwargs_fp":{"color":"blue", "marker":"o", "label":"1ES 1218+304"}}
+        kwargs_residuals = {"color": "blue", "markersize":4, "marker":'s', }
+        ax_spec, ax_res = output.plot_fit(kwargs_spectrum=kwargs_spectrum)
+
+def plot_ROI(veritas=None, fermi=None):
+    plt.figure(figsize=(7, 7))
+        
+    if veritas is not None:
+        ax = veritas._exclusion_mask.plot()
+        veritas._on_region.to_pixel(ax.wcs).plot(ax=ax, edgecolor="red")
+        plot_spectrum_datasets_off_regions(ax=ax, datasets=veritas.datasets)
+    
+    if fermi is not None:
+        if veritas is not None:
+            geom = Map.create(npix=(150, 150), binsz=0.05, skydir=fermi.target.skydir, proj="CAR", frame="icrs")
+            _, ax, _ = geom.plot()
+            ax.add_patch(Patches.Rectangle((0, 0), 150, 150,  color="w"))
+        #fermi._src_in_roi(ax)
+
+    plt.show(block=False)

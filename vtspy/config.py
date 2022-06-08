@@ -12,7 +12,7 @@ from .utils import logger, SCRIPT_DIR
 
 from pathlib import Path
 
-class FermiConfig:
+class GammaConfig:
 	"""
 	This is to generate the configuration file compatible to
 	the Fermipy configuration. The input file is the VERITAS
@@ -33,11 +33,12 @@ class FermiConfig:
 
 		path = Path(config_file)
 		if path.is_file() and (files is None):
-			self.file = self.get_config(config_file)
+			self.config = self.get_config(config_file)
 			self._logging.info(f'a configuration file ({config_file}) is loaded.') 
 		else:
 			self.init(files=files, config_file = config_file, info=info, gald=gald, iso=iso)
 			self._logging.info(f'a configuration file ({config_file}) is created.') 
+
 
 	@classmethod
 	def init(self, files, config_file="config.yaml", gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt", info = {}, verbosity=1):
@@ -56,6 +57,10 @@ class FermiConfig:
 		
 		if files is not None:
 			filelist = glob.glob(files+"*")
+		
+		for file in filelist:
+			if ".gz" in file:
+				filelist.remove(file)
 
 		pre_info = self.__emptyfile__(gald=gald, iso=iso)	
 
@@ -144,6 +149,7 @@ class FermiConfig:
 
 		self.set_config(info, config_file)
 
+		self.config = info
 		
 	@staticmethod
 	def get_config(config_file="config.yaml"):
@@ -229,6 +235,8 @@ class FermiConfig:
 	def __emptyfile__(gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt"):
 		if not(os.path.isdir("./fermi")):
 			os.system("mkdir fermi")
+		if not(os.path.isdir("./veritas")):
+			os.system("mkdir veritas")
 		if not(os.path.isdir("./log")):
 			os.system("mkdir log")
 			os.system(": > ./log/fermipy.log")
@@ -274,6 +282,13 @@ class FermiConfig:
 				'fileio': {
 					'outdir' : "./fermi/",
    					'logfile' : "./log/fermipy.log",
+					'usescratch': False
+					},
+				'fileio_vtspy': {
+					'outdir' : "./gamma/",
+					'veritas' : "./veritas/",
+					'fermi' : "./fermi/",
+   					'logfile' : "./log/vtspy.log",
 					'usescratch': False
 					}
 				}
