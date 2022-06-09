@@ -64,12 +64,22 @@ class GammaConfig:
 
 		pre_info = self.__emptyfile__(gald=gald, iso=iso)	
 
-		info = {**info, 'selection':{'ra': None, 'dec': None, 'tmin': None, 'tmax':None}}
+		info = {**info, 
+			'selection':{
+				'ra': None, 
+				'dec': None, 
+				'tmin': None, 
+				'tmax':None},
+			'vts_setup':{
+				'tmin': None,
+				'tmax': None,
+			}}
 		
 		ra = info['selection']['ra']
 		dec = info['selection']['dec']
 		
 		for file in filelist:
+
 			if file!=None:
 
 				if '.root' in file:
@@ -92,21 +102,14 @@ class GammaConfig:
 						if temp != dec:
 							self._logging.error("[Error] DEC values in input files are different.")		
 					
-					tmin = utils.MJD2UTC(tRun['MJDOn'].arrays(library="np")['MJDOn'][0])
-					tmin = utils.UTC2MET(tmin[:10])
-					tmax = utils.MJD2UTC(tRun['MJDOff'].arrays(library="np")['MJDOff'][0])
-					tmax = utils.UTC2MET(tmax[:10])+60*60*24
-
+					tmin_mjd = tRun['MJDOn'].arrays(library="np")['MJDOn'][0]
+					tmin_utc = utils.MJD2UTC(tmin_mjd)
+					tmin = utils.UTC2MET(tmin_utc[:10])
 					
-					if info['selection']['tmin'] is not None:
-						if info['selection']['tmin'] < tmin:
-							tmin = info['selection']['tmin']
+					tmax_mjd = tRun['MJDOff'].arrays(library="np")['MJDOff'][0]
+					tmax_utc = utils.MJD2UTC(tmax_mjd)
+					tmax = utils.UTC2MET(tmax_utc[:10])+60*60*24
 					
-					if info['selection']['tmax'] is not None:
-						if info['selection']['tmax'] > tmax:
-							tmax = info['selection']['tmax']
-					
-					info = {**info, 'selection':{'ra': ra, 'dec': dec, 'tmin': tmin, 'tmax':tmax}}
 				elif '.fits' in file:
 
 					header = fits.open(file)[1].header
@@ -125,22 +128,54 @@ class GammaConfig:
 						if temp != dec:
 							self._logging.error("[Error] DEC values in input files are different.")		
 					
-					tmin = header['DATE-OBS']
-					tmin = utils.UTC2MET(tmin[:10])
-					tmax = header['DATE-END']
-					tmax = utils.UTC2MET(tmax[:10])+60*60*24
+					tmin_utc = header['DATE-OBS']
+					tmin = utils.UTC2MET(tmin_utc[:10])
+					tmin_mjd = utils.UTC2MJD(tmin_utc)
+					
+					tmax_utc = header['DATE-END']
+					tmax = utils.UTC2MET(tmax_utc[:10])+60*60*24
+					tmax_mjd = utils.UTC2MJD(tmax_utc)
 					
 					target = header['OBJECT']
+				else:
+					continue
+				
+				if info['selection']['tmin'] is not None:
+					if info['selection']['tmin'] < tmin:
+						tmin = info['selection']['tmin']
+					else:
+						info['selection']['tmin'] = tmin
+				
+				if info['selection']['tmax'] is not None:
+					if info['selection']['tmax'] > tmax:
+						tmax = info['selection']['tmax']
+					else:
+						info['selection']['tmax'] = tmax
+						
+				if info['vts_setup']['tmin'] is not None:
+					if info['vts_setup']['tmin'] < tmin_mjd:
+						tmin_mjd = info['vts_setup']['tmin']
+					else:
+						info['vts_setup']['tmin'] = tmin_mjd
+				if info['vts_setup']['tmax'] is not None:
+					if info['vts_setup']['tmax'] > tmax_mjd:
+						tmax_mjd = info['vts_setup']['tmax']
+					else:
+						info['vts_setup']['tmax'] = tmax_mjd
 
-					if info['selection']['tmin'] is not None:
-						if info['selection']['tmin'] < tmin:
-							tmin = info['selection']['tmin']
-					if info['selection']['tmax'] is not None:
-						if info['selection']['tmax'] > tmax:
-							tmax = info['selection']['tmax']
+				
+				info = {**info, 
+					'selection':{
+						'ra': ra, 
+						'dec': dec, 
+						'tmin': tmin, 
+						'tmax': tmax, 
+						'target': target},
+					'vts_setup':{
+						'tmin': tmin_mjd, 
+						'tmax': tmax_mjd, 
+					}}
 
-
-					info = {**info, 'selection':{'ra': ra, 'dec': dec, 'tmin': tmin, 'tmax':tmax, 'target': target}}
 
 		
 		info = self._filter(pre_info, info)
@@ -150,7 +185,7 @@ class GammaConfig:
 		self.set_config(info, config_file)
 
 		self.config = info
-		
+
 	@staticmethod
 	def get_config(config_file="config.yaml"):
 		"""
@@ -202,8 +237,9 @@ class GammaConfig:
 	    	config_file (str): Fermi config filename (yaml)
 				Default: config.yaml
 	    """
-		pre_info = self.get_config(config_file)
-		self._logging.info("\n"+yaml.dump(pre_info, sort_keys=False, default_flow_style=False))
+		if not(hasattr(self, "config")):
+			self.config = self.get_config(config_file)
+		self._logging.info("\n"+yaml.dump(self.config, sort_keys=False, default_flow_style=False))
 
 	def _filter(pre_info, info):
 		if len(info) != 0:
@@ -284,12 +320,21 @@ class GammaConfig:
    					'logfile' : "./log/fermipy.log",
 					'usescratch': False
 					},
-				'fileio_vtspy': {
-					'outdir' : "./gamma/",
-					'veritas' : "./veritas/",
-					'fermi' : "./fermi/",
-   					'logfile' : "./log/vtspy.log",
-					'usescratch': False
-					}
+				'vts_setup':{
+					'tmin' : None,
+					'tmax' : None,
+					'format': "mjd",
+					'max_region_number': 6,
+					'radius': 2.0,
+					'th2cut': 0.008,
+					'exc_on_region_radius': 0.7,
+					'exc_radius': 0.25,
+					'emin': 0.1,
+					'emax': 2.0,
+					'eff_cut': 0,
+					'bias_cut': 0,
+					'outdir':  "./veritas/",
+					'bright_srcs': ['Hipparcos_MAG8_1997', 1.75, 7],
+					},
 				}
 		return info

@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+import astropy.units as u
+
 from .version import __version__
 
 from . import utils

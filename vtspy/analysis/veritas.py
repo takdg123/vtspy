@@ -4,11 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import pickle
+import copy
 import astropy.units as u
 from astropy.coordinates import SkyCoord, Angle
+from astropy.time import Time
 
+from ..utils import logger
+from .. import utils
 
-from ..utils import logger, bright_source_list
 from ..config import GammaConfig
 from ..plotting import veritas_plotter
 
@@ -31,32 +34,48 @@ from gammapy.modeling.models import SkyModel
 
 from regions import CircleSkyRegion
 
-from gammapy.estimators import FluxPointsEstimator, ExcessMapEstimator, FluxPoints
+from gammapy.estimators import FluxPointsEstimator, ExcessMapEstimator, FluxPoints, LightCurveEstimator
 
 
 
 class VeritasAnalysis:
+
+	_energy_axis = MapAxis.from_energy_bounds(
+		    0.05, 50., nbin=100, per_decade=False, unit="TeV", name="energy"
+		)
+	_energy_axis_true = MapAxis.from_energy_bounds(
+		    0.05, 50., nbin=200, per_decade=False, unit="TeV", name="energy_true"
+		)
+	_excluded_regions = []
+
 	def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, verbosity=1, **kwargs):
+		"""
+	    This is to perform a simple VERITAS analysis and to prepare the joint-fit
+	    analysis. All analysis is done with the gammapy package
+	    
+	    Args:
+	        state_file (str): state filename (pickle)
+	        	Default: initial
+	        config_file (str): config filename (yaml)
+	            Default: config.yaml
+	        overwrite (bool): overwrite the state
+	            Default: False
+	        verbosity (int)
+	        **kwargs: passed to VeritasAnalysis.setup
+	    """
 		self._verbosity = verbosity
+		
 		self.config = GammaConfig(config_file=config_file, verbosity=(self.verbosity-1)).config
 
 		self._logging = logger(self.verbosity)
 
 		self._logging.info("Initialize the VERITAS analysis.")
 
-		self._outdir = self.config['fileio_vtspy']['veritas']
+		self._outdir = self.config['vts_setup']['outdir']
 		
-		self._excluded_regions = []
-		
-		self._energy_axis = MapAxis.from_energy_bounds(
-		    0.05, 50., nbin=100, per_decade=False, unit="TeV", name="energy"
-		)
+		self._eff_cut = self.config['vts_setup']['eff_cut']
+		self._bias_cut = self.config['vts_setup']['bias_cut']
 
-		self._energy_axis_true = MapAxis.from_energy_bounds(
-		    0.05, 50., nbin=200, per_decade=False, unit="TeV", name="energy_true"
-		)
-
-		
 		if overwrite or not(os.path.isfile(f"./{self._outdir}/initial.pickle")):
 
 			self.setup(**kwargs)
@@ -74,45 +93,79 @@ class VeritasAnalysis:
 			if flag == -1:
 				return
 
-			self._exclusion_mask = self._exclusion_from_bright_srcs(**kwargs)
-			self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=0.7)
-			th2cut = kwargs.get("th2cut", 0.008)
-			self.on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
-
 		self._logging.info("Completed (VERITAS initialization).")
-	
-
 
 	@property
 	def target(self):
+		"""
+        Return:
+            astropy.SkyCoord
+        """
 		return SkyCoord(ra = self.config["selection"]["ra"], 
 						dec = self.config["selection"]["dec"], 
                   		unit="deg", frame="icrs")
 
 	@property
 	def target_name(self):
+		"""
+        Return:
+            str: target name
+        """
 		return self.config["selection"]["target"]
+
+	@property
+	def obs_ids(self):
+		"""
+        Return:
+            list: list of observation id
+        """
+		return self._obs_ids
 	
 	@property
 	def verbosity(self):
+		"""
+        Return:
+        	int
+        """
 		return self._verbosity
 
-	@property
-	def print_flux(self):
-		if hasattr(self, flux_points):
-			return self.flux_points.to_table(sed_type="e2dnde", formatted=True)
 	
-	@property
-	def print_parms(self):
-		if hasattr(self, stacked_dataset):
+	def print_flux(self):
+		"""
+        Return:
+        	astropy.table: flux points in SED
+        """
+		if hasattr(self, "flux_points"):
+			return self.flux_points.to_table(sed_type="e2dnde", formatted=True)
+
+	def print_lightcurve(self, sed_type='eflux'):
+		"""
+        Return:
+        	astropy.table: flux points in lightcurve
+        """
+		if hasattr(self, "_lightcurve"):
+			return self._lightcurve.to_table(sed_type='eflux',format='lightcurve')
+	
+	def print_params(self):
+		"""
+        Return:
+        	astropy.table: fit parameters
+        """
+		if hasattr(self, "stacked_dataset"):
 			return self.stacked_dataset.models.to_parameters_table()
+
+	def peek_dataset(self):
+		"""
+        Show dataset information
+        """
+		self.stacked_dataset.peek()
 
 	def save_state(self, state_file, init=False):
 		"""
 		Save the state
 
 		Args:
-		    state_file (str): passed to fermipy.write_roi
+		    state_file (str): the name of state
 		    init (bool): check whether this is the initial analysis.
 		        Default: False
 		"""
@@ -135,23 +188,35 @@ class VeritasAnalysis:
 		Load the state
 
 		Args:
-		state_file (str): passed to fermipy.write_roi
+		state_file (str): the name of state
 		"""
-		filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
-		with open(filename, 'rb') as file:
-			self.__dict__.update(pickle.load(file).__dict__)
-			
-	
-	def peek_dataset(self):
-		self.stacked_dataset.peek()
+		try:
+			filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+			with open(filename, 'rb') as file:
+				self.__dict__.update(pickle.load(file).__dict__)
+		except:
+			self._logging.error("The state file does not exist. Check the name again")
+			return -1
 
-	def setup(self, radius = 2.0, max_region_number = 6, th2cut=0.008, **kwargs):
+	
+
+	def setup(self, **kwargs):
+		"""
+	    This is to initialize the VERITAS analysis; e.g., construct datasets
+	    To change the setting for this setup, check config file.
+
+	    VeritasAnalysis.config["vts_setup"]
+	    
+	    Args:
+	        **kwargs: passed to VeritasAnalysis.create_dataset
+	    """
+
 		selection = dict(
 		    type="sky_circle",
 		    frame="icrs",
-		    lon=self.target.ra,
-		    lat=self.target.dec,
-		    radius = radius * u.deg,
+		    lon= self.target.ra,
+		    lat= self.target.dec,
+		    radius = self.config["vts_setup"]['radius'] * u.deg,
 		)
 
 		self._logging.info("Load the data files.")
@@ -173,27 +238,33 @@ class VeritasAnalysis:
 
 		self._obs_ids = self._data_store.obs_table.select_observations(selection)["OBS_ID"]
 
-		self._observations = self._data_store.get_observations(self._obs_ids, required_irf=["aeff", "edisp"])
+		self.observations = self._data_store.get_observations(self._obs_ids, required_irf=["aeff", "edisp"])
+		time_intervals = [self.config["vts_setup"]["tmin"], self.config["vts_setup"]["tmax"]]
+		self.observations, self._obs_ids = utils.time_filter(self.observations, time_intervals, time_format="mjd")
+		self._logging.info(f"The number of observations is {{len(self._observations)}}")
 
 		self._logging.info("Define exclusion regions.")
 		self._exclusion_mask = self._exclusion_from_bright_srcs(**kwargs)
-		self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=0.7)
+		self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=self.config["vts_setup"]["exc_on_region_radius"])
 		
 		self._logging.info("Define ON- and OFF-regions.")
+		th2cut = self.config["vts_setup"]['th2cut']
 		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
 		
 		self.create_dataset(**kwargs)
 
-		self.stacked_dataset = self.datasets.stack_reduce()
+	def simple_fit(self, model = "PowerLaw", state_file="simple"):
+		"""
+        Perform a simple fitting with a given model: 
+        PowerLaw, LogParabola, ...
+        
+        Args:
+            model (str or gammapy.models): model name or function
+                Default: "PowerLaw"
+            state_file (str): state filename (pickle)
+	        	Default: simple
 
-	def obs_time_filter(self, t_start, t_end, time_format="mjd"):
-		time_interval= Time([str(t_start),str(t_end)], format=time_format, scale="utc")
-		short_observations = self._observations
-		self._observations = short_observations.select_time(time_interval)
-		self._obs_ids = short_observations.ids
-		self._logging.info(f"Number of observations after time filtering: {len(short_observations)}\n")
-
-	def simple_fit(self, model = "PowerLaw"):
+        """
 
 		if type(model) == str:
 			if model == "PowerLaw":
@@ -213,19 +284,34 @@ class VeritasAnalysis:
 			spectral_model = model
 
 		spectral_model = SkyModel(spectral_model=spectral_model, name=self.target_name)
-
+		self.datasets.models = spectral_model
 		self.stacked_dataset.models = [spectral_model]
 
 		fit_joint = Fit()
 		self.fit_results = fit_joint.run(datasets=[self.stacked_dataset])
 		if self.fit_results.success:
 			self._logging.info("Fit successfully.")
+			self.save_state(state_file)
 		else:
 			self._logging.error("Fit fails.")
 
-	def simple_analysis(self, jobs=["flux", "sed"], **kwargs):
+	def simple_analysis(self, jobs=["sed"], state_file="output", **kwargs):
+		"""
+        Perform a simple analysis, e.g., SED, lightcurve
+        
+        Args:
+            jobs (list): list of jobs, 'sed', and/or 'lc'.
+                Default: ['ts', 'resid', 'sed']
+            state_file (str): state filename (pickle)
+	        	Default: output
+	        **kwargs: passed to vtspy.utils.define_time_intervals
+        """
 
-		if "flux" in jobs:
+		if type(jobs) == str:
+			jobs = [jobs]
+
+		if "sed" in jobs:
+			self._logging.info("Generating flux points and SED...")
 			energy_bins = kwargs.get("energy_bins", np.geomspace(0.1, 10, 12) * u.TeV)
 
 			fpe = FluxPointsEstimator(
@@ -234,22 +320,157 @@ class VeritasAnalysis:
 			    )
 
 			self.flux_points = fpe.run(datasets=[self.stacked_dataset])
-		
-		if "sed" in jobs:
+			
+
 			self._flux_points_dataset = FluxPointsDataset(
 			    data=self.flux_points, models=self.stacked_dataset.models
 			)
+			self._logging.info("Generating flux points and SED is completed.")
 
-	def plotting(self, plots):
-		if plots == "fit":
-			veritas_plotter(plots, self.stacked_dataset)
-		elif plots == "flux":
-			veritas_plotter(plots, self.flux_points)
-		elif plots == "sed":
-			veritas_plotter(plots, self._flux_points_dataset)
+		if "lc" in jobs:
+			self._logging.info("Generating lightcurve...")
 
-	def _exclusion_from_bright_srcs(self, srcfile="Hipparcos_MAG8_1997", distance = 1.75, ex_radius=0.25, magnitude=7):
-		bright_sources = bright_source_list(srcfile)
+			emin = kwargs.pop("emin", self.config["vts_setup"]['emin'])
+			emax = kwargs.pop("emax", self.config["vts_setup"]['emax'])
+			ul = kwargs.pop("ul", 2)
+			tmin = kwargs.pop("tmin", self.config["vts_setup"]['tmin'])
+			tmax = kwargs.pop("tmax", self.config["vts_setup"]['tmax'])
+
+			time_intervals = utils.define_time_intervals(tmin, tmax, **kwargs)
+			self._logging.info(f"The number of time intervals is {len(time_intervals)}")
+			
+			lc_maker = LightCurveEstimator(
+			    energy_edges=[emin, emax] * u.TeV,
+			    source=self.target_name,
+			    time_intervals=time_intervals,
+			    selection_optional="all"
+			)
+
+			self._lightcurve = lc_maker.run(self.datasets)
+			self._lightcurve.sqrt_ts_threshold_ul = ul
+			self._logging.info("Generating lightcurve is completed.")
+
+		self.save_state(state_file)
+
+	def create_dataset(self, max_region_number = 6, eff_cut = None, bias_cut = None, **kwargs):
+		"""
+        Create dataset for the gammapy analysis
+        
+        Args:
+            max_region_number (int): the maximum number of OFF-regions
+                Default: 6
+            eff_cut (str, optional): effective area cut
+	        	Default: None
+	        bias_cut (str, optional): energy bias cut
+	        	Default: None
+        """
+
+		datasets = Datasets()
+
+		dataset_maker = SpectrumDatasetMaker(selection=["counts", "exposure", "edisp"], containment_correction=False)
+		bkg_maker = ReflectedRegionsBackgroundMaker(exclusion_mask=self._exclusion_mask, max_region_number=max_region_number)
+		
+		if eff_cut is None:
+			eff_cut = self._eff_cut
+		else:
+			self._eff_cut = eff_cut
+
+		if eff_cut > 0:
+			safe_mask_maker_eff = SafeMaskMaker(methods=["aeff-max"], aeff_percent=eff_cut*100)
+		else:
+			safe_mask_maker_eff = None
+		
+		if bias_cut is None:
+			bias_cut = self._bias_cut
+		else:
+			self._bias_cut = bias_cut
+			
+		if bias_cut > 0:
+			safe_mask_maker_bias = SafeMaskMaker(methods=["edisp-bias"], bias_percent=bias_cut*100)
+		else:
+			safe_mask_maker_bias = None
+
+		geom = RegionGeom.create(region=self._on_region, axes=[self._energy_axis])
+		dataset_empty = SpectrumDataset.create(
+    		geom=geom, energy_axis_true=self._energy_axis_true
+		)
+
+
+		for obs_id, observation in zip(self._obs_ids, self.observations):
+			dataset = dataset_maker.run(
+				dataset_empty.copy(name=str(obs_id)), observation
+			)
+
+			dataset_on_off = bkg_maker.run(dataset, observation)
+
+			if safe_mask_maker_eff is not None:
+				dataset_on_off = safe_mask_maker_eff.run(dataset_on_off, observation)
+
+			if safe_mask_maker_bias is not None:
+				dataset_on_off = safe_mask_maker_bias.run(dataset_on_off, observation)
+
+			datasets.append(dataset_on_off)
+
+		self.datasets = datasets
+		self.stacked_dataset = self.datasets.stack_reduce()
+
+	def plotting(self, plot):
+		"""
+        Show various plot: fit result, flux, SED, and lightcurve
+        
+        Args:
+            plot (str): a plot to show
+                Options: ["fit", "flux", "sed", "lc"]
+            filename (str): read the output (from FermiAnalysis.simple_analysis)
+        """
+		if plot == "fit":
+			self.stacked_dataset.plot_fit()
+		elif plot == "flux":
+			veritas_plotter(plot, self.flux_points)
+		elif plot == "sed":
+			veritas_plotter(plot, self._flux_points_dataset)
+		elif plot == "lc":
+			self._lightcurve.plot(sed_type='eflux', label=self.target_name)
+
+	def add_exclusion_region(self, coord = None, name=None, radius=0.3, update_dataset=False, **kwargs):
+		"""
+        Add exclusion region manually
+        
+        Args:
+            coord (list, optioanl): [ra, dec]
+            name (list, optional): [ra, dec]
+            radius (float): size of an exlusion region
+            update_dataset (bool): update dataset with the new exclusion region
+        """
+		if coord is not None:
+			self._excluded_regions.append(CircleSkyRegion(
+				center=SkyCoord(coord[0], coord[1], unit="deg", frame="icrs"),
+				radius=radius * u.deg,))
+		elif name is not None:
+			src = SkyCoord.from_name(name)
+			self._excluded_regions.append(CircleSkyRegion(
+				center=SkyCoord(src.ra, src.dec, unit="deg", frame="icrs"),
+				radius=radius * u.deg,))
+		else:
+			self._logging.error("Either coord or name should be provided.")
+			return
+
+		geom = WcsGeom.create(
+		    	npix=(150, 150), binsz=0.05, skydir=self.target.galactic, 
+		    	proj="TAN", frame="icrs"
+		)
+
+		self._exclusion_mask = geom.region_mask(regions=self._excluded_regions, inside=False)
+
+		if update_dataset:
+			self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
+			self.create_dataset(**kwargs)
+
+	def _exclusion_from_bright_srcs(self):
+		srcfile, distance, magnitude = self.config["vts_setup"]["bright_srcs"]
+		ex_radius = self.config["vts_setup"]["exc_radius"]
+
+		bright_sources = utils.bright_source_list(srcfile)
 
 		roi_cut = (abs(bright_sources[:,0]-self.target.ra.deg) < distance) \
         		* (abs(bright_sources[:,1]-self.target.dec.deg) < distance) \
@@ -269,58 +490,3 @@ class VeritasAnalysis:
 
 		return geom.region_mask(regions=self._excluded_regions, inside=False)
 
-	def add_exclusion_region(self, coord = None, name=None, radius=0.3, **kwargs):
-		if coord is not None:
-			self._excluded_regions.append(CircleSkyRegion(
-				center=SkyCoord(coord[0], coord[1], unit="deg", frame="icrs"),
-				radius=radius * u.deg,))
-		elif name is not None:
-			src = SkyCoord.from_name(name)
-			self._excluded_regions.append(CircleSkyRegion(
-				center=SkyCoord(src.ra, src.dec, unit="deg", frame="icrs"),
-				radius=radius * u.deg,))
-
-		geom = WcsGeom.create(
-		    	npix=(150, 150), binsz=0.05, skydir=self.target.galactic, 
-		    	proj="TAN", frame="icrs"
-		)
-
-		self._exclusion_mask = geom.region_mask(regions=self._excluded_regions, inside=False)
-
-	def create_dataset(self, max_region_number = 6, eff_cut = 0, bias_cut = 0, **kwargs):
-		datasets = Datasets()
-
-		dataset_maker = SpectrumDatasetMaker(selection=["counts", "exposure", "edisp"], containment_correction=False)
-		bkg_maker = ReflectedRegionsBackgroundMaker(exclusion_mask=self._exclusion_mask, max_region_number=max_region_number)
-		
-		if eff_cut > 0:
-			safe_mask_maker_eff = SafeMaskMaker(methods=["aeff-max"], aeff_percent=eff_cut*100)
-		else:
-			safe_mask_maker_eff = None
-		
-		if bias_cut > 0:
-			safe_mask_maker_bias = SafeMaskMaker(methods=["edisp-bias"], bias_percent=bias_cut*100)
-		else:
-			safe_mask_maker_bias = None
-
-		geom = RegionGeom.create(region=self._on_region, axes=[self._energy_axis])
-		dataset_empty = SpectrumDataset.create(
-    		geom=geom, energy_axis_true=self._energy_axis_true
-		)
-
-		for obs_id, observation in zip(self._obs_ids, self._observations):
-			dataset = dataset_maker.run(
-				dataset_empty.copy(name=str(obs_id)), observation
-			)
-
-			dataset_on_off = bkg_maker.run(dataset, observation)
-
-			if safe_mask_maker_eff is not None:
-				dataset_on_off = safe_mask_maker_eff.run(dataset_on_off, observation)
-
-			if safe_mask_maker_bias is not None:
-				dataset_on_off = safe_mask_maker_bias.run(dataset_on_off, observation)
-
-			datasets.append(dataset_on_off)
-
-		self.datasets = datasets

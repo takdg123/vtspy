@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
-
+from ..config import GammaConfig
 from ..utils import logger
 from ..plotting import fermi_plotter
 
@@ -65,8 +65,9 @@ def generatePSF(config):
 
 class FermiAnalysis():
     """
-    This is to perform a simple Fermi-LAT analysis. All fermipy.GTanalysis
-    functions and attributes can be accessed with the 'gta' arribute. e.g.,  
+    This is to perform a simple Fermi-LAT analysis and to prepare the joint-fit
+    analysis. All fermipy.GTanalysis functions and attributes can be accessed 
+    with the 'gta' arribute. e.g.,  
 
         fermi = FermiAnalysis()
         fermi.gta.optimize()
@@ -75,9 +76,10 @@ class FermiAnalysis():
     for details) will be saved in the numpy array format (npy).
     
     Args:
-        config_file (str): Fermi config filename (yaml)
-            Default: config.yaml
         state_file (str): state filename (npy)
+            Default: initial
+        config_file (str): config filename (yaml)
+            Default: config.yaml
         overwrite (bool): overwrite the state
             Default: False
         remove_weak_srcs (bool): remove sources with TS of nan or 0
@@ -89,11 +91,13 @@ class FermiAnalysis():
     def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, remove_weak_srcs = False, verbosity=True, **kwargs):
         
         self._verbosity = verbosity
+        config = GammaConfig(config_file=config_file, verbosity=(self.verbosity-1)).config
+        config.pop("vts_setup")
+
         self._logging = logger(self.verbosity)
-
         self._logging.info("Initializing the Fermi-LAT analysis...")
-
-        self.gta = GTAnalysis(config_file, logging={'verbosity' : self.verbosity+1}, **kwargs)
+        
+        self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
 
         # This is for the gammapy
@@ -162,7 +166,6 @@ class FermiAnalysis():
         """
         return self._target_id
     
-    @property
     def print_association(self):
         """
         Print sources within ROI and their associations.
@@ -174,21 +177,18 @@ class FermiAnalysis():
             
             self._logging.info(str(i)+") "+src.name+":"+str(src.associations[1:]))
 
-    @property
     def print_target(self):
         """
         Print the target properties
         """
         self._logging.info(self.gta.roi.sources[self.target_id])
 
-    @property
     def print_model(self):
         """
         Print source models within ROI
         """
         return self.gta.print_model(loglevel=40)
 
-    @property
     def print_params(self):
         """
         Print parameters of sources within ROI
@@ -199,15 +199,16 @@ class FermiAnalysis():
     @property
     def verbosity(self):
         """
-        return int
+        Return:
+            int
         """
         return self._verbosity
 
-    @property
-    def test_model(self):
-        return self._test_model 
 
     def peek_events(self):
+        """
+        Show event information
+        """
         if "eventlist" not in self.datasets["data"].keys():
             self._logging.error("Run FermiAnalysis.construct_dataset first.")
             return 
@@ -215,6 +216,9 @@ class FermiAnalysis():
         self.datasets["data"]["eventlist"].peek()
         
     def peek_irfs(self):
+        """
+        Show instrument response function (irf) information
+        """
         if "edisp" not in self.datasets["irf"].keys():
             self._logging.error("Run FermiAnalysis.construct_dataset first.")
             return
@@ -333,16 +337,14 @@ class FermiAnalysis():
     def simple_fit(self, state_file="simple", pre_state=None, 
         free_all=False, free_target=True,
         remove_weak_srcs=False, fix_index=False, 
-        min_ts=5, distance=3.0, optimizer = 'NEWMINUIT', return_output=False, **kwargs):
+        min_ts=5, distance=3.0, optimizer = 'NEWMINUIT', 
+        return_output=False, **kwargs):
         """
         Perform a simple fitting with various cuts
         
         Args:
             state_file (str): output state filename (npy)
                 Default: simple
-            pre_state (str): input state filename (npy). If not defined, starting from
-                the current state.
-                Default: None
             free_all (bool): make the target's all parameters free
                 Default: True
             free_all (bool): make all sources parameters free
@@ -361,6 +363,9 @@ class FermiAnalysis():
                 Default: NEWMINUIT
             return_output (bool): return the fitting result (dict)
                 Default: False
+            pre_state (str, optional): input state filename (npy). If not defined, starting from
+                the current state.
+                Default: None
             **kwargs: passed to fermipy.GTAnalysis.free_sources function
 
         Return
@@ -398,7 +403,7 @@ class FermiAnalysis():
             return o
 
     def simple_analysis(self, jobs = ["ts", "resid", "sed"], 
-        filename = "output", **kwargs):
+        filename = "output", state_file= "analysis", **kwargs):
         """
         Perform various analyses: TS map, Residual map, and SED.
         
@@ -406,16 +411,19 @@ class FermiAnalysis():
             jobs (list): list of jobs, 'ts', 'resid', and/or 'sed'.
                 Default: ['ts', 'resid', 'sed']
             filename (str): read and write the output
+                Default: output
+            state_file (str): output state filename (npy)
+                Default: simple
             **kwargs: passed to GTanalysis.sed
 
         """
 
         try:
-            output = np.load(f"./{self._outdir}/{output}.npy", allow_pickle=True).item()
+            output = np.load(f"./{self._outdir}/{filename}.npy", allow_pickle=True).item()
         except:
             output = {}
         
-        model = kwargs.get("model", self.test_model)
+        model = kwargs.get("model", self._test_model)
         energy_bins = kwargs.get("energy_bins", [2.0,2.5,3.0,3.5,4.0,4.5,5.0])
 
         free = self.gta.get_free_param_vector()
@@ -437,11 +445,11 @@ class FermiAnalysis():
         self.output = output
         np.save(f"./{self._outdir}/"+filename, output)
 
+        self.save_state(state_file)
 
     def plotting(self, plots, filename="output", **kwargs):
-
         """
-        Perform various analyses: TS map, Residual map, and SED.
+        Show various plots: TS map, Residual map, and SED.
         
         Args:
             plots (list): list of plots to show
@@ -489,12 +497,12 @@ class FermiAnalysis():
         plt.tight_layout()
 
     
-    def create_source(self, name=None):
+    def _create_source(self, name=None):
         """
         Create a target based on the location defined in the config file.  
         
         Args:
-            name (str): target name
+            name (str, optional): target name
                 Default: config.yaml
         Return:
             fermipy.roi_model.Source
@@ -533,7 +541,7 @@ class FermiAnalysis():
         Return:
             dict: output of GTanalysis.find_sources
         """
-        srcs = self.gta.find_sources(model=self.test_model, sqrt_ts_threshold=5.0,
+        srcs = self.gta.find_sources(model=self._test_model, sqrt_ts_threshold=5.0,
                         min_separation=0.5)
 
         self._logging.info("{} sources are found. They will be added into the model list.".format(len(srcs["sources"])))

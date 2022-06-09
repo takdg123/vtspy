@@ -162,18 +162,16 @@ def plot_sigma_hist(output, subplot=None):
 
     return ax
 
-def veritas_plotter(name, output):
-    if name == "fit":
-        output.plot_fit()
+def veritas_plotter(name, output, **kwargs):
 
-    elif name == "flux":
+    if name == "flux":
         ax = plt.gca()
         output.plot(ax, sed_type="e2dnde", color="lightblue", label="1E S1218+304")
         output.plot_ts_profiles(ax=ax, sed_type="e2dnde");
         ax.legend()
 
     elif name == "sed":
-        kwargs_spectrum = {"kwargs_model": {"color":"blue", "label":"Pwl"}, "kwargs_fp":{"color":"blue", "marker":"o", "label":"1ES 1218+304"}}
+        kwargs_spectrum = {**kwargs, "kwargs_model": {"color":"blue", "label":"Pwl"}, "kwargs_fp":{"color":"blue", "marker":"o", "label":"1ES 1218+304"}}
         kwargs_residuals = {"color": "blue", "markersize":4, "marker":'s', }
         ax_spec, ax_res = output.plot_fit(kwargs_spectrum=kwargs_spectrum)
 

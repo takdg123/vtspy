@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import copy
 
 from astropy.time import Time, TimeDelta
 from astropy import units as u
@@ -40,21 +41,27 @@ def logger(verbosity = 1):
     logging.getLogger().setLevel(level)
     return logging
 
-def MET2UTC(met):
+def MET2UTC(met, return_astropy=False):
     """
     Convert Fermi MET (Mission Elapsed Time) to UTC (Coordinated 
     Universal Time).
 
     Args:
         met (float): MET time in seconds
+        return_astropy (bool): return astropy.time
     
     Return:
-        astorpy.time: UTC time
+        str, astropy.time (optional): UTC time
     """
 
     refMET = Time('2001-01-01', format='isot', scale='utc')
+
     dt = TimeDelta(met, format='sec')
-    return (refMET+dt).iso
+
+    if return_astropy:
+        return (refMET+dt).iso, refMET+dt
+    else:
+        return (refMET+dt).iso
 
 def UTC2MET(utc):
     """
@@ -81,9 +88,27 @@ def METnow():
 	currentTime = Time.now()
 	return float((currentTime-refMET).sec)
 
-def MJD2UTC(mjd):
-	"""
+def MJD2UTC(mjd, return_astropy=False):
+    """
     Convert MJD (Modified Julian Day) to UTC.
+
+    Args:
+        mjd (astorpy.time): MJD time
+        return_astropy (bool): return astropy.time
+
+    Return:
+        str, astropy.time (optional): UTC time
+    """
+
+    refMJD = Time(mjd, format='mjd')
+    if return_astropy:
+        return refMJD.isot, refMJD
+    else:
+        return refMJD.isot
+
+def UTC2MJD(utc):
+    """
+    Convert UTC to MJD.
 
     Args:
         mjd (astorpy.time): MJD time
@@ -91,8 +116,8 @@ def MJD2UTC(mjd):
     Return:
         astropy.time: UTC
     """
-	refMJD = Time(mjd, format='mjd')
-	return refMJD.isot
+    refUTC= Time(utc, format='isot', scale='utc')
+    return float(refUTC.mjd)
 
 def CEL2GAL(ra, dec):
 	"""
@@ -140,3 +165,59 @@ def bright_source_list(source = "Hipparcos_MAG8_1997", save_npy=True):
             if save_npy:
                 np.save(SCRIPT_DIR+"/refdata/"+source, bright_sources)
     return np.asarray(bright_sources)
+
+def time_filter(obs, time, time_format=None):
+    """
+    Filter the observations by time
+    
+    Args:
+        obs (gammapy.observations): the list of observations
+        time (list): the list of times
+        time_format (str, optional): passed to astropy.Time
+    """
+
+    obs = copy.deepcopy(obs)
+
+    if type(time[0]) == Time:
+        time_interval = time
+    else:
+        tmin, tmax = time[0], time[1]
+        if time_format == "MET":
+            tmin = MET2UTC(tmin)
+            tmax = MET2UTC(tmax)
+            time_interval= Time([str(tmin),str(tmax)])
+        else:
+            time_interval= Time([str(tmin),str(tmax)], format=time_format, scale="utc")
+    
+    newobs = obs.select_time(time_interval)
+    
+    return newobs, newobs.ids
+
+def define_time_intervals(tmin, tmax, binsz=None, nbins=None):
+    """
+    Define time intervals by either a bin size or the number of bins
+    
+    Args:
+        plots (str): a plot to show
+            Options: ["fit", "flux", "sed", "lc"]
+        filename (str): read the output (from FermiAnalysis.simple_analysis)
+    """
+    if binsz is not None:
+        _, tmin = MJD2UTC(tmin, return_astropy=True)
+        _, tmax = MJD2UTC(tmax, return_astropy=True)
+        nbins = int((tmax-tmin)*u.second/binsz.to(u.second))
+        nbins +=1
+        times = tmin + np.arange(nbins) * binsz
+    elif nbins is not None:
+        _, tmin = MJD2UTC(tmin, return_astropy=True)
+        _, tmax = MJD2UTC(tmax, return_astropy=True)
+        binsz = ((tmax-tmin)/nbins).to(u.second)
+        nbins +=1
+        times = tmin + np.arange(nbins) * binsz
+
+    if len(times) == 1:
+        time_intervals = [Time([tmin, tmax])]
+    else:
+        time_intervals = [Time([tstart, tstop]) for tstart, tstop in zip(times[:-1], times[1:])]
+
+    return time_intervals

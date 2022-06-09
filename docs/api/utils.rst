@@ -1,7 +1,7 @@
 Utils
 ======================
 
-FermipyConfig
+GammaConfig
 ----------------------
 
 .. autoclass:: vtspy.FermiConfig
