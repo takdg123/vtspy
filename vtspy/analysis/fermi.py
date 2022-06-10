@@ -7,40 +7,23 @@ from ..config import GammaConfig
 from ..utils import logger
 from ..plotting import fermi_plotter
 
-import matplotlib.patheffects as PathEffects
-import matplotlib.patches as Patches
-
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 from gammapy.data import EventList
-from gammapy.datasets import Datasets, MapDataset
+from gammapy.datasets import MapDataset
 
 from gammapy.irf import PSFMap, EDispMap
 from gammapy.maps import Map, MapAxis, WcsGeom
 
+from ..model import *
 
-from gammapy.modeling.models import (
-    ConstantSpatialModel,
-    PointSpatialModel,
-    GaussianSpatialModel,
-    TemplateSpatialModel,
-    SkyModel,
-    Models,
-)
-
-from gammapy.modeling.models import (
-    PowerLawSpectralModel,
-    PowerLawNormSpectralModel,
-    LogParabolaSpectralModel,
-    ExpCutoffPowerLawSpectralModel,
-    TemplateSpectralModel,    
-)
+from gammapy.modeling.models import Models
 
 from gammapy.modeling import Fit
 
 from fermipy.gtanalysis import GTAnalysis
-from fermipy.roi_model import Source
+
 
 import fermipy.wcs_utils as wcs_utils
 import fermipy.utils as fermi_utils
@@ -100,8 +83,7 @@ class FermiAnalysis():
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
 
-        # This is for the gammapy
-        self.datasets = {'data': {}, 'irf': {}}
+        
 
         if overwrite or not(os.path.isfile("./{}/initial.fits".format(self._outdir))):
             
@@ -211,21 +193,21 @@ class FermiAnalysis():
         """
         Show event information
         """
-        if "eventlist" not in self.datasets["data"].keys():
+        if not(hasattr(self, "_gammapy_events")):
             self._logging.error("Run FermiAnalysis.construct_dataset first.")
             return 
 
-        self.datasets["data"]["eventlist"].peek()
+        self._gammapy_events.peek()
         
     def peek_irfs(self):
         """
         Show instrument response function (irf) information
         """
-        if "edisp" not in self.datasets["irf"].keys():
+        if not(hasattr(self, "datasets")):
             self._logging.error("Run FermiAnalysis.construct_dataset first.")
             return
 
-        e_true = self.datasets["irf"]["edisp"].edisp_map.geom.axes[1]
+        e_true = self.datasets.edisp.edisp_map.geom.axes[1]
         e_reco = MapAxis.from_energy_bounds(
             e_true.edges.min(),
             e_true.edges.max(),
@@ -233,7 +215,7 @@ class FermiAnalysis():
             name="energy",
         )
 
-        edisp_kernel = self.datasets["irf"]["edisp"].get_edisp_kernel(energy_axis=e_reco)
+        edisp_kernel = self.datasets.edisp.get_edisp_kernel(energy_axis=e_reco)
 
         
         f, ax = plt.subplots(2,2, figsize=(10, 6))
@@ -241,8 +223,8 @@ class FermiAnalysis():
         ax[0][0].set_xlabel(f"$E_\\mathrm{{True}}$ [MeV]")
 
         edisp_kernel.plot_matrix(ax = ax[0][1])
-        self.datasets['irf']['psf'].plot_containment_radius_vs_energy(ax = ax[1][0])
-        self.datasets['irf']['psf'].plot_psf_vs_rad(ax = ax[1][1])
+        self.datasets.psf.plot_containment_radius_vs_energy(ax = ax[1][0])
+        self.datasets.psf.plot_psf_vs_rad(ax = ax[1][1])
         plt.tight_layout()
 
     def save_state(self, state_file, init=False):
@@ -498,38 +480,6 @@ class FermiAnalysis():
 
         plt.tight_layout()
 
-    
-    def _create_source(self, name=None):
-        """
-        Create a target based on the location defined in the config file.  
-        
-        Args:
-            name (str, optional): target name
-                Default: config.yaml
-        Return:
-            fermipy.roi_model.Source
-        """
-
-        if name is None:
-            name = self.gta.config["selection"]["target"]
-
-        src = Source(name, {'ra': self.gta.config['selection']['ra'], 'dec': self.gta.config['selection']['dec']})
-        self._logging.info(src)
-        return src
-
-    def add_source(self, src):
-        """
-        Add a source to the model. 
-        
-        Args:
-            src (fermipy.roi_model.Source)
-        """
-        if np.size(src)> 1:
-            for s in src:
-                self.gta.add_source(src.name, src)
-        else:
-            self.gta.add_source(src.name, src)
-
     def find_sources(self, state_file = "wt_new_srcs", re_fit=True, **kwargs):
         """
         Find sources within the ROI (using GTanalysis.find_sources). 
@@ -606,7 +556,7 @@ class FermiAnalysis():
 
     def _load_fermi_events(self, eventlist = "ft1_00.fits"):
 
-        events = EventList.read(Path(self._outdir)/ f"{eventlist}")
+        self._gammapy_events = EventList.read(Path(self._outdir)/ f"{eventlist}")
 
         glon = self.gta.config['selection']['glon']
         glat = self.gta.config['selection']['glat']
@@ -616,16 +566,11 @@ class FermiAnalysis():
         counts = Map.create(skydir=src_pos, width=self.gta.config['binning']['roiwidth'], 
             proj=self.gta.config['binning']['proj'], binsz=self.gta.config['binning']['binsz'], 
             frame='galactic', axes=[energy_axis], dtype=float)
-        counts.fill_by_coord({"skycoord": events.radec, "energy": events.energy})
+        counts.fill_by_coord({"skycoord": self._gammapy_events.radec, "energy": self._gammapy_events.energy})
         
-        self.datasets['data']['eventlist'] = events
-        self.datasets['data']['counts'] = counts
+        return counts
 
-
-    def _load_fermi_irfs(self, exposure = "bexpmap_00.fits", psf = "gtpsf_00.fits"):
-        # Exposure
-        counts = self.datasets['data']['counts']
-
+    def _load_fermi_irfs(self, counts, exposure = "bexpmap_00.fits", psf = "gtpsf_00.fits"):
         expmap = Map.read(Path(self._outdir) / f"{exposure}")
         axis = MapAxis.from_nodes(
             counts.geom.axes[0].center, 
@@ -634,26 +579,49 @@ class FermiAnalysis():
             interp="log"
         )
 
+        irf = {}
+
         geom = WcsGeom(wcs=counts.geom.wcs, npix=counts.geom.npix, axes=[axis])
         exposure = expmap.interp_to_geom(geom)
-        self.datasets['irf']['exposure'] = exposure
+        irf['exposure'] = exposure
         
         # PSF
         psf = PSFMap.read(Path(self._outdir) / f"{psf}", format="gtpsf")
-        self.datasets['irf']['psf'] = psf
+        irf['psf'] = psf
 
         # Energy dispersion
         e_true = exposure.geom.axes["energy_true"]
         edisp = EDispMap.from_diagonal_response(energy_axis_true=e_true)
-        self.datasets['irf']['edisp'] = edisp
+        irf['edisp'] = edisp
+
+        return irf
+
+    def _convert_model(self):
+        gammapy_models = []
+        for src in self.gta.roi.sources:
+            
+            if src.name == "isodiff":
+                gammapy_models.append(fermi_isotropic_diffuse_bkg(self.gta.config, src))
+            elif src.name == "galdiff":
+                gammapy_models.append(fermi_galactic_diffuse_bkg(self.gta.config, src))
+            else:
+                gammapy_models.append(fermipy2gammapy(src))
+            
+            self._logging.debug(f"A source model for {src.name} is converted.")
+
+        return Models(gammapy_models)
 
     def construct_dataset(self, 
                         eventlist = "ft1_00.fits", 
                         exposure = "bexpmap_00.fits", 
                         psf = "gtpsf_00.fits"):
         self._logging.info("Loading the Fermi-LAT events...")
-        self._load_fermi_events(eventlist=eventlist)
+        counts = self._load_fermi_events(eventlist=eventlist)
         self._logging.info("Loading the Fermi-LAT IRFs...")
-        self._load_fermi_irfs(exposure=exposure, psf=psf)
+        irf = self._load_fermi_irfs(counts, exposure=exposure, psf=psf)
         self._logging.info("Loading the Fermi-LAT models...")
-        
+        models =  self._convert_model()
+        self.datasets = MapDataset(
+            models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
+        )
+        self._logging.info("Ready to perform a gammapy analysis.")
