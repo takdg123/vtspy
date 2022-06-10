@@ -4,7 +4,7 @@ Utils
 GammaConfig
 ----------------------
 
-.. autoclass:: vtspy.FermiConfig
+.. autoclass:: vtspy.GammaConfig
    :show-inheritance:
    :members:
    :inherited-members:
