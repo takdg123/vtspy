@@ -112,6 +112,8 @@ class FermiAnalysis():
             
             self._logging.debug("Generate fermipy files.")
             self.gta.setup(overwrite=overwrite)
+
+            self.gta.config["data"]["ltcube"] = f"{self._outdir}/ltcube_00.fits"
             
             self._logging.debug("Optimize the ROI.")
             self.gta.optimize()
