@@ -20,26 +20,33 @@ model_dict = {
 }
 
 params = {
-    "PowerLaw": {"Index": ["index", u.dimensionless_unscaled, u.dimensionless_unscaled], 
-                 "Prefactor": ["amplitude", u.cm**2/u.s/u.MeV,  u.cm**2/u.s/u.TeV], 
-                 "Scale": ["reference",u.MeV, u.TeV]},
-    "LogParabola": {"alpha": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled], 
-                    "beta": ["beta", u.dimensionless_unscaled, u.dimensionless_unscaled], 
-                    "norm": ["amplitude", u.cm**2/u.s/u.MeV,  u.cm**2/u.s/u.TeV],
-                    "Eb": ["reference", u.MeV, u.TeV]}
+    "PowerLaw": {"Index": ["index", u.dimensionless_unscaled, u.dimensionless_unscaled, -1], 
+                 "Prefactor": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1], 
+                 "Scale": ["reference",u.MeV, u.TeV, 1]},
+    "LogParabola": {"alpha": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled, 1], 
+                    "beta": ["beta", u.dimensionless_unscaled, u.dimensionless_unscaled, 1], 
+                    "norm": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1],
+                    "Eb": ["reference", u.MeV, u.TeV, 1]}
 }
 
-
-def fermipy2gammapy(src):
+not_spectral_shape = ["Prefactor", "norm", "Scale"]
+def fermipy2gammapy(like, src):
+    
     spectral = model_dict[src['SpectrumType']]()
-    for par in src.params.keys():
-        fpar = src.spectral_pars[par]
+    for par in src.spectral_pars.keys():
+        idx = like.par_index(src.name, par)
+        fpar = like.model[idx]
+
+        idx = like.par_index(src.name, par)
+        fpar = like.model[idx]
         gpar_setup = params[src['SpectrumType']][par]
         gpar = getattr(spectral, gpar_setup[0])
-        val = (fpar["value"]*gpar_setup[1]).to(gpar_setup[2])
+        val = (fpar.getValue()*fpar.getScale()*gpar_setup[1]*gpar_setup[3]).to(gpar_setup[2])
         gpar.value = val.value
+        gpar.frozen = not(fpar.isFree())
 
     spatial = spatial_model(src)
+
     source = SkyModel(
         spatial_model=spatial,
         spectral_model=spectral,
@@ -63,7 +70,7 @@ def gammapy2fermipy(spectral, src=None):
         gpar_setup = params[new_model['SpectrumType']][par]
         gpar = getattr(spectral, gpar_setup[0])
         val = (gpar.value*gpar_setup[2]).to(gpar_setup[1])
-        params[par] = {"value":val.value}
+        params[par] = {"value":val.value, "free": not(val.frozen)}
 
     return params
 
@@ -80,6 +87,7 @@ def fermi_isotropic_diffuse_bkg(config, fmodel):
         filename=config['model']['isodiff'][0], 
         interp_kwargs={"fill_value": None})
     diffuse_iso.spectral_model.model2.value = fmodel.params["Normalization"]["value"]
+    diffuse_iso._name = "isodiff"
     return diffuse_iso
 
 def spatial_model(src):

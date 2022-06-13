@@ -9,7 +9,7 @@ from astropy.io import fits
 
 import re
 
-from .config import GammaConfig as config
+from .config import JointConfig as config
 from .utils import logger
 
 class DownloadFermiData:

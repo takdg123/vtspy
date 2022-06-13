@@ -6,11 +6,15 @@ from gammapy.visualization import plot_spectrum_datasets_off_regions
 
 import matplotlib.pyplot as plt
 
+from . import utils
+
 from scipy.stats import chi2
 from scipy.stats import norm
 
+import astropy.units as u
 
-def fermi_plotter(name, output, roi, config, subplot = None, **kwargs):
+
+def fermi_plotter(name, fermi, subplot = None, **kwargs):
     """
     This returns various plots generated from fermipy.ROIPlotter and fermipy.SEDPlotter
 
@@ -20,13 +24,18 @@ def fermi_plotter(name, output, roi, config, subplot = None, **kwargs):
                       "data", "model", "sigma", 
                       "excess", "resid", "sed"]
             Default: config.yaml
-        output (dict): output dictionaray generated from FermiAnalysis.analysis
-        roi (GTanalysis.roi)
-        config (GTanalysis.config)
+        fermi (class): vtspy.analysis.FermiAnalysis
         subplot: location of a plot
             Default: None
         **kwargs
+
+    Return:
+        AxesSubplot
     """
+
+    output = fermi.output
+    roi = fermi.gta.roi
+    config = fermi.gta.config
     kwargs.setdefault('graticule_radii', config['plotting']['graticule_radii'])
     kwargs.setdefault('label_ts_threshold',
                       config['plotting']['label_ts_threshold'])
@@ -34,7 +43,7 @@ def fermi_plotter(name, output, roi, config, subplot = None, **kwargs):
     kwargs.setdefault('catalogs', config['plotting']['catalogs'])
 
     ymin = kwargs.get('ymin', None)
-    showlnl = kwargs.get('showlnl', False)
+    
     
     if subplot is None:
         fig = plt.figure(figsize=(14,6))
@@ -45,7 +54,8 @@ def fermi_plotter(name, output, roi, config, subplot = None, **kwargs):
 
     if name == "sqrt_ts":
         sigma_levels = [3, 5, 7] + list(np.logspace(1, 3, 17))
-        ROIPlotter(output['ts']['sqrt_ts'], roi=roi, **kwargs).plot(
+        plotter = ROIPlotter(output['ts']['sqrt_ts'], roi=roi, **kwargs)
+        plotter.plot(
             vmin=0, vmax=5, levels=sigma_levels, 
             cb_label='Sqrt(TS) [$\sigma$]', 
             interpolation='bicubic', subplot=subplot)
@@ -53,7 +63,8 @@ def fermi_plotter(name, output, roi, config, subplot = None, **kwargs):
         ax.set_title('Sqrt(TS)')
 
     if name == "npred":
-        ROIPlotter(output['ts']['npred'], roi=roi, **kwargs).plot(
+        plotter = ROIPlotter(output['ts']['npred'], roi=roi, **kwargs)
+        plotter.plot(
             vmin=0, cb_label='NPred [Counts]', interpolation='bicubic')
         ax = plt.gca()
         ax.set_title('NPred')
@@ -63,22 +74,26 @@ def fermi_plotter(name, output, roi, config, subplot = None, **kwargs):
         ax.set_title('TS histogram')
 
     if name == "data":
-        ROIPlotter(output['resid']['data'],roi=roi).plot(vmin=50,vmax=400,subplot=subplot,cmap='magma')
+        plotter = ROIPlotter(output['resid']['data'],roi=roi)
+        plotter.plot(vmin=50,vmax=400,subplot=subplot,cmap='magma')
         ax = plt.gca()
         ax.set_title('Data')
 
     if name == "model":
-        ROIPlotter(output['resid']['model'],roi=roi).plot(vmin=50,vmax=400,subplot=subplot,cmap='magma')
+        plotter = ROIPlotter(output['resid']['model'],roi=roi)
+        plotter.plot(vmin=50,vmax=400,subplot=subplot,cmap='magma')
         ax = plt.gca()
         ax.set_title('Model')
 
     if name == "sigma":
-        ROIPlotter(output['resid']['sigma'],roi=roi).plot(vmin=-5,vmax=5,levels=[-5,-3,3,5],subplot=subplot,cmap='RdBu_r')
+        plotter = ROIPlotter(output['resid']['sigma'],roi=roi)
+        plotter.plot(vmin=-5,vmax=5,levels=[-5,-3,3,5],subplot=subplot,cmap='RdBu_r')
         ax = plt.gca()
         ax.set_title('Significance')
 
     if name == "excess":
-        ROIPlotter(output['resid']['excess'],roi=roi).plot(vmin=-100,vmax=100,subplot=subplot,cmap='RdBu_r')
+        plotter = ROIPlotter(output['resid']['excess'],roi=roi)
+        plotter.plot(vmin=-100,vmax=100,subplot=subplot,cmap='RdBu_r')
         ax = plt.gca()
         ax.set_title('Excess')
 
@@ -87,10 +102,11 @@ def fermi_plotter(name, output, roi, config, subplot = None, **kwargs):
         ax.set_title('Residual histogram')
 
     if name == "sed":
-        SEDPlotter(output["sed"]).plot(showlnl=showlnl)
+        plotter = SEDPlotter(output["sed"])
+        plotter.plot()
         ax = plt.gca()
         ax.set_ylim(ymin)
-
+    
     return ax 
 
 def plot_ts_hist(output, subplot=None):
@@ -162,18 +178,6 @@ def plot_sigma_hist(output, subplot=None):
 
     return ax
 
-def veritas_plotter(name, output, **kwargs):
-
-    if name == "flux":
-        ax = plt.gca()
-        output.plot(ax, sed_type="e2dnde", color="lightblue", label="1E S1218+304")
-        output.plot_ts_profiles(ax=ax, sed_type="e2dnde");
-        ax.legend()
-
-    elif name == "sed":
-        kwargs_spectrum = {**kwargs, "kwargs_model": {"color":"blue", "label":"Pwl"}, "kwargs_fp":{"color":"blue", "marker":"o", "label":"1ES 1218+304"}}
-        kwargs_residuals = {"color": "blue", "markersize":4, "marker":'s', }
-        ax_spec, ax_res = output.plot_fit(kwargs_spectrum=kwargs_spectrum)
 
 def plot_ROI(veritas=None, fermi=None):
     plt.figure(figsize=(7, 7))
@@ -191,3 +195,4 @@ def plot_ROI(veritas=None, fermi=None):
         #fermi._src_in_roi(ax)
 
     plt.show(block=False)
+

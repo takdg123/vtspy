@@ -12,7 +12,7 @@ from .utils import logger, SCRIPT_DIR
 
 from pathlib import Path
 
-class GammaConfig:
+class JointConfig:
 	"""
 	This is to generate the configuration file compatible to
 	the Fermipy configuration. The input file is the VERITAS

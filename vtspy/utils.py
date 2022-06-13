@@ -13,7 +13,8 @@ logging.basicConfig(format=('%(asctime)s %(levelname)-8s: %(message)s'), datefmt
 from pathlib import Path
 SCRIPT_DIR = str(Path(__file__).parent.absolute())
 
-
+MeV2Erg = 1.60218e-6
+TeV2Erg = 1.60218
 
 def logger(verbosity = 1):
     """

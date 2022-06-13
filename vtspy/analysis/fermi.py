@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
-from ..config import GammaConfig
+from ..config import JointConfig
 from ..utils import logger
 from ..plotting import fermi_plotter
 
@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 from gammapy.data import EventList
-from gammapy.datasets import MapDataset
+from gammapy.datasets import MapDataset, Datasets
 
 from gammapy.irf import PSFMap, EDispMap
 from gammapy.maps import Map, MapAxis, WcsGeom
@@ -23,7 +23,6 @@ from gammapy.modeling.models import Models
 from gammapy.modeling import Fit
 
 from fermipy.gtanalysis import GTAnalysis
-
 
 import fermipy.wcs_utils as wcs_utils
 import fermipy.utils as fermi_utils
@@ -67,14 +66,16 @@ class FermiAnalysis():
             Default: False
         remove_weak_srcs (bool): remove sources with TS of nan or 0
             Default: False 
+        construct_dataset (bool): construct dataset for the gammapy analysis
+            Default: False
         verbosity (int)
         **kwargs: passed to fermipy.GTAnalysis module
     """
 
-    def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, remove_weak_srcs = False, verbosity=True, **kwargs):
+    def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, remove_weak_srcs = False, construct_dataset = False, verbosity=True, **kwargs):
         
         self._verbosity = verbosity
-        config = GammaConfig(config_file=config_file, verbosity=(self.verbosity-1)).config
+        config = JointConfig(config_file=config_file, verbosity=(self.verbosity-1)).config
         config.pop("vts_setup")
 
         self._logging = logger(self.verbosity)
@@ -106,6 +107,9 @@ class FermiAnalysis():
             self._logging.debug("Generate PSF.")
             generatePSF(self.gta.config)
             
+            if construct_dataset:
+                self.construct_dataset()
+
             self.save_state("initial", init=True, **kwargs)
             
             self._logging.info("The initial setup and configuration is saved [state_file = initial].")
@@ -116,6 +120,9 @@ class FermiAnalysis():
 
             if flag == -1:
                 return
+
+            if construct_dataset:
+                self.construct_dataset()
 
         try:
             self.output = np.load(f"./{self._outdir}/output.npy", allow_pickle=True).item()
@@ -318,7 +325,7 @@ class FermiAnalysis():
         self._logging.info(f"{N} sources are deleted.")
 
 
-    def simple_fit(self, state_file="simple", pre_state=None, 
+    def fit(self, state_file="simple", pre_state=None, 
         free_all=False, free_target=True,
         remove_weak_srcs=False, fix_index=False, 
         min_ts=5, distance=3.0, optimizer = 'NEWMINUIT', 
@@ -380,24 +387,24 @@ class FermiAnalysis():
         if o["fit_success"]:
             self._logging.info("Fit successfully.")
         else:
-            self._logging.error("Fit fails.")
+            self._logging.error("Fit failed.")
 
         self.save_state(state_file)
         if return_output:
             return o
 
-    def simple_analysis(self, jobs = ["ts", "resid", "sed"], 
-        filename = "output", state_file= "analysis", **kwargs):
+    def analysis(self, jobs = ["ts", "resid", "sed"], 
+        filename = "output", state_file="analyzed", **kwargs):
         """
         Perform various analyses: TS map, Residual map, and SED.
         
         Args:
-            jobs (list): list of jobs, 'ts', 'resid', and/or 'sed'.
+            jobs (str or list): list of jobs, 'ts', 'resid', and/or 'sed'.
                 Default: ['ts', 'resid', 'sed']
             filename (str): read and write the output
                 Default: output
             state_file (str): output state filename (npy)
-                Default: simple
+                Default: analyzed
             **kwargs: passed to GTanalysis.sed
 
         """
@@ -412,6 +419,9 @@ class FermiAnalysis():
 
         free = self.gta.get_free_param_vector()
         
+        if type(jobs) == str:
+            jobs = [jobs]
+
         if "ts" in jobs:
             o = self._ts_map(model=model)
             output['ts'] = o
@@ -440,14 +450,15 @@ class FermiAnalysis():
                 Options: ["sqrt_ts", "npred", "ts_hist", 
                           "data", "model", "sigma", 
                           "excess", "resid", "sed"]
-            filename (str): read the output (from FermiAnalysis.simple_analysis)
+            filename (str): read the output (from FermiAnalysis.analysis)
+
         """
 
         try:
             self._logging.info("Loading the output file...")
             self.output = np.load(f"./{self._outdir}/{filename}.npy", allow_pickle=True).item()
         except:
-            self._logging.error("Run FermiAnalysis.simple_analysis first.")
+            self._logging.error("Run FermiAnalysis.analysis first.")
             return
 
         list_of_fig = ["sqrt_ts", "npred", "ts_hist", 
@@ -476,9 +487,10 @@ class FermiAnalysis():
         for i, o in enumerate(plots):
 
             subplot = int(sub+f"{i+1}")
-            fermi_plotter(o, self.output, self.gta.roi, self.gta.config, subplot=subplot, **kwargs)
+            ax = fermi_plotter(o, self, subplot=subplot, **kwargs)
 
         plt.tight_layout()
+        
 
     def find_sources(self, state_file = "wt_new_srcs", re_fit=True, **kwargs):
         """
@@ -488,7 +500,7 @@ class FermiAnalysis():
             state_file (str): output state filename (npy)
                 Default: wt_new_srcs
             re_fit (bool): re fit the ROI with new sources
-            **kwargs: passed to simple_fit.
+            **kwargs: passed to fit.
 
         Return:
             dict: output of GTanalysis.find_sources
@@ -499,7 +511,7 @@ class FermiAnalysis():
         self._logging.info("{} sources are found. They will be added into the model list.".format(len(srcs["sources"])))
 
         if re_fit:
-            self.simple_fit(state_file=state_file, **kwargs)
+            self.fit(state_file=state_file, **kwargs)
         else:
             self.save_state(state_file)
 
@@ -605,7 +617,7 @@ class FermiAnalysis():
             elif src.name == "galdiff":
                 gammapy_models.append(fermi_galactic_diffuse_bkg(self.gta.config, src))
             else:
-                gammapy_models.append(fermipy2gammapy(src))
+                gammapy_models.append(fermipy2gammapy(self.gta.like, src))
             
             self._logging.debug(f"A source model for {src.name} is converted.")
 
@@ -622,6 +634,7 @@ class FermiAnalysis():
         self._logging.info("Loading the Fermi-LAT models...")
         models =  self._convert_model()
         self.datasets = MapDataset(
-            models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
+            name="fermi", models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
         )
         self._logging.info("Ready to perform a gammapy analysis.")
+

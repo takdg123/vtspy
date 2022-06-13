@@ -12,8 +12,7 @@ from astropy.time import Time
 from ..utils import logger
 from .. import utils
 
-from ..config import GammaConfig
-from ..plotting import veritas_plotter
+from ..config import JointConfig
 
 from gammapy.data import DataStore
 from gammapy.datasets import Datasets, SpectrumDataset, FluxPointsDataset
@@ -65,7 +64,7 @@ class VeritasAnalysis:
 	    """
 		self._verbosity = verbosity
 		
-		self.config = GammaConfig(config_file=config_file, verbosity=(self.verbosity-1)).config
+		self.config = JointConfig(config_file=config_file, verbosity=(self.verbosity-1)).config
 
 		self._logging = logger(self.verbosity)
 
@@ -208,7 +207,7 @@ class VeritasAnalysis:
 	    VeritasAnalysis.config["vts_setup"]
 	    
 	    Args:
-	        **kwargs: passed to VeritasAnalysis.create_dataset
+	        **kwargs: passed to VeritasAnalysis.construct_dataset
 	    """
 
 		selection = dict(
@@ -251,9 +250,9 @@ class VeritasAnalysis:
 		th2cut = self.config["vts_setup"]['th2cut']
 		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
 		
-		self.create_dataset(**kwargs)
+		self.construct_dataset(**kwargs)
 
-	def simple_fit(self, model = "PowerLaw", state_file="simple"):
+	def fit(self, model = "PowerLaw", state_file="simple"):
 		"""
         Perform a simple fitting with a given model: 
         PowerLaw, LogParabola, ...
@@ -289,13 +288,14 @@ class VeritasAnalysis:
 
 		fit_joint = Fit()
 		self.fit_results = fit_joint.run(datasets=[self.stacked_dataset])
+
 		if self.fit_results.success:
 			self._logging.info("Fit successfully.")
 			self.save_state(state_file)
 		else:
-			self._logging.error("Fit fails.")
+			self._logging.error("Fit failed.")
 
-	def simple_analysis(self, jobs=["sed"], state_file="output", **kwargs):
+	def analysis(self, jobs=["sed"], state_file="analyzed", **kwargs):
 		"""
         Perform a simple analysis, e.g., SED, lightcurve
         
@@ -303,7 +303,7 @@ class VeritasAnalysis:
             jobs (list): list of jobs, 'sed', and/or 'lc'.
                 Default: ['ts', 'resid', 'sed']
             state_file (str): state filename (pickle)
-	        	Default: output
+	        	Default: analyzed
 	        **kwargs: passed to vtspy.utils.define_time_intervals
         """
 
@@ -352,9 +352,9 @@ class VeritasAnalysis:
 
 		self.save_state(state_file)
 
-	def create_dataset(self, max_region_number = 6, eff_cut = None, bias_cut = None, **kwargs):
+	def construct_dataset(self, max_region_number = 6, eff_cut = None, bias_cut = None, **kwargs):
 		"""
-        Create dataset for the gammapy analysis
+        Construct dataset for the gammapy analysis
         
         Args:
             max_region_number (int): the maximum number of OFF-regions
@@ -412,7 +412,7 @@ class VeritasAnalysis:
 			datasets.append(dataset_on_off)
 
 		self.datasets = datasets
-		self.stacked_dataset = self.datasets.stack_reduce()
+		self.stacked_dataset = self.datasets.stack_reduce(name="veritas")
 
 	def plotting(self, plot):
 		"""
@@ -421,14 +421,19 @@ class VeritasAnalysis:
         Args:
             plot (str): a plot to show
                 Options: ["fit", "flux", "sed", "lc"]
-            filename (str): read the output (from FermiAnalysis.simple_analysis)
+            filename (str): read the output (from FermiAnalysis.analysis)
         """
 		if plot == "fit":
 			self.stacked_dataset.plot_fit()
 		elif plot == "flux":
-			veritas_plotter(plot, self.flux_points)
+			ax = plt.gca()
+			self.flux_points.plot(ax, sed_type="e2dnde", color="lightblue", label=self.target_name)
+			self.flux_points.plot_ts_profiles(ax=ax, sed_type="e2dnde");
+			ax.legend()
 		elif plot == "sed":
-			veritas_plotter(plot, self._flux_points_dataset)
+			kwargs_spectrum = {**kwargs, "kwargs_model": {"color":"blue", "label":"Pwl"}, "kwargs_fp":{"color":"blue", "marker":"o", "label":self.target_name}}
+			kwargs_residuals = {"color": "blue", "markersize":4, "marker":'s', }
+			ax_spec, ax_res = self._flux_points_dataset.plot_fit(kwargs_spectrum=kwargs_spectrum)
 		elif plot == "lc":
 			self._lightcurve.plot(sed_type='eflux', label=self.target_name)
 
@@ -464,7 +469,7 @@ class VeritasAnalysis:
 
 		if update_dataset:
 			self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
-			self.create_dataset(**kwargs)
+			self.construct_dataset(**kwargs)
 
 	def _exclusion_from_bright_srcs(self):
 		srcfile, distance, magnitude = self.config["vts_setup"]["bright_srcs"]
