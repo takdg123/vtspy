@@ -9,7 +9,7 @@ from astropy.io import fits
 
 import re
 
-from .config import JointConfig as config
+from .config import JointConfig
 from .utils import logger
 
 class DownloadFermiData:
@@ -27,7 +27,7 @@ class DownloadFermiData:
         self._logging = logger(verbosity=verbosity)
 
         self.config_file = config_file
-        self.config = config.get_config(self.config_file)
+        self.config = JointConfig.get_config(self.config_file).pop("fermi")
         
         if self.config['selection']['target'] == None:
             self.target = "source"
@@ -115,7 +115,7 @@ class DownloadFermiData:
                 self._logging.error("[Error] config['selection']['tmax'] = ", maxTime)
                 self._logging.error("[Error] Please try again.")
                 self.config['selection']['tmax'] = float(maxTime)
-                config.updateConfig(self.config, self.config_file)
+                JointConfig.updateConfig(self.config, self.config_file)
                 return False
 
 
@@ -212,7 +212,7 @@ class DownloadFermiData:
 
         self._logging.info("Downloading the Fermi-LAT data has been completed.")
         os.system("rm ./fermi/fermi_dwn_link.npy")
-        config.update_config(self.config, self.config_file)
+        JointConfig.update_config(self.config, "fermi", self.config_file)
 
     def manual_download(self, address=None):
         """

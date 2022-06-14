@@ -5,6 +5,7 @@ import astropy.units as u
 from . import FermiAnalysis, VeritasAnalysis
 from ..utils import logger
 from .. import utils
+from ..model import gammapy_default_model
 
 from gammapy.datasets import Datasets
 from gammapy.modeling import Fit
@@ -17,8 +18,10 @@ class JointAnalysis:
     def __init__(self, veritas = "initial", fermi = "initlal", verbosity=1):
         self._verbosity = verbosity
         self._logging = logger(self.verbosity)
-        self._logging.info("Initializing the joint-fit analysis...")
+        self._logging.info("Initialize the joint-fit analysis...")
         self._outdir = "./joint/"
+        self._model_change_flag = False
+        
 
         if type(veritas) == str:
             self.veritas = VeritasAnalysis(veritas)
@@ -27,7 +30,8 @@ class JointAnalysis:
             self.veritas = veritas
         else:
             return
-        
+        self._target_name = self.veritas.target_name
+
         if type(fermi) == str:
             self.fermi = FermiAnalysis(fermi, construct_dataset=True)
         elif hasattr(fermi, "datasets"):
@@ -37,31 +41,38 @@ class JointAnalysis:
             return
         
         self._logging.info("Constructing a joint datasets")
-        self._construct_joint_datasets()
+        self._construct_joint_datasets(init=True)
         self._logging.info("Completed.")
         
+    @property
+    def target_model(self):
+        return self.datasets.models[self.target_name]
     
-    def _construct_joint_datasets(self, default_model="VERITAS"):
-        vts_model = self.veritas.stacked_dataset.models[0]
-        self.veritas.stacked_dataset.models = self._find_target_model()
-        self.datasets = Datasets([self.fermi.datasets, self.veritas.stacked_dataset])
-        if default_model:
-            self.datasets.models[self.fermi.target_name].spectral_model = vts_model.spectral_model
-        
-        self.datasets.models[self.fermi.target_name]._name = self.target_name
-        
-    def _find_target_model(self):
-        target_pos = self.fermi.datasets.models[self.fermi.target_id].spatial_model.position
-        th2cut = self.veritas._on_region.radius.value
+    @property
+    def verbosity(self):
+        return self._verbosity
 
-        models = []
-        for model in self.fermi.datasets.models:
-            if model.name != 'galdiff' and model.name != 'isodiff':
-                if target_pos.separation(model.spatial_model.position).deg < th2cut:
-                    models.append(model)
-        return models
+    @property
+    def target_name(self):
+        return self._target_name
+    
+    def print_datasets(self):
+        return self._logging.info(self.datasets)
+
+    
+    def print_models(self, full_output=False):
+        if full_output:
+            return self._logging.info(self.datasets.models)
+        else:
+            table = self.datasets.models.to_parameters_table()
+            table = table[table["model"]== self.target_name]
+            return table
     
     def fit(self):
+
+        if self._model_change_flag:
+            self._logging.info("A model is recently updated. Optimize first")
+            self._optimize()
 
         self._logging.info("Start fitting...")
 
@@ -101,7 +112,7 @@ class JointAnalysis:
                                          sed_type="e2dnde", alpha=0.2, color="k")
             else:
                 energy_bounds = [100 * u.MeV, 30 * u.TeV]
-                jf_model = self.datasets.models[self.target_id].spectral_model
+                jf_model = self.datasets.models[self.target_name].spectral_model
                 
                 if fit:
                     jf_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i), label=self.target_name, ls="-")
@@ -180,48 +191,62 @@ class JointAnalysis:
 
         self.flux_points = fpe.run(self.datasets)
 
-
         self._flux_points_dataset = FluxPointsDataset(
             data=self.flux_points, models=self.datasets.models
         )
         
-        
-    @property
-    def target_model(self):
-        return self.datasets.models[self.target_id]
-    
-    @property
-    def verbosity(self):
-        return self._verbosity
-    
-    @property
-    def print_datasets(self):
-        return self._logging.info(self.datasets)
-
-    @property
-    def print_models(self):
-        return self._logging.info(joint.datasets.models)
-    
-    @property
-    def target_id(self):
-        return self.fermi.target_id
-
-    @property
-    def target_name(self):
-        return self.veritas.target_name
-    
-    def define_model(self, model):
-        prevmodel = self.datasets.models[self.target_id].spectral_model.tag[0]
+    def change_model(self, model, refit=False):
+        prevmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
         if type(model) == str:
-            if model.lower() == "powerlaw":
-                model = gammapy_model.PowerLawSpectralModel()
-            elif model.lower() == "logparabola":
-                model = gammapy_model.LogParabolaSpectralModel()
-            else:
+            spectral_model = gammapy_default_model(model)
+            if model is None:
                 self._logging.error("The input model is not supported yet.")
+                return
         elif hasattr(model, "tag"):
-            self._logging.error(f"A model, {model.tag[0]}, is imported")
+            spectral_model = model
+            self._logging.info(f"A model, {model.tag[0]}, is imported")
         
-        self.datasets.models[self.target_id].spectral_model = model
-        newmodel = self.datasets.models[self.target_id].spectral_model.tag[0]
-        self._logging.info(f"The spectral model for the target is chaged: {prevmodel}->{newmodel}.")
+        if refit:
+            self._optimize(model=spectral_model)
+            self._model_change_flag = False
+        else:
+            self._model_change_flag = True
+            self.datasets.models[self.target_name].spectral_model = spectral_model
+
+        newmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
+        self._logging.info(f"The spectral model for the target is chaged:")
+        self._logging.info(f"{prevmodel}->{newmodel}")
+
+    def _optimize(self, model=None):
+        if model is None:
+            model = self.datasets.models[self.target_name].spectral_model
+        
+        self.datasets.models[self.target_name].spectral_model = model
+        joint_fit = Fit()
+        fit_results = joint_fit.run(self.datasets["veritas"])
+
+    def _construct_joint_datasets(self, default_model="VERITAS", init=False):
+        vts_model = self.veritas.stacked_dataset.models[0]
+        fermi_model = self.fermi.datasets.models[self.fermi.target_name]
+
+        self.veritas.stacked_dataset.models = self._find_target_model()
+        self.datasets = Datasets([self.fermi.datasets, self.veritas.stacked_dataset])
+
+        if default_model.lower() == "veritas":
+            self.datasets.models[self.fermi.target_name].spectral_model = vts_model.spectral_model
+        elif default_model.lower() == "fermi":
+            self.datasets.models[self.veritas.target_name].spectral_model = fermi_model.spectral_model
+
+        self.datasets.models[self.fermi.target_name]._name = self.target_name
+
+    def _find_target_model(self):
+        target_pos = self.fermi.datasets.models[self.fermi.target_name].spatial_model.position
+        th2cut = self.veritas._on_region.radius.value
+
+        models = []
+        for model in self.fermi.datasets.models:
+            if model.name != 'galdiff' and model.name != 'isodiff':
+                if target_pos.separation(model.spatial_model.position).deg < th2cut:
+                    models.append(model)
+        return models
+    

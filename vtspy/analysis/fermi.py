@@ -74,8 +74,7 @@ class FermiAnalysis():
     def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, remove_weak_srcs = False, construct_dataset = False, verbosity=True, **kwargs):
         
         self._verbosity = verbosity
-        config = JointConfig(config_file=config_file, verbosity=(self.verbosity-1)).config
-        config.pop("vts_setup")
+        config = JointConfig.get_config(config_file=config_file).pop("fermi")
 
         self._logging = logger(self.verbosity)
         self._logging.info("Initializing the Fermi-LAT analysis...")
@@ -505,7 +504,7 @@ class FermiAnalysis():
             exposure (str): exposure map file (gtapp.gtexpmap)
             psf (str): psf file (gtapp.gtpsf)
         """
-        
+
         self._logging.info("Loading the Fermi-LAT events...")
         counts = self._load_fermi_events(eventlist=eventlist)
         self._logging.info("Loading the Fermi-LAT IRFs...")

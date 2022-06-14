@@ -90,6 +90,24 @@ def fermi_isotropic_diffuse_bkg(config, fmodel):
     diffuse_iso._name = "isodiff"
     return diffuse_iso
 
+def gammapy_default_model(model):
+    if model.lower() == "powerlaw":
+        spectral_model = gammapy_model.PowerLawSpectralModel(
+            amplitude=1e-12 * u.Unit("cm-2 s-1 TeV-1"),
+            index=2.5,
+            reference=1 * u.TeV,
+        )
+    elif model.lower() == "logparabola":
+        spectral_model = gammapy_model.LogParabolaSpectralModel(
+             alpha=3,
+             amplitude=1e-12 * u.Unit("cm-2 s-1 TeV-1"),
+             reference=1 * u.TeV,
+             beta=2,
+        )
+    else:
+        spectral_model = None
+    return spectral_model
+
 def spatial_model(src):
     if src['SpatialModel'] == "PointSource":
         spatial_model = gammapy_model.PointSpatialModel(

@@ -11,6 +11,7 @@ from astropy.time import Time
 
 from ..utils import logger
 from .. import utils
+from ..model import gammapy_default_model
 
 from ..config import JointConfig
 
@@ -64,17 +65,17 @@ class VeritasAnalysis:
 	    """
 		self._verbosity = verbosity
 		
-		self.config = JointConfig(config_file=config_file, verbosity=(self.verbosity-1)).config
+		self.config = JointConfig.get_config(config_file).pop("veritas")
 
 		self._logging = logger(self.verbosity)
 
 		self._logging.info("Initialize the VERITAS analysis.")
 
-		self._outdir = self.config['vts_setup']['outdir']
+		self._outdir = self.config['fileio']['outdir']
 		
-		self._eff_cut = self.config['vts_setup']['eff_cut']
-		self._bias_cut = self.config['vts_setup']['bias_cut']
-		self._max_region_number = self.config['vts_setup']['max_region_number']
+		self._eff_cut = self.config['cuts']['eff_cut']
+		self._bias_cut = self.config['cuts']['bias_cut']
+		self._max_region_number = self.config['selection']['max_region_number']
 
 		if overwrite or not(os.path.isfile(f"./{self._outdir}/initial.pickle")):
 
@@ -146,7 +147,7 @@ class VeritasAnalysis:
 		if hasattr(self, "_lightcurve"):
 			return self._lightcurve.to_table(sed_type='eflux',format='lightcurve')
 	
-	def print_params(self):
+	def print_models(self):
 		"""
         Return:
         	astropy.table: fit parameters
@@ -205,7 +206,7 @@ class VeritasAnalysis:
 	    This is to initialize the VERITAS analysis; e.g., construct datasets
 	    To change the setting for this setup, check config file.
 
-	    VeritasAnalysis.config["vts_setup"]
+	    VeritasAnalysis.config
 	    
 	    Args:
 	        **kwargs: passed to VeritasAnalysis.construct_dataset
@@ -216,7 +217,7 @@ class VeritasAnalysis:
 		    frame="icrs",
 		    lon= self.target.ra,
 		    lat= self.target.dec,
-		    radius = self.config["vts_setup"]['radius'] * u.deg,
+		    radius = self.config["selection"]['radius'] * u.deg,
 		)
 
 		self._logging.info("Load the data files.")
@@ -239,21 +240,21 @@ class VeritasAnalysis:
 		self._obs_ids = self._data_store.obs_table.select_observations(selection)["OBS_ID"]
 
 		self.observations = self._data_store.get_observations(self._obs_ids, required_irf=["aeff", "edisp"])
-		time_intervals = [self.config["vts_setup"]["tmin"], self.config["vts_setup"]["tmax"]]
+		time_intervals = [self.config["selection"]["tmin"], self.config["selection"]["tmax"]]
 		self.observations, self._obs_ids = utils.time_filter(self.observations, time_intervals, time_format="mjd")
 		self._logging.info(f"The number of observations is {{len(self._observations)}}")
 
 		self._logging.info("Define exclusion regions.")
 		self._exclusion_mask = self._exclusion_from_bright_srcs(**kwargs)
-		self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=self.config["vts_setup"]["exc_on_region_radius"])
+		self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=self.config["selection"]["exc_on_region_radius"])
 		
 		self._logging.info("Define ON- and OFF-regions.")
-		th2cut = self.config["vts_setup"]['th2cut']
+		th2cut = self.config["cuts"]['th2cut']
 		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
 		
 		self.construct_dataset(**kwargs)
 
-	def fit(self, model = "PowerLaw", state_file="simple"):
+	def fit(self, model = "PowerLaw", state_file="simple", save_state=True):
 		"""
         Perform a simple fitting with a given model: 
         PowerLaw, LogParabola, ...
@@ -263,24 +264,14 @@ class VeritasAnalysis:
                 Default: "PowerLaw"
             state_file (str): state filename (pickle)
 	        	Default: simple
+	        save_state(bool)
+	        	Default: True
 
         """
 
 		if type(model) == str:
-			if model == "PowerLaw":
-				spectral_model = gammapy_model.PowerLawSpectralModel(
-				    amplitude=1e-12 * u.Unit("cm-2 s-1 TeV-1"),
-				    index=2.5,
-				    reference=1 * u.TeV,
-				)
-			elif model == "LogParabola":
-				spectral_model = gammapy_model.LogParabolaSpectralModel(
-				     alpha=3,
-				     amplitude=1e-12 * u.Unit("cm-2 s-1 TeV-1"),
-				     reference=1 * u.TeV,
-				     beta=2,
-				)
-		else:
+			spectral_model = gammapy_default_model(model)
+		elif hasattr(model, "tag"):
 			spectral_model = model
 
 		spectral_model = SkyModel(spectral_model=spectral_model, name=self.target_name)
@@ -292,7 +283,8 @@ class VeritasAnalysis:
 
 		if self.fit_results.success:
 			self._logging.info("Fit successfully.")
-			self.save_state(state_file)
+			if save_state:
+				self.save_state(state_file)
 		else:
 			self._logging.error("Fit failed.")
 
@@ -327,16 +319,16 @@ class VeritasAnalysis:
 			self._flux_points_dataset = FluxPointsDataset(
 			    data=self.flux_points, models=self.stacked_dataset.models
 			)
-			self._logging.info("Generating flux points and SED is completed.")
+			self._logging.info("Completed.")
 
 		if "lc" in jobs:
 			self._logging.info("Generating lightcurve...")
 
-			emin = kwargs.pop("emin", self.config["vts_setup"]['emin'])
-			emax = kwargs.pop("emax", self.config["vts_setup"]['emax'])
+			emin = kwargs.pop("emin", self.config["selection"]['emin'])
+			emax = kwargs.pop("emax", self.config["selection"]['emax'])
 			ul = kwargs.pop("ul", 2)
-			tmin = kwargs.pop("tmin", self.config["vts_setup"]['tmin'])
-			tmax = kwargs.pop("tmax", self.config["vts_setup"]['tmax'])
+			tmin = kwargs.pop("tmin", self.config["selection"]['tmin'])
+			tmax = kwargs.pop("tmax", self.config["selection"]['tmax'])
 
 			time_intervals = utils.define_time_intervals(tmin, tmax, **kwargs)
 			self._logging.info(f"The number of time intervals is {len(time_intervals)}")
@@ -355,7 +347,7 @@ class VeritasAnalysis:
 		self.save_state(state_file)
 
 
-	def plotting(self, plot):
+	def plotting(self, plot, **kwargs):
 		"""
         Show various plot: fit result, flux, SED, and lightcurve
         
@@ -411,6 +403,7 @@ class VeritasAnalysis:
 		if update_dataset:
 			self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
 			self.construct_dataset(**kwargs)
+
 	def construct_dataset(self, **kwargs):
 		"""
         Construct dataset for the gammapy analysis
@@ -463,8 +456,10 @@ class VeritasAnalysis:
 		self.stacked_dataset = self.datasets.stack_reduce(name="veritas")
 
 	def _exclusion_from_bright_srcs(self):
-		srcfile, distance, magnitude = self.config["vts_setup"]["bright_srcs"]
-		ex_radius = self.config["vts_setup"]["exc_radius"]
+		srcfile = self.config["background"]["file"]
+		distance = self.config["background"]["distance"]
+		magnitude = self.config["background"]["magnitude"]
+		ex_radius = self.config["selection"]["exc_radius"]
 
 		bright_sources = utils.bright_source_list(srcfile)
 

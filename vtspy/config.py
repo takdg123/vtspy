@@ -33,18 +33,19 @@ class JointConfig:
 
 		path = Path(config_file)
 		if path.is_file() and (files is None):
-			self.config = self.get_config(config_file)
+			config = self.get_config(config_file)
+			self.fermi_config = config.pop("fermi")
+			self.veritas_config = config.pop("veritas")
 			self._logging.info(f'a configuration file ({config_file}) is loaded.') 
 		else:
 			self.init(files=files, config_file = config_file, info=info, gald=gald, iso=iso)
 			self._logging.info(f'a configuration file ({config_file}) is created.') 
 
 
-	@classmethod
 	def init(self, files, config_file="config.yaml", gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt", info = {}, verbosity=1):
 
 		"""
-	    Initiate to generate a Fermipy config file
+	    Initiate to generate a config file
 
 	    Args:
 	        file (str): name of the input file (.root or .fits)
@@ -62,21 +63,28 @@ class JointConfig:
 			if ".gz" in file:
 				filelist.remove(file)
 
-		pre_info = self.__emptyfile__(gald=gald, iso=iso)	
-
+		self.fermi_config = self._empty4fermi(gald=gald, iso=iso)	
+		self.veritas_config = self._empty4veritas()	
+		
 		info = {**info, 
+			'fermi':{
 			'selection':{
 				'ra': None, 
 				'dec': None, 
 				'tmin': None, 
-				'tmax':None},
-			'vts_setup':{
+				'tmax':None}},
+			'veritas':{
+			'selection':{
+				'ra': None,
+				'dec': None,
 				'tmin': None,
 				'tmax': None,
-			}}
-		
-		ra = info['selection']['ra']
-		dec = info['selection']['dec']
+			}
+			}
+		}
+
+		ra = info['fermi']['selection']['ra']
+		dec = info['fermi']['selection']['dec']
 		
 		for file in filelist:
 
@@ -88,7 +96,7 @@ class JointConfig:
 
 					tRun = anasum['total_1']['stereo']['tRunSummary']
 					
-					if info['selection']['ra'] == None:
+					if info['fermi']['selection']['ra'] == None:
 						ra = float(tRun['TargetRAJ2000'].arrays(library="np")['TargetRAJ2000'][0])
 					else:
 						temp = float(tRun['TargetRAJ2000'].arrays(library="np")['TargetRAJ2000'][0])
@@ -140,48 +148,59 @@ class JointConfig:
 				else:
 					continue
 				
-				if info['selection']['tmin'] is not None:
-					if info['selection']['tmin'] < tmin:
-						tmin = info['selection']['tmin']
+				if info['fermi']['selection']['tmin'] is not None:
+					if info['fermi']['selection']['tmin'] < tmin:
+						tmin = info['fermi']['selection']['tmin']
 					else:
-						info['selection']['tmin'] = tmin
+						info['fermi']['selection']['tmin'] = tmin
 				
-				if info['selection']['tmax'] is not None:
-					if info['selection']['tmax'] > tmax:
-						tmax = info['selection']['tmax']
+				if info['fermi']['selection']['tmax'] is not None:
+					if info['fermi']['selection']['tmax'] > tmax:
+						tmax = info['fermi']['selection']['tmax']
 					else:
-						info['selection']['tmax'] = tmax
+						info['fermi']['selection']['tmax'] = tmax
 						
-				if info['vts_setup']['tmin'] is not None:
-					if info['vts_setup']['tmin'] < tmin_mjd:
-						tmin_mjd = info['vts_setup']['tmin']
+				if info['veritas']['selection']['tmin'] is not None:
+					if info['veritas']['selection']['tmin'] < tmin_mjd:
+						tmin_mjd = info['veritas']['selection']['tmin']
 					else:
-						info['vts_setup']['tmin'] = tmin_mjd
-				if info['vts_setup']['tmax'] is not None:
-					if info['vts_setup']['tmax'] > tmax_mjd:
-						tmax_mjd = info['vts_setup']['tmax']
+						info['veritas']['selection']['tmin'] = tmin_mjd
+				if info['veritas']['selection']['tmax'] is not None:
+					if info['veritas']['selection']['tmax'] > tmax_mjd:
+						tmax_mjd = info['veritas']['selection']['tmax']
 					else:
-						info['vts_setup']['tmax'] = tmax_mjd
+						info['veritas']['selection']['tmax'] = tmax_mjd
 
 				
 				info = {**info, 
+					'fermi':{
 					'selection':{
 						'ra': ra, 
 						'dec': dec, 
 						'tmin': tmin, 
 						'tmax': tmax, 
 						'target': target},
-					'vts_setup':{
+						},
+					'veritas':{
+					'selection':{
+						'ra': ra, 
+						'dec': dec, 
 						'tmin': tmin_mjd, 
-						'tmax': tmax_mjd, 
+						'tmax': tmax_mjd,
+						'target': target, 
 					}}
+					}
 
 
 		
-		info = self._filter(pre_info, info)
+		info['fermi'] = self._filter(self.fermi_config, info['fermi'])
+		info['veritas'] = self._filter(self.veritas_config, info['veritas'])
 
-		info = self._update(pre_info, info)
-
+		self.fermi_config = self._update(self.fermi_config, info['fermi'])
+		self.veritas_config = self._update(self.veritas_config, info['veritas'])
+		
+		info = {"fermi": self.fermi_config, "veritas": self.veritas_config}
+		
 		self.set_config(info, config_file)
 
 		self.config = info
@@ -212,20 +231,21 @@ class JointConfig:
 
 	
 	@classmethod
-	def update_config(self, info, config_file="config.yaml"):
+	def update_config(self, info, instrument, config_file="config.yaml"):
 		"""
 	    Update a config file.
 
 	    Args:
 	    	info (dict): update info in a config file
+	    	instrument (str): either fermi or veritas
 	        config_file (str): Fermi config filename (yaml)
 				Default: config.yaml
 	    """
 		pre_info = self.get_config(config_file)
 		
-		info = self._filter(pre_info, info)
+		info = self._filter(pre_info[instrument], info)
 		
-		pre_info = self._update(pre_info, info)
+		pre_info[instrument] = self._update(pre_info[instrument], info)
 		
 		self.set_config(pre_info, config_file)
 
@@ -241,6 +261,7 @@ class JointConfig:
 			self.config = self.get_config(config_file)
 		self._logging.info("\n"+yaml.dump(self.config, sort_keys=False, default_flow_style=False))
 
+	@staticmethod
 	def _filter(pre_info, info):
 		if len(info) != 0:
 			for key in list(info.keys()):
@@ -249,6 +270,7 @@ class JointConfig:
 						info[key].pop(subkey)
 		return info
 
+	@staticmethod
 	def _update(pre_info, info):
 		if len(info) != 0:
 			for key in info.keys():
@@ -256,26 +278,26 @@ class JointConfig:
 					pre_info[key][subkey] = info[key][subkey]
 					if (key == "selection") and (subkey=="ra"):
 						if info['selection']['ra'] != None and info['selection']['dec'] != None:
-							pre_info['binning']['coordsys'] = 'CEL'
+							if 'binning' in pre_info.keys():
+								pre_info['binning']['coordsys'] = 'CEL'
 							glon, glat = utils.CEL2GAL(info['selection']['ra'], info['selection']['dec'])
 							pre_info['selection']['glon'], pre_info['selection']['glat'] = float(glon), float(glat)
 
 					if (key == "selection") and (subkey=="glon"):
 						if info['selection']['glon'] != None and info['selection']['glat'] != None:
-							pre_info['binning']['coordsys'] = 'CEL'
+							if 'binning' in pre_info.keys():
+								pre_info['binning']['coordsys'] = 'CEL'
 							ra, dec = utils.GAL2CEL(info['selection']['glon'], info['selection']['glat'])
 							pre_info['selection']['ra'], pre_info['selection']['dec'] = float(ra), float(dec)
 
 		return pre_info
 
-	def __emptyfile__(gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt"):
+	def _empty4fermi(self, gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt"):
 		if not(os.path.isdir("./fermi")):
 			os.system("mkdir fermi")
-		if not(os.path.isdir("./veritas")):
-			os.system("mkdir veritas")
-		if not(os.path.isdir("./log")):
-			os.system("mkdir log")
-			os.system(": > ./log/fermipy.log")
+		if not(os.path.isdir("./fermi/log")):
+			os.system("mkdir ./fermi/log")
+			os.system(": > ./fermi/log/fermipy.log")
 
 		info = {
  				'data': {
@@ -317,24 +339,47 @@ class JointConfig:
 					},
 				'fileio': {
 					'outdir' : "./fermi/",
-   					'logfile' : "./log/fermipy.log",
+   					'logfile' : "./fermi/log/fermipy.log",
 					'usescratch': False
-					},
-				'vts_setup':{
-					'tmin' : None,
-					'tmax' : None,
-					'format': "mjd",
-					'max_region_number': 6,
-					'radius': 2.0,
-					'th2cut': 0.008,
-					'exc_on_region_radius': 0.7,
-					'exc_radius': 0.25,
-					'emin': 0.1,
-					'emax': 2.0,
-					'eff_cut': 0,
-					'bias_cut': 0,
-					'outdir':  "./veritas/",
-					'bright_srcs': ['Hipparcos_MAG8_1997', 1.75, 7],
 					},
 				}
 		return info
+
+	def _empty4veritas(self):
+		if not(os.path.isdir("./veritas")):
+			os.system("mkdir veritas")
+
+		info = {
+			'background':
+			{
+				'file': "Hipparcos_MAG8_1997",
+				'distance': 1.75,
+				'magnitude': 7,
+			},
+			'fileio':{
+				'outdir': "./veritas/",
+			},
+			'cuts':{
+				'th2cut': 0.008,
+				'eff_cut': 0,
+				'bias_cut': 0,
+			},
+			'selection':
+			{	
+				'target': None,
+				'ra': None,
+				'dec': None,
+				'tmin' : None,
+				'tmax' : None,
+				'emin': 0.1,
+				'emax': 2.0,
+				'format': "mjd",
+				'max_region_number': 6,
+				'radius': 2.0,
+				'exc_on_region_radius': 0.7,
+				'exc_radius': 0.25,
+				},
+
+			}
+		return info
+		
