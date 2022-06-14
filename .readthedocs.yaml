@@ -9,11 +9,10 @@ build:
   os: "ubuntu-20.04"
   tools:
     python: "mambaforge-4.10"
-  commands:
-    - pip install docs/requirements.txt
 
-#conda:
-#  environment: environment.yml
+
+conda:
+  environment: environment.yml
   
 
 # Build documentation in the docs/ directory with Sphinx
