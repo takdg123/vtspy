@@ -20,11 +20,11 @@ sphinx:
    configuration: docs/conf.py
 
 python:
-  version: "3.7"
+  version: 3
   install:
     - method: pip
       path: .
-      
+
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 # formats:
 #    - pdf
