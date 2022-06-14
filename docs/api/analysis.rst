@@ -18,3 +18,12 @@ VeritasAnalysis
    :members:
    :inherited-members:
    
+
+JointAnalysis
+----------------------
+
+.. autoclass:: vtspy.analysis.JointAnalysis
+   :show-inheritance:
+   :members:
+   :inherited-members:
+   

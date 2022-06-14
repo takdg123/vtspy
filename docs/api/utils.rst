@@ -1,10 +1,10 @@
 Utils
 ======================
 
-GammaConfig
+JointConfig
 ----------------------
 
-.. autoclass:: vtspy.GammaConfig
+.. autoclass:: vtspy.JointConfig
    :show-inheritance:
    :members:
    :inherited-members:

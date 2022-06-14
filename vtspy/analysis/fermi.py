@@ -1,4 +1,3 @@
-
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -283,33 +282,7 @@ class FermiAnalysis():
             self._logging.info(f"The target is set to {src.name}")
         self._logging.warning("The entered target is not found. Check sources by using print_association.")
     
-    def _find_target(self, name=None):
-        if name is None:
-            name = self.gta.config['selection']['target']
 
-        flag = False
-        for i, src in enumerate(self.gta.roi.sources):
-            if src.name == "isodiff" or src.name=="galdiff":
-                continue
-
-            for n in src.associations:
-                if n.replace(" ", "") == name:
-                    self._target = self.gta.roi.sources[i]
-                    self._target_name = self.gta.roi.sources[i].name
-                    self._target_id = i
-                    list_of_association = src.associations
-                    flag = True
-            if flag:
-                break
-
-        if flag:
-            self._logging.info("The target, {}, is associated with {} source(s).".format(self.target_name, len(list_of_association)-1))
-            self._logging.debug(list_of_association)
-        else:
-            self._logging.warning("The target name defined in the config file is not found.")
-            self._target = self.gta.roi.sources[0]
-            self._target_name = self.target.name
-            self._target_id = 0
 
     def remove_weak_srcs(self):
         """
@@ -517,6 +490,61 @@ class FermiAnalysis():
 
         return srcs
 
+
+    def construct_dataset(self, 
+                        eventlist = "ft1_00.fits", 
+                        exposure = "bexpmap_00.fits", 
+                        psf = "gtpsf_00.fits"):
+
+        """
+        Construct a dataset for the gammapy analysis. 
+        
+        Args:
+            eventlist (str): event list file (gtapp.maketime)
+                Default: ft1_00.fits
+            exposure (str): exposure map file (gtapp.gtexpmap)
+            psf (str): psf file (gtapp.gtpsf)
+        """
+        
+        self._logging.info("Loading the Fermi-LAT events...")
+        counts = self._load_fermi_events(eventlist=eventlist)
+        self._logging.info("Loading the Fermi-LAT IRFs...")
+        irf = self._load_fermi_irfs(counts, exposure=exposure, psf=psf)
+        self._logging.info("Loading the Fermi-LAT models...")
+        models =  self._convert_model()
+        self.datasets = MapDataset(
+            name="fermi", models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
+        )
+        self._logging.info("Ready to perform a gammapy analysis.")
+
+    def _find_target(self, name=None):
+        if name is None:
+            name = self.gta.config['selection']['target']
+
+        flag = False
+        for i, src in enumerate(self.gta.roi.sources):
+            if src.name == "isodiff" or src.name=="galdiff":
+                continue
+
+            for n in src.associations:
+                if n.replace(" ", "") == name:
+                    self._target = self.gta.roi.sources[i]
+                    self._target_name = self.gta.roi.sources[i].name
+                    self._target_id = i
+                    list_of_association = src.associations
+                    flag = True
+            if flag:
+                break
+
+        if flag:
+            self._logging.info("The target, {}, is associated with {} source(s).".format(self.target_name, len(list_of_association)-1))
+            self._logging.debug(list_of_association)
+        else:
+            self._logging.warning("The target name defined in the config file is not found.")
+            self._target = self.gta.roi.sources[0]
+            self._target_name = self.target.name
+            self._target_id = 0
+
     def _ts_map(self, model):
         self._logging.info("Generating a TS map...")
         self.gta.free_sources(free=False)
@@ -623,18 +651,5 @@ class FermiAnalysis():
 
         return Models(gammapy_models)
 
-    def construct_dataset(self, 
-                        eventlist = "ft1_00.fits", 
-                        exposure = "bexpmap_00.fits", 
-                        psf = "gtpsf_00.fits"):
-        self._logging.info("Loading the Fermi-LAT events...")
-        counts = self._load_fermi_events(eventlist=eventlist)
-        self._logging.info("Loading the Fermi-LAT IRFs...")
-        irf = self._load_fermi_irfs(counts, exposure=exposure, psf=psf)
-        self._logging.info("Loading the Fermi-LAT models...")
-        models =  self._convert_model()
-        self.datasets = MapDataset(
-            name="fermi", models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
-        )
-        self._logging.info("Ready to perform a gammapy analysis.")
+    
 

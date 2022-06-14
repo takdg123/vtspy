@@ -73,31 +73,30 @@ class JointAnalysis:
         else:
             self._logging.error("Fit fails.")
         
-    def sed_plot(self, fermi=True, veritas=True, joint=True,**kwargs):
+    def sed_plot(self, fermi=True, veritas=True, joint=True, **kwargs):
 
+        show_flux_points=True
+        
         if fermi and not(hasattr(self.fermi, "output")):
             self.fermi.simple_analysis("sed")
+        
         if veritas and not(hasattr(self.veritas, "_flux_points_dataset")):
             self.veritas.simple_analysis()
+        
         if joint and not(hasattr(self, "fit_results")):
             fit = False
         else:
             fit = True
+            show_flux_points = kwargs.pop("show_flux_points", False)
 
         cmap = plt.get_cmap("tab10")
         i = 0
 
         if joint:
             if fit:
-                #if not(hasattr(self, "_flux_points_dataset")):
-                #    self.analysis()
-
-                #jf = self._flux_points_dataset
-                #energy_bounds = [100 * u.MeV, 30 * u.TeV]
-                #jf.data.plot(sed_type="e2dnde", color = cmap(i))
-
-                jf_model = jf.models[0].spectral_model
-                jf_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i), label="VERITAS")
+                energy_bounds = [100 * u.MeV, 30 * u.TeV]
+                jf_model = self.datasets.models[0].spectral_model
+                jf_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i), label=self.target_name)
                 jf_model.plot_error(energy_bounds=energy_bounds, 
                                          sed_type="e2dnde", alpha=0.2, color="k")
             else:
@@ -116,7 +115,8 @@ class JointAnalysis:
             
             vts = self.veritas._flux_points_dataset
             energy_bounds = vts._energy_bounds
-            vts.data.plot(sed_type="e2dnde", color = cmap(i), label="VERITAS")
+            if show_flux_points:
+                vts.data.plot(sed_type="e2dnde", color = cmap(i), label="VERITAS")
 
             if not(fit):
                 veritas_model = vts.models[0].spectral_model
@@ -147,11 +147,11 @@ class JointAnalysis:
             dehi = sed['e_max'] - sed['e_ctr']
             xerr0 = np.vstack((delo[m], dehi[m]))*to_TeV
             xerr1 = np.vstack((delo[~m], dehi[~m]))*to_TeV
-
-            plt.errorbar(x[~m], y[~m], xerr=xerr1, label="Fermi-LAT",
-                         yerr=(yerr_lo[~m], yerr_hi[~m]), ls="", color=cmap(i))
-            plt.errorbar(x[m], yul[m], xerr=xerr0,
-                         yerr=yul[m] * 0.2, uplims=True, ls="", color=cmap(i))
+            if show_flux_points:
+                plt.errorbar(x[~m], y[~m], xerr=xerr1, label="Fermi-LAT",
+                             yerr=(yerr_lo[~m], yerr_hi[~m]), ls="", color=cmap(i))
+                plt.errorbar(x[m], yul[m], xerr=xerr0,
+                             yerr=yul[m] * 0.2, uplims=True, ls="", color=cmap(i))
 
             if not(fit):
                 plt.plot(m_engs*to_TeV, fermi_model['dnde'] * e2, color=cmap(i))
@@ -188,7 +188,7 @@ class JointAnalysis:
         
     @property
     def target_model(self):
-        return joint.datasets.models[0].spectral_model
+        return self.datasets.models[self.target_id]
     
     @property
     def verbosity(self):

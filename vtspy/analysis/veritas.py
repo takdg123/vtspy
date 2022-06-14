@@ -74,6 +74,7 @@ class VeritasAnalysis:
 		
 		self._eff_cut = self.config['vts_setup']['eff_cut']
 		self._bias_cut = self.config['vts_setup']['bias_cut']
+		self._max_region_number = self.config['vts_setup']['max_region_number']
 
 		if overwrite or not(os.path.isfile(f"./{self._outdir}/initial.pickle")):
 
@@ -301,7 +302,7 @@ class VeritasAnalysis:
         
         Args:
             jobs (list): list of jobs, 'sed', and/or 'lc'.
-                Default: ['ts', 'resid', 'sed']
+                Default: ['sed']
             state_file (str): state filename (pickle)
 	        	Default: analyzed
 	        **kwargs: passed to vtspy.utils.define_time_intervals
@@ -312,7 +313,8 @@ class VeritasAnalysis:
 
 		if "sed" in jobs:
 			self._logging.info("Generating flux points and SED...")
-			energy_bins = kwargs.get("energy_bins", np.geomspace(0.1, 10, 12) * u.TeV)
+			energy_bins = kwargs.get("energy_bins",
+				MapAxis.from_bounds(0.1, 10, nbin=8, interp="log", unit="TeV").edges)
 
 			fpe = FluxPointsEstimator(
 			    energy_edges=energy_bins, 
@@ -352,67 +354,6 @@ class VeritasAnalysis:
 
 		self.save_state(state_file)
 
-	def construct_dataset(self, max_region_number = 6, eff_cut = None, bias_cut = None, **kwargs):
-		"""
-        Construct dataset for the gammapy analysis
-        
-        Args:
-            max_region_number (int): the maximum number of OFF-regions
-                Default: 6
-            eff_cut (str, optional): effective area cut
-	        	Default: None
-	        bias_cut (str, optional): energy bias cut
-	        	Default: None
-        """
-
-		datasets = Datasets()
-
-		dataset_maker = SpectrumDatasetMaker(selection=["counts", "exposure", "edisp"], containment_correction=False)
-		bkg_maker = ReflectedRegionsBackgroundMaker(exclusion_mask=self._exclusion_mask, max_region_number=max_region_number)
-		
-		if eff_cut is None:
-			eff_cut = self._eff_cut
-		else:
-			self._eff_cut = eff_cut
-
-		if eff_cut > 0:
-			safe_mask_maker_eff = SafeMaskMaker(methods=["aeff-max"], aeff_percent=eff_cut*100)
-		else:
-			safe_mask_maker_eff = None
-		
-		if bias_cut is None:
-			bias_cut = self._bias_cut
-		else:
-			self._bias_cut = bias_cut
-			
-		if bias_cut > 0:
-			safe_mask_maker_bias = SafeMaskMaker(methods=["edisp-bias"], bias_percent=bias_cut*100)
-		else:
-			safe_mask_maker_bias = None
-
-		geom = RegionGeom.create(region=self._on_region, axes=[self._energy_axis])
-		dataset_empty = SpectrumDataset.create(
-    		geom=geom, energy_axis_true=self._energy_axis_true
-		)
-
-
-		for obs_id, observation in zip(self._obs_ids, self.observations):
-			dataset = dataset_maker.run(
-				dataset_empty.copy(name=str(obs_id)), observation
-			)
-
-			dataset_on_off = bkg_maker.run(dataset, observation)
-
-			if safe_mask_maker_eff is not None:
-				dataset_on_off = safe_mask_maker_eff.run(dataset_on_off, observation)
-
-			if safe_mask_maker_bias is not None:
-				dataset_on_off = safe_mask_maker_bias.run(dataset_on_off, observation)
-
-			datasets.append(dataset_on_off)
-
-		self.datasets = datasets
-		self.stacked_dataset = self.datasets.stack_reduce(name="veritas")
 
 	def plotting(self, plot):
 		"""
@@ -470,6 +411,56 @@ class VeritasAnalysis:
 		if update_dataset:
 			self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
 			self.construct_dataset(**kwargs)
+	def construct_dataset(self, **kwargs):
+		"""
+        Construct dataset for the gammapy analysis
+
+        Args:
+        	**kwargs: e.g., eff_cut, bias_cut, max_region_number, or others
+        """
+
+		self._eff_cut = kwargs.pop("eff_cut", self._eff_cut)
+		self._bias_cut = kwargs.pop("bias_cut", self._bias_cut)
+		self._max_region_number = kwargs.pop("max_region_number", self._max_region_number)
+
+		datasets = Datasets()
+
+		dataset_maker = SpectrumDatasetMaker(selection=["counts", "exposure", "edisp"], containment_correction=False)
+		bkg_maker = ReflectedRegionsBackgroundMaker(exclusion_mask=self._exclusion_mask, max_region_number=self._max_region_number)
+		
+		if self._eff_cut > 0:
+			safe_mask_maker_eff = SafeMaskMaker(methods=["aeff-max"], aeff_percent=self._eff_cut)
+		else:
+			safe_mask_maker_eff = None
+
+		if self._bias_cut > 0:
+			safe_mask_maker_bias = SafeMaskMaker(methods=["edisp-bias"], bias_percent=self._bias_cut)
+		else:
+			safe_mask_maker_bias = None
+
+		geom = RegionGeom.create(region=self._on_region, axes=[self._energy_axis])
+		dataset_empty = SpectrumDataset.create(
+    		geom=geom, energy_axis_true=self._energy_axis_true
+		)
+
+
+		for obs_id, observation in zip(self._obs_ids, self.observations):
+			dataset = dataset_maker.run(
+				dataset_empty.copy(name=str(obs_id)), observation
+			)
+
+			dataset_on_off = bkg_maker.run(dataset, observation)
+
+			if safe_mask_maker_eff is not None:
+				dataset_on_off = safe_mask_maker_eff.run(dataset_on_off, observation)
+
+			if safe_mask_maker_bias is not None:
+				dataset_on_off = safe_mask_maker_bias.run(dataset_on_off, observation)
+
+			datasets.append(dataset_on_off)
+
+		self.datasets = datasets
+		self.stacked_dataset = self.datasets.stack_reduce(name="veritas")
 
 	def _exclusion_from_bright_srcs(self):
 		srcfile, distance, magnitude = self.config["vts_setup"]["bright_srcs"]
