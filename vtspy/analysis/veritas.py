@@ -290,15 +290,15 @@ class VeritasAnalysis:
 
 	def analysis(self, jobs=["sed"], state_file="analyzed", **kwargs):
 		"""
-        Perform a simple analysis, e.g., SED, lightcurve
-        
-        Args:
-            jobs (list): list of jobs, 'sed', and/or 'lc'.
-                Default: ['sed']
-            state_file (str): state filename (pickle)
-	        	Default: analyzed
-	        **kwargs: passed to vtspy.utils.define_time_intervals
-        """
+		Perform a simple analysis, e.g., SED, lightcurve
+
+		Args:
+			jobs (list): list of jobs, 'sed', and/or 'lc'.
+				Default: ['sed']
+			state_file (str): state filename (pickle)
+				Default: analyzed
+			**kwargs: passed to vtspy.utils.define_time_intervals
+		"""
 
 		if type(jobs) == str:
 			jobs = [jobs]

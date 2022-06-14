@@ -1,0 +1,1354 @@
+2022-06-14 22:49:01 INFO    GTAnalysis.__init__(): 
+--------------------------------------------------------------------------------
+fermipy version v1.1.2 
+ScienceTools version 2.1.30
+2022-06-14 22:49:01 DEBUG   GTAnalysis.print_config(): Configuration:
+binning:
+  binsperdec: 8.0
+  binsz: 0.08
+  coordsys: CEL
+  enumbins: null
+  hpx_ebin: true
+  hpx_order: 10
+  hpx_ordering_scheme: RING
+  npix: null
+  proj: AIT
+  projtype: WCS
+  roiwidth: 12.0
+components: []
+curvature:
+  Index2: 0.6667
+  free_Index2: false
+data:
+  cacheft1: true
+  evfile: ./fermi/EV00.lst
+  ltcube: null
+  scfile: ./fermi/SC00.fits
+extension:
+  fit_ebin: false
+  fit_position: false
+  fix_shape: false
+  free_background: false
+  free_radius: null
+  make_plots: false
+  make_tsmap: true
+  psf_scale_fn: null
+  save_model_map: false
+  spatial_model: RadialGaussian
+  sqrt_ts_threshold: null
+  tsmap_fitter: tsmap
+  update: false
+  width: []
+  width_max: 1.0
+  width_min: 0.01
+  width_nstep: 21
+  write_fits: true
+  write_npy: true
+fileio:
+  logfile: ./fermi/log/fermipy.log
+  outdir: ./fermi/
+  outdir_regex:
+  - \.fits$|\.fit$|\.xml$|\.npy$|\.png$|\.pdf$|\.yaml$
+  savefits: true
+  scratchdir: /scratch
+  usescratch: false
+  workdir: null
+  workdir_regex:
+  - \.fits$|\.fit$|\.xml$|\.npy$
+gtlike:
+  bexpmap: null
+  bexpmap_base: null
+  bexpmap_roi: null
+  bexpmap_roi_base: null
+  convolve: true
+  edisp: true
+  edisp_bins: -1
+  edisp_disable:
+  - isodiff
+  - galdiff
+  expscale: null
+  irfs: P8R3_SOURCE_V3
+  llscan_npts: 20
+  minbinsz: 0.05
+  resample: true
+  rfactor: 2
+  src_expscale: {}
+  srcmap: null
+  srcmap_base: null
+  use_external_srcmap: false
+  use_scaled_srcmap: false
+  wmap: null
+lightcurve:
+  binsz: 86400.0
+  free_background: false
+  free_params: []
+  free_radius: null
+  free_sources: []
+  make_plots: false
+  max_free_sources: 5
+  multithread: false
+  nbins: null
+  nthread: null
+  outdir: null
+  save_bin_data: true
+  shape_ts_threshold: 16.0
+  systematic: 0.02
+  time_bins: []
+  use_local_ltcube: true
+  use_scaled_srcmap: false
+  write_fits: true
+  write_npy: true
+localize:
+  dtheta_max: 0.5
+  fix_shape: false
+  free_background: false
+  free_radius: null
+  make_plots: false
+  nstep: 5
+  tsmap_fitter: tsmap
+  update: true
+  write_fits: true
+  write_npy: true
+logging:
+  chatter: 3
+  prefix: ''
+  verbosity: 2
+ltcube:
+  binsz: 1.0
+  dcostheta: 0.025
+  phibins: 0
+  use_local_ltcube: false
+mc:
+  seed: null
+model:
+  assoc_xmatch_columns:
+  - 3FGL_Name
+  catalogs:
+  - /Users/dtak/Research/scripts/vts-fermi/vtspy/refdata/gll_psc_v22.fit
+  diffuse: []
+  diffuse_dir: []
+  diffuse_xml: []
+  extdir: null
+  extract_diffuse: false
+  galdiff:
+  - $FERMI_DIFFUSE_DIR/gll_iem_v07.fits
+  isodiff:
+  - $FERMI_DIFFUSE_DIR/iso_P8R3_SOURCE_V3_v1.txt
+  limbdiff: []
+  merge_sources: true
+  sources: []
+  src_radius: null
+  src_radius_roi: null
+  src_roiwidth: 12.0
+optimizer:
+  init_lambda: 0.0001
+  max_iter: 100
+  min_fit_quality: 2
+  optimizer: MINUIT
+  retries: 3
+  tol: 0.001
+  verbosity: 0
+plotting:
+  catalogs: []
+  cmap: magma
+  cmap_resid: RdBu_r
+  figsize:
+  - 8.0
+  - 6.0
+  format: png
+  graticule_radii: []
+  interactive: false
+  label_ts_threshold: 0.0
+  loge_bounds: []
+residmap:
+  exclude: []
+  loge_bounds: []
+  make_plots: false
+  model: {}
+  use_weights: false
+  write_fits: true
+  write_npy: true
+roiopt:
+  max_free_sources: 5
+  npred_frac: 0.95
+  npred_threshold: 1.0
+  shape_ts_threshold: 25.0
+  skip: []
+sed:
+  bin_index: 2.0
+  cov_scale: 3.0
+  free_background: false
+  free_pars: []
+  free_radius: null
+  make_plots: false
+  ul_confidence: 0.95
+  use_local_index: false
+  write_fits: true
+  write_npy: true
+selection:
+  convtype: null
+  dec: 30.17694222440679
+  emax: 300000.0
+  emin: 100.0
+  evclass: 128
+  evtype: 3
+  filter: null
+  glat: 82.73442268671826
+  glon: 186.3593855387067
+  logemax: null
+  logemin: null
+  phasemax: null
+  phasemin: null
+  ra: 185.3412470056114
+  radius: null
+  roicut: 'no'
+  target: 1ES1218+304
+  tmax: 599616005
+  tmin: 599529605
+  zmax: 105.0
+sourcefind:
+  free_params: []
+  max_iter: 5
+  min_separation: 1.0
+  model: {}
+  multithread: false
+  nthread: null
+  sources_per_iter: 4
+  sqrt_ts_threshold: 5.0
+  tsmap_fitter: tsmap
+tscube:
+  cov_scale: -1.0
+  cov_scale_bb: -1.0
+  do_sed: true
+  exclude: []
+  init_lambda: 0.0
+  max_iter: 30
+  model: {}
+  nnorm: 10
+  norm_sigma: 5.0
+  remake_test_source: false
+  st_scan_level: 0
+  tol: 0.001
+  tol_type: 0
+tsmap:
+  exclude: []
+  loge_bounds: []
+  make_plots: false
+  max_kernel_radius: 3.0
+  model: {}
+  multithread: false
+  nthread: null
+  write_fits: true
+  write_npy: true
+
+2022-06-14 22:49:02 DEBUG   GTAnalysis._create_component(): Creating Analysis Component: 00
+2022-06-14 22:49:02 DEBUG   GTBinnedAnalysis.__init__(): Automatically setting selection radius to 8.985281374238571 deg
+2022-06-14 22:49:02 DEBUG   GTBinnedAnalysis.print_config(): Configuration:
+binning:
+  binsperdec: 8.0
+  binsz: 0.08
+  coordsys: CEL
+  enumbins: null
+  hpx_ebin: true
+  hpx_order: 10
+  hpx_ordering_scheme: RING
+  npix: null
+  proj: AIT
+  projtype: WCS
+  roiwidth: 12.0
+data:
+  cacheft1: true
+  evfile: ./fermi/EV00.lst
+  ltcube: null
+  scfile: ./fermi/SC00.fits
+file_suffix: _00
+fileio:
+  logfile: ./fermi/log/fermipy.log
+  outdir: ./fermi/
+  outdir_regex:
+  - \.fits$|\.fit$|\.xml$|\.npy$|\.png$|\.pdf$|\.yaml$
+  savefits: true
+  scratchdir: /scratch
+  usescratch: false
+  workdir: /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/
+  workdir_regex:
+  - \.fits$|\.fit$|\.xml$|\.npy$
+gtlike:
+  bexpmap: null
+  bexpmap_base: null
+  bexpmap_roi: null
+  bexpmap_roi_base: null
+  convolve: true
+  edisp: true
+  edisp_bins: -1
+  edisp_disable:
+  - isodiff
+  - galdiff
+  expscale: null
+  irfs: P8R3_SOURCE_V3
+  llscan_npts: 20
+  minbinsz: 0.05
+  resample: true
+  rfactor: 2
+  src_expscale: {}
+  srcmap: null
+  srcmap_base: null
+  use_external_srcmap: false
+  use_scaled_srcmap: false
+  wmap: null
+logging:
+  chatter: 3
+  prefix: ''
+  verbosity: 2
+ltcube:
+  binsz: 1.0
+  dcostheta: 0.025
+  phibins: 0
+  use_local_ltcube: false
+model:
+  assoc_xmatch_columns:
+  - 3FGL_Name
+  catalogs:
+  - /Users/dtak/Research/scripts/vts-fermi/vtspy/refdata/gll_psc_v22.fit
+  diffuse: []
+  diffuse_dir: []
+  diffuse_xml: []
+  extdir: null
+  extract_diffuse: false
+  galdiff:
+  - $FERMI_DIFFUSE_DIR/gll_iem_v07.fits
+  isodiff:
+  - $FERMI_DIFFUSE_DIR/iso_P8R3_SOURCE_V3_v1.txt
+  limbdiff: []
+  merge_sources: true
+  sources: []
+  src_radius: null
+  src_radius_roi: null
+  src_roiwidth: 12.0
+name: '00'
+selection:
+  convtype: null
+  dec: 30.17694222440679
+  emax: 300000.0
+  emin: 100.0
+  evclass: 128
+  evtype: 3
+  filter: null
+  glat: 82.73442268671826
+  glon: 186.3593855387067
+  logemax: !!python/object/apply:numpy.core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - false
+    - true
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    YP1keZLoFUA=
+  logemin: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    AAAAAAAAAEA=
+  phasemax: null
+  phasemin: null
+  ra: 185.3412470056114
+  radius: 8.985281374238571
+  roicut: 'no'
+  target: 1ES1218+304
+  tmax: 599616005
+  tmin: 599529605
+  zmax: 105.0
+
+2022-06-14 22:49:02 INFO    GTAnalysis.setup(): Running setup.
+2022-06-14 22:49:02 INFO    GTBinnedAnalysis.setup(): Running setup for component 00
+2022-06-14 22:49:02 INFO    GTBinnedAnalysis.run_gtapp(): Running gtselect.
+2022-06-14 22:49:02 INFO    GTBinnedAnalysis.run_gtapp(): time -p gtselect infile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/evfile_00.txt outfile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ft1_00.fits ra=185.3448944091797 dec=30.167699813842773 rad=8.985281374238571 tmin=599529605.0 tmax=599616005.0 emin=100.0 emax=300000.0 zmin=0.0 zmax=105.0 evclass=128 evtype=3 convtype=-1 phasemin=0.0 phasemax=1.0 evtable="EVENTS" chatter=3 clobber=yes debug=no gui=no mode="ql"
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): This is gtselect version HEAD
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): 
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): WARNING:
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): Over writing existing event class selection,
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): BIT_MASK(EVENT_CLASS,65544,P8R3)
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): with
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): BIT_MASK(EVENT_CLASS,128,P8R3)
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): 
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): Applying filter string: ((EVENT_CLASS&o200) != o0) && angsep(RA,DEC,185.3448944,30.16769981) < 8.985281374 && ((EVENT_TYPE&o3) != o0) && 100 < ENERGY && ENERGY <= 300000 && 599529605 < TIME && TIME <= 599616005 && 0 < ZENITH_ANGLE && ZENITH_ANGLE <= 105 && gtifilter()
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): Done.
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): Finished gtselect. Execution time: 0.61 s
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): Running gtltcube.
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): time -p gtltcube evfile="/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ft1_00.fits" evtable="EVENTS" scfile=./fermi/SC00.fits sctable="SC_DATA" outfile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ltcube_00.fits dcostheta=0.025 binsz=1.0 phibins=0 tmin=0.0 tmax=0.0 file_version="1" zmin=0.0 zmax=105.0 chatter=2 clobber=yes debug=no gui=no mode="ql"
+2022-06-14 22:49:03 INFO    GTBinnedAnalysis.run_gtapp(): Working on file ./fermi/SC00.fits
+2022-06-14 22:49:07 INFO    GTBinnedAnalysis.run_gtapp(): .....................!
+2022-06-14 22:49:07 INFO    GTBinnedAnalysis.run_gtapp(): Finished gtltcube. Execution time: 3.93 s
+2022-06-14 22:49:07 DEBUG   GTBinnedAnalysis.setup(): Loading LT Cube /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ltcube_00.fits
+2022-06-14 22:49:07 DEBUG   GTBinnedAnalysis.setup(): Creating PSF model
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): Running gtbin.
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): time -p gtbin evfile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ft1_00.fits scfile=./fermi/SC00.fits outfile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ccube_00.fits algorithm="ccube" ebinalg="LOG" emin=100.0 emax=300000.0 enumbins=28 ebinfile=NONE tbinalg="LIN" tbinfile=NONE nxpix=150 nypix=150 binsz=0.08 coordsys="CEL" xref=185.3448944091797 yref=30.167699813842773 axisrot=0.0 rafield="RA" decfield="DEC" proj="AIT" hpx_ordering_scheme="RING" hpx_order=3 hpx_ebin=yes hpx_region="" evtable="EVENTS" sctable="SC_DATA" efield="ENERGY" tfield="TIME" chatter=3 clobber=yes debug=no gui=no mode="ql"
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): This is gtbin version HEAD
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): Finished gtbin. Execution time: 0.25 s
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): Running gtexpcube2.
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): time -p gtexpcube2 infile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ltcube_00.fits cmap=none outfile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/bexpmap_00.fits irfs="P8R3_SOURCE_V3" evtype=3 edisp_bins=-1 nxpix=360 nypix=180 binsz=1.0 coordsys="CEL" xref=0.0 yref=0.0 axisrot=0.0 proj="CAR" ebinalg="LOG" emin=100.0 emax=300000.0 enumbins=28 ebinfile="NONE" hpx_ordering_scheme="RING" hpx_order=6 bincalc="EDGE" ignorephi=no thmax=180.0 thmin=0.0 table="EXPOSURE" chatter=3 clobber=yes debug=no mode="ql"
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): This is gtexpcube2 version HEAD
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): Using evtype=3 (i.e., FRONT/BACK irfs)
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): ResponseFunctions::load: IRF used: P8R3_SOURCE_V3
+2022-06-14 22:49:08 INFO    GTBinnedAnalysis.run_gtapp(): event_types:  0  1
+2022-06-14 22:49:13 INFO    GTBinnedAnalysis.run_gtapp(): Computing binned exposure map....................!
+2022-06-14 22:49:14 INFO    GTBinnedAnalysis.run_gtapp(): Finished gtexpcube2. Execution time: 5.66 s
+2022-06-14 22:49:14 INFO    GTBinnedAnalysis.run_gtapp(): Running gtexpcube2.
+2022-06-14 22:49:14 INFO    GTBinnedAnalysis.run_gtapp(): time -p gtexpcube2 infile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ltcube_00.fits cmap=none outfile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/bexpmap_roi_00.fits irfs="P8R3_SOURCE_V3" evtype=3 edisp_bins=0 nxpix=150 nypix=150 binsz=0.08 coordsys="CEL" xref=185.3448944091797 yref=30.167699813842773 axisrot=0.0 proj="CAR" ebinalg="LOG" emin=100.0 emax=300000.0 enumbins=28 ebinfile="NONE" hpx_ordering_scheme="RING" hpx_order=6 bincalc="EDGE" ignorephi=no thmax=180.0 thmin=0.0 table="EXPOSURE" chatter=3 clobber=yes debug=no mode="ql"
+2022-06-14 22:49:14 INFO    GTBinnedAnalysis.run_gtapp(): This is gtexpcube2 version HEAD
+2022-06-14 22:49:14 INFO    GTBinnedAnalysis.run_gtapp(): Using evtype=3 (i.e., FRONT/BACK irfs)
+2022-06-14 22:49:14 INFO    GTBinnedAnalysis.run_gtapp(): ResponseFunctions::load: IRF used: P8R3_SOURCE_V3
+2022-06-14 22:49:14 INFO    GTBinnedAnalysis.run_gtapp(): event_types:  0  1
+2022-06-14 22:49:16 INFO    GTBinnedAnalysis.run_gtapp(): Computing binned exposure map....................!
+2022-06-14 22:49:16 INFO    GTBinnedAnalysis.run_gtapp(): Finished gtexpcube2. Execution time: 2.16 s
+2022-06-14 22:49:16 INFO    GTBinnedAnalysis.run_gtapp(): Running gtsrcmaps.
+2022-06-14 22:49:16 INFO    GTBinnedAnalysis.run_gtapp(): time -p gtsrcmaps scfile=./fermi/SC00.fits sctable="SC_DATA" expcube=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ltcube_00.fits cmap=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ccube_00.fits srcmdl=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/srcmdl_00.xml bexpmap=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/bexpmap_00.fits wmap=none outfile=/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/srcmap_00.fits irfs="P8R3_SOURCE_V3" evtype=3 convol=yes resample=yes rfactor=2 minbinsz=0.05 ptsrc=yes psfcorr=yes emapbnds=no edisp_bins=-1 copyall=no chatter=3 clobber=yes debug=no gui=no mode="ql"
+2022-06-14 22:49:16 INFO    GTBinnedAnalysis.run_gtapp(): This is gtsrcmaps version HEAD
+2022-06-14 22:49:16 INFO    GTBinnedAnalysis.run_gtapp(): Using evtype=3 (i.e., FRONT/BACK irfs)
+2022-06-14 22:49:16 INFO    GTBinnedAnalysis.run_gtapp(): ResponseFunctions::load: IRF used: P8R3_SOURCE_V3
+2022-06-14 22:49:16 INFO    GTBinnedAnalysis.run_gtapp(): event_types:  0  1
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1221.3+3010
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1217.9+3007
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1225.9+2951
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1221.5+2814
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1231.7+2847
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1208.1+3017
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1220.1+3432
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1205.8+3321
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1159.5+2914
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1215.1+3513
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1230.2+2517
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1224.4+2436
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1212.2+2442
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1241.5+3439
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named 4FGL J1152.8+3308
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named isodiff
+2022-06-14 22:49:24 INFO    GTBinnedAnalysis.run_gtapp(): Creating source named galdiff
+2022-06-14 22:49:25 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1152.8+3308 29....................!
+2022-06-14 22:49:26 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1159.5+2914 29....................!
+2022-06-14 22:49:28 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1205.8+3321 29....................!
+2022-06-14 22:49:29 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1208.1+3017 29....................!
+2022-06-14 22:49:30 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1212.2+2442 29....................!
+2022-06-14 22:49:31 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1215.1+3513 29....................!
+2022-06-14 22:49:32 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1217.9+3007 29....................!
+2022-06-14 22:49:33 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1220.1+3432 29....................!
+2022-06-14 22:49:34 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1221.3+3010 29....................!
+2022-06-14 22:49:35 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1221.5+2814 29....................!
+2022-06-14 22:49:37 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1224.4+2436 29....................!
+2022-06-14 22:49:38 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1225.9+2951 29....................!
+2022-06-14 22:49:39 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1230.2+2517 29....................!
+2022-06-14 22:49:40 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1231.7+2847 29....................!
+2022-06-14 22:49:41 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for 4FGL J1241.5+3439 29....................!
+2022-06-14 22:50:54 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for galdiff 29....................!
+2022-06-14 22:51:58 INFO    GTBinnedAnalysis.run_gtapp(): Generating SourceMap for isodiff 29....................!
+2022-06-14 22:51:59 INFO    GTBinnedAnalysis.run_gtapp(): Finished gtsrcmaps. Execution time: 162.86 s
+2022-06-14 22:51:59 INFO    GTBinnedAnalysis.setup(): Finished setup for component 00
+2022-06-14 22:51:59 INFO    GTBinnedAnalysis._create_binned_analysis(): Creating BinnedAnalysis for component 00.
+2022-06-14 22:51:59 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Creating BinnedObs
+2022-06-14 22:51:59 DEBUG   GTBinnedAnalysis._create_binned_analysis(): {'srcMaps': '/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/srcmap_00.fits', 'expCube': '/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ltcube_00.fits', 'binnedExpMap': '/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/bexpmap_00.fits', 'irfs': 'P8R3_SOURCE_V3'}
+2022-06-14 22:52:00 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Creating BinnedAnalysis
+2022-06-14 22:52:00 DEBUG   GTBinnedAnalysis._create_binned_analysis(): {'srcModel': '/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/srcmdl_00.xml', 'optimizer': 'MINUIT', 'wmap': None, 'convolve': True, 'resample': True, 'minbinsz': 0.05, 'resamp_fact': 2, 'edisp_bins': -1}
+2022-06-14 22:52:07 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Disabling energy dispersion for isodiff
+2022-06-14 22:52:07 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Disabling energy dispersion for galdiff
+2022-06-14 22:52:07 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Computing fixed weights
+2022-06-14 22:52:07 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Updating source maps
+2022-06-14 22:52:09 INFO    GTAnalysis.setup(): Initializing source properties
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1152.8+3308
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1152.8+3308
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1159.5+2914
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1159.5+2914
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1205.8+3321
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1205.8+3321
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1208.1+3017
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1208.1+3017
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1212.2+2442
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1212.2+2442
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1215.1+3513
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1215.1+3513
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1217.9+3007
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1217.9+3007
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1220.1+3432
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1220.1+3432
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1221.3+3010
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.3+3010
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1221.5+2814
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.5+2814
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1224.4+2436
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1224.4+2436
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1225.9+2951
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1225.9+2951
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1230.2+2517
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1230.2+2517
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1231.7+2847
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1231.7+2847
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source 4FGL J1241.5+3439
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1241.5+3439
+2022-06-14 22:52:09 DEBUG   GTAnalysis.setup(): Initializing source galdiff
+2022-06-14 22:52:09 DEBUG   GTAnalysis.get_src_model(): Generating source dict for galdiff
+2022-06-14 22:52:15 DEBUG   GTAnalysis.setup(): Initializing source isodiff
+2022-06-14 22:52:15 DEBUG   GTAnalysis.get_src_model(): Generating source dict for isodiff
+2022-06-14 22:52:15 INFO    GTAnalysis.setup(): Finished setup.
+2022-06-14 22:52:15 INFO    GTAnalysis.optimize(): Starting
+2022-06-14 22:52:15 DEBUG   GTAnalysis.optimize(): LogLike: -661.810152
+2022-06-14 22:52:15 DEBUG   GTAnalysis.free_source(): Freeing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:15 DEBUG   GTAnalysis.free_source(): Freeing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:52:15 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1159.5+2914     : ['norm']
+2022-06-14 22:52:15 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1217.9+3007     : ['norm']
+2022-06-14 22:52:15 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:52:15 DEBUG   GTAnalysis.fit(): Starting fit.
+2022-06-14 22:52:15 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:52:15 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1159.5+2914
+2022-06-14 22:52:15 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1159.5+2914
+2022-06-14 22:52:15 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:15 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1217.9+3007
+2022-06-14 22:52:15 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1217.9+3007
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:16 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.5+2814
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.5+2814
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:16 DEBUG   GTAnalysis.get_src_model(): Generating source dict for galdiff
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Profiling galdiff
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:16 DEBUG   GTAnalysis.get_src_model(): Generating source dict for isodiff
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Profiling isodiff
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:16 DEBUG   GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:52:16 DEBUG   GTAnalysis.fit(): LogLike:     -659.920 DeltaLogLike:        1.890 
+2022-06-14 22:52:16 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['norm']
+2022-06-14 22:52:16 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:52:16 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1159.5+2914     : ['norm']
+2022-06-14 22:52:16 DEBUG   GTAnalysis.free_source(): Fixing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:16 DEBUG   GTAnalysis.free_source(): Fixing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:52:16 DEBUG   GTAnalysis.optimize(): Fitting 4FGL J1230.2+2517 npred:      2.457 TS:        nan
+2022-06-14 22:52:16 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1230.2+2517     : ['norm']
+2022-06-14 22:52:16 DEBUG   GTAnalysis.fit(): Starting fit.
+2022-06-14 22:52:16 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:52:16 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1230.2+2517
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1230.2+2517
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:16 DEBUG   GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:52:16 DEBUG   GTAnalysis.fit(): LogLike:     -659.891 DeltaLogLike:        0.029 
+2022-06-14 22:52:16 DEBUG   GTAnalysis.optimize(): Post-fit Results npred:      1.889 TS:      1.817
+2022-06-14 22:52:16 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1230.2+2517     : ['norm']
+2022-06-14 22:52:16 DEBUG   GTAnalysis.optimize(): Fitting 4FGL J1231.7+2847 npred:      1.436 TS:        nan
+2022-06-14 22:52:16 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1231.7+2847     : ['Prefactor']
+2022-06-14 22:52:16 DEBUG   GTAnalysis.fit(): Starting fit.
+2022-06-14 22:52:16 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:52:16 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1231.7+2847
+2022-06-14 22:52:16 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1231.7+2847
+2022-06-14 22:52:17 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): LogLike:     -659.771 DeltaLogLike:        0.119 
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Post-fit Results npred:      2.393 TS:     11.138
+2022-06-14 22:52:17 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Prefactor']
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Fitting 4FGL J1221.3+3010 npred:      1.343 TS:        nan
+2022-06-14 22:52:17 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Prefactor']
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Starting fit.
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:52:17 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.3+3010
+2022-06-14 22:52:17 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:52:17 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): LogLike:     -655.556 DeltaLogLike:        4.215 
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Post-fit Results npred:      8.383 TS:     41.327
+2022-06-14 22:52:17 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Prefactor']
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1224.4+2436 with npred      0.599
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1225.9+2951 with npred      0.469
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1220.1+3432 with npred      0.380
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1205.8+3321 with npred      0.292
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1215.1+3513 with npred      0.254
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1152.8+3308 with npred      0.222
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1212.2+2442 with npred      0.116
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1241.5+3439 with npred      0.077
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Skipping 4FGL J1208.1+3017 with npred      0.053
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Fitting shape isodiff TS:     51.123
+2022-06-14 22:52:17 DEBUG   GTAnalysis.free_source(): Freeing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Starting fit.
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:52:17 DEBUG   GTAnalysis.get_src_model(): Generating source dict for isodiff
+2022-06-14 22:52:17 DEBUG   GTAnalysis.profile_norm(): Profiling isodiff
+2022-06-14 22:52:17 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): LogLike:     -655.500 DeltaLogLike:        0.057 
+2022-06-14 22:52:17 DEBUG   GTAnalysis.free_source(): Fixing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:17 DEBUG   GTAnalysis.optimize(): Fitting shape 4FGL J1221.3+3010 TS:     41.327
+2022-06-14 22:52:17 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Prefactor', 'Index']
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Starting fit.
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:52:17 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.3+3010
+2022-06-14 22:52:17 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:52:17 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:17 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:52:17 DEBUG   GTAnalysis.fit(): LogLike:     -653.885 DeltaLogLike:        1.615 
+2022-06-14 22:52:17 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Prefactor', 'Index']
+2022-06-14 22:52:17 INFO    GTAnalysis.optimize(): Finished
+2022-06-14 22:52:17 INFO    GTAnalysis.optimize(): LogLike: -653.884745 Delta-LogLike: 7.925407
+2022-06-14 22:52:17 INFO    GTAnalysis.optimize(): Execution time: 2.50 s
+2022-06-14 22:52:19 INFO    GTBinnedAnalysis.write_xml(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/initial_00.xml...
+2022-06-14 22:52:19 INFO    GTAnalysis.write_fits(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/initial.fits...
+2022-06-14 22:52:28 INFO    GTBinnedAnalysis.write_model_map(): Generating model map for component 00.
+2022-06-14 22:52:30 INFO    GTAnalysis.write_roi(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/initial.npy...
+2022-06-14 22:52:30 ERROR   GTAnalysis.print_model(): 
+sourcename            offset    norm  eflux     index        ts       npred free
+--------------------------------------------------------------------------------
+4FGL J1221.3+3010      0.000  13.587  0.000985   1.20     44.96         5.6     
+4FGL J1217.9+3007      0.753   1.087  8.83e-05   1.97      7.11         7.2     
+4FGL J1225.9+2951      1.038   0.870  5.21e-06   2.35       nan         0.5     
+4FGL J1221.5+2814      1.930   0.483  3.58e-05   2.16      3.83         4.5     
+4FGL J1231.7+2847      2.641   1.362  2.78e-05   1.99     11.14         2.4     
+4FGL J1208.1+3017      2.871   0.414  1.18e-06   1.79       nan         0.1     
+4FGL J1220.1+3432      4.378   1.647  3.92e-06   2.07       nan         0.4     
+4FGL J1205.8+3321      4.589   0.684  1.45e-06   2.68       nan         0.3     
+4FGL J1159.5+2914      4.832   0.061  5.91e-06   2.42      0.11         0.8     
+4FGL J1215.1+3513      5.219   0.575  1.41e-06   2.64       nan         0.3     
+4FGL J1230.2+2517      5.249   0.510  1.84e-05   2.16      1.82         1.9     
+4FGL J1224.4+2436      5.595   2.470  1.25e-05   1.89       nan         0.6     
+4FGL J1212.2+2442      5.821   0.515  1.44e-06   2.11       nan         0.1     
+4FGL J1241.5+3439      6.187   1.080  1.21e-06   1.92       nan         0.1     
+4FGL J1152.8+3308      6.758   0.386  1.79e-06   2.94       nan         0.2     
+isodiff                  ---   1.473    0.0745   2.24    100.97        45.8     
+galdiff                  ---   0.100    0.0266   0.00      0.02         2.2     
+
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Prefactor']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1217.9+3007     : ['norm']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1231.7+2847     : ['Prefactor']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1208.1+3017     : ['Prefactor']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:30 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:30 INFO    GTAnalysis.fit(): Starting fit.
+2022-06-14 22:52:30 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:52:31 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1208.1+3017
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1208.1+3017
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:31 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1217.9+3007
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1217.9+3007
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:31 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.3+3010
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:31 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.5+2814
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.5+2814
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:31 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1225.9+2951
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1225.9+2951
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:31 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1231.7+2847
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1231.7+2847
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:31 DEBUG   GTAnalysis.get_src_model(): Generating source dict for galdiff
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Profiling galdiff
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:31 DEBUG   GTAnalysis.get_src_model(): Generating source dict for isodiff
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Profiling isodiff
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:31 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:31 INFO    GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:52:31 INFO    GTAnalysis.fit(): LogLike:     -650.558 DeltaLogLike:        3.326 
+2022-06-14 22:52:31 INFO    GTBinnedAnalysis.write_xml(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/simple_00.xml...
+2022-06-14 22:52:31 INFO    GTAnalysis.write_fits(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/simple.fits...
+2022-06-14 22:52:39 INFO    GTBinnedAnalysis.write_model_map(): Generating model map for component 00.
+2022-06-14 22:52:42 INFO    GTAnalysis.write_roi(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/simple.npy...
+2022-06-14 22:52:42 ERROR   GTAnalysis.print_model(): 
+sourcename            offset    norm  eflux     index        ts       npred free
+--------------------------------------------------------------------------------
+4FGL J1221.3+3010      0.000  12.731   0.00104   1.16     49.12         5.2    *
+4FGL J1217.9+3007      0.753   0.738  4.97e-05   2.68      6.77        10.6    *
+4FGL J1225.9+2951      1.038   2.438  1.46e-05   2.35      3.23         1.3    *
+4FGL J1221.5+2814      1.930   0.383  2.84e-05   2.16      2.91         3.6    *
+4FGL J1231.7+2847      2.641   0.405  0.000519   0.77     15.47         1.0    *
+4FGL J1208.1+3017      2.871   0.000  7.71e-11   1.79     -0.00         0.0    *
+4FGL J1220.1+3432      4.378   1.647  3.92e-06   2.07       nan         0.4     
+4FGL J1205.8+3321      4.589   0.684  1.45e-06   2.68       nan         0.3     
+4FGL J1159.5+2914      4.832   0.061  5.91e-06   2.42      0.11         0.8     
+4FGL J1215.1+3513      5.219   0.575  1.41e-06   2.64       nan         0.3     
+4FGL J1230.2+2517      5.249   0.510  1.84e-05   2.16      1.82         1.9     
+4FGL J1224.4+2436      5.595   2.470  1.25e-05   1.89       nan         0.6     
+4FGL J1212.2+2442      5.821   0.515  1.44e-06   2.11       nan         0.1     
+4FGL J1241.5+3439      6.187   1.080  1.21e-06   1.92       nan         0.1     
+4FGL J1152.8+3308      6.758   0.386  1.79e-06   2.94       nan         0.2     
+isodiff                  ---   1.489    0.0753   2.24     62.29        46.3    *
+galdiff                  ---   0.100    0.0266   0.00     -0.01         2.2    *
+
+2022-06-14 22:52:42 INFO    GTAnalysis.delete_source(): Deleting source 4FGL J1208.1+3017
+2022-06-14 22:52:42 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source 4FGL J1208.1+3017
+2022-06-14 22:52:42 INFO    GTAnalysis.delete_source(): Deleting source 4FGL J1220.1+3432
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1220.1+3432     : ['Prefactor']
+2022-06-14 22:52:42 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source 4FGL J1220.1+3432
+2022-06-14 22:52:42 INFO    GTAnalysis.delete_source(): Deleting source 4FGL J1205.8+3321
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1205.8+3321     : ['Prefactor']
+2022-06-14 22:52:42 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source 4FGL J1205.8+3321
+2022-06-14 22:52:42 INFO    GTAnalysis.delete_source(): Deleting source 4FGL J1215.1+3513
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1215.1+3513     : ['Prefactor']
+2022-06-14 22:52:42 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source 4FGL J1215.1+3513
+2022-06-14 22:52:42 INFO    GTAnalysis.delete_source(): Deleting source 4FGL J1224.4+2436
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1224.4+2436     : ['Prefactor']
+2022-06-14 22:52:42 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source 4FGL J1224.4+2436
+2022-06-14 22:52:42 INFO    GTAnalysis.delete_source(): Deleting source 4FGL J1212.2+2442
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1212.2+2442     : ['Prefactor']
+2022-06-14 22:52:42 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source 4FGL J1212.2+2442
+2022-06-14 22:52:42 INFO    GTAnalysis.delete_source(): Deleting source 4FGL J1241.5+3439
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1241.5+3439     : ['Prefactor']
+2022-06-14 22:52:42 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source 4FGL J1241.5+3439
+2022-06-14 22:52:42 INFO    GTAnalysis.delete_source(): Deleting source 4FGL J1152.8+3308
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1152.8+3308     : ['Prefactor']
+2022-06-14 22:52:42 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source 4FGL J1152.8+3308
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Prefactor', 'Index']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['norm', 'alpha', 'beta']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Prefactor', 'Index']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Fixing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Fixing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Prefactor']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1217.9+3007     : ['norm']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1231.7+2847     : ['Prefactor']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:42 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:42 INFO    GTAnalysis.fit(): Starting fit.
+2022-06-14 22:52:42 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:52:42 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1217.9+3007
+2022-06-14 22:52:42 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1217.9+3007
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:42 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.3+3010
+2022-06-14 22:52:42 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:42 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1221.5+2814
+2022-06-14 22:52:42 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.5+2814
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:42 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1225.9+2951
+2022-06-14 22:52:42 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1225.9+2951
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:42 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:42 DEBUG   GTAnalysis.get_src_model(): Generating source dict for 4FGL J1231.7+2847
+2022-06-14 22:52:43 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1231.7+2847
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:43 DEBUG   GTAnalysis.get_src_model(): Generating source dict for galdiff
+2022-06-14 22:52:43 DEBUG   GTAnalysis.profile_norm(): Profiling galdiff
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:43 DEBUG   GTAnalysis.get_src_model(): Generating source dict for isodiff
+2022-06-14 22:52:43 DEBUG   GTAnalysis.profile_norm(): Profiling isodiff
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:52:43 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:52:43 INFO    GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:52:43 INFO    GTAnalysis.fit(): LogLike:     -649.726 DeltaLogLike:        0.009 
+2022-06-14 22:52:43 INFO    GTBinnedAnalysis.write_xml(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/simple_00.xml...
+2022-06-14 22:52:43 INFO    GTAnalysis.write_fits(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/simple.fits...
+2022-06-14 22:52:50 INFO    GTBinnedAnalysis.write_model_map(): Generating model map for component 00.
+2022-06-14 22:52:52 INFO    GTAnalysis.write_roi(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/simple.npy...
+2022-06-14 22:52:52 ERROR   GTAnalysis.print_model(): 
+sourcename            offset    norm  eflux     index        ts       npred free
+--------------------------------------------------------------------------------
+4FGL J1221.3+3010      0.000  12.731   0.00104   1.16     49.03         5.2    *
+4FGL J1217.9+3007      0.753   0.738  4.94e-05   2.70      6.73        10.6    *
+4FGL J1225.9+2951      1.038   2.438  1.46e-05   2.35      3.21         1.3    *
+4FGL J1221.5+2814      1.930   0.384  2.85e-05   2.16      2.89         3.6    *
+4FGL J1231.7+2847      2.641   0.404  0.000521   0.77     15.42         1.0    *
+4FGL J1159.5+2914      4.832   0.061  5.91e-06   2.42      0.11         0.8     
+4FGL J1230.2+2517      5.249   0.510  1.84e-05   2.16      1.82         1.9     
+isodiff                  ---   1.527    0.0773   2.24     65.76        47.5    *
+galdiff                  ---   0.100    0.0266   0.00     -0.02         2.2    *
+
+2022-06-14 22:52:52 ERROR   GTAnalysis.print_params(): 
+ idx parname                  value     error       min       max     scale free
+--------------------------------------------------------------------------------
+4FGL J1159.5+2914
+   0 norm                    0.0606         0     1e-05     1e+03     1e-10     
+   1 alpha                     2.17         0        -5         5         1     
+   2 beta                    0.0675         0        -2         2         1     
+   3 Eb                         485         0       485       485         1     
+4FGL J1217.9+3007
+   4 norm                     0.738     0.611     1e-05     1e+03     1e-11    *
+   5 alpha                     2.58     0.791        -5         5         1    *
+   6 beta                    0.0529     0.394        -2         2         1    *
+   7 Eb                    1.07e+03         0  1.07e+03  1.07e+03         1     
+4FGL J1221.3+3010
+   8 Prefactor                 12.7      6.75     1e-05     1e+03     1e-13    *
+   9 Index                     1.16     0.274         0         5        -1    *
+  10 Scale                 4.44e+03         0  4.44e+03  4.44e+03         1     
+4FGL J1221.5+2814
+  11 Prefactor                0.384     0.378     1e-05     1e+03     1e-11    *
+  12 Index                     2.16         0         0         5        -1     
+  13 Scale                 1.06e+03         0  1.06e+03  1.06e+03         1     
+4FGL J1225.9+2951
+  14 norm                      2.44      2.63     1e-05     1e+03     1e-12    *
+  15 alpha                      1.7         0        -5         5         1     
+  16 beta                     0.409         0        -2         2         1     
+  17 Eb                    1.43e+03         0  1.43e+03  1.43e+03         1     
+4FGL J1230.2+2517
+  18 norm                      0.51         0     1e-05     1e+03     1e-11     
+  19 alpha                     1.99         0        -5         5         1     
+  20 beta                    0.0612         0        -2         2         1     
+  21 Eb                         816         0       816       816         1     
+4FGL J1231.7+2847
+  22 Prefactor                0.404     0.773     1e-05     1e+03     1e-12    *
+  23 Index                     0.77     0.572         0         5        -1    *
+  24 Scale                 1.58e+03         0  1.58e+03  1.58e+03         1     
+galdiff
+  25 Prefactor                  0.1   0.00319       0.1        10         1    *
+  26 Index                        0         0        -1         1        -1     
+  27 Scale                    1e+03         0     1e+03     1e+03         1     
+isodiff
+  28 Normalization             1.53     0.276     0.001     1e+03         1    *
+
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Prefactor', 'Index']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['norm', 'alpha', 'beta']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Prefactor', 'Index']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Fixing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Fixing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Prefactor']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1217.9+3007     : ['norm']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1231.7+2847     : ['Prefactor']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1159.5+2914     : ['norm']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1230.2+2517     : ['norm']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for isodiff               : ['Normalization']
+2022-06-14 22:52:52 INFO    GTAnalysis.free_source(): Freeing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:52:52 INFO    GTAnalysis.tsmap(): Generating TS map
+2022-06-14 22:52:53 DEBUG   GTAnalysis.add_source(): Adding source tsmap_testsource
+2022-06-14 22:52:54 DEBUG   GTAnalysis.delete_source(): Deleting source tsmap_testsource
+2022-06-14 22:52:54 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source tsmap_testsource
+2022-06-14 22:52:54 INFO    GTAnalysis._make_tsmap_fast(): Fitting test source.
+2022-06-14 22:53:21 INFO    GTAnalysis.tsmap(): Finished TS map
+2022-06-14 22:53:29 WARNING GTAnalysis.tsmap(): Saving TS maps in .npy files is disabled b/c of incompatibilities in python3, remove the maps from the /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ts_pointsource_powerlaw_2.00_tsmap.npy
+2022-06-14 22:53:29 INFO    GTAnalysis.tsmap(): Execution time: 36.04 s
+2022-06-14 22:53:29 INFO    GTBinnedAnalysis.write_xml(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed_00.xml...
+2022-06-14 22:53:29 INFO    GTAnalysis.write_fits(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed.fits...
+2022-06-14 22:53:36 INFO    GTBinnedAnalysis.write_model_map(): Generating model map for component 00.
+2022-06-14 22:53:38 INFO    GTAnalysis.write_roi(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed.npy...
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Prefactor', 'Index']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['norm', 'alpha', 'beta']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Prefactor', 'Index']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Fixing parameters for isodiff               : ['Normalization']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Fixing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Prefactor']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1217.9+3007     : ['norm']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1231.7+2847     : ['Prefactor']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1159.5+2914     : ['norm']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1230.2+2517     : ['norm']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for isodiff               : ['Normalization']
+2022-06-14 22:53:39 INFO    GTAnalysis.free_source(): Freeing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:53:39 INFO    GTAnalysis.residmap(): Generating residual maps
+2022-06-14 22:53:39 INFO    GTAnalysis.add_source(): Adding source residmap_testsource
+2022-06-14 22:53:41 INFO    GTAnalysis.delete_source(): Deleting source residmap_testsource
+2022-06-14 22:53:41 DEBUG   GTBinnedAnalysis.delete_source(): Deleting source residmap_testsource
+2022-06-14 22:53:41 INFO    GTAnalysis.residmap(): Finished residual maps
+2022-06-14 22:53:47 WARNING GTAnalysis.residmap(): Saving maps in .npy files is disabled b/c of incompatibilities in python3, remove the maps from the /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/resid_pointsource_powerlaw_2.00_residmap.npy
+2022-06-14 22:53:47 INFO    GTAnalysis.residmap(): Execution time: 7.69 s
+2022-06-14 22:53:47 INFO    GTBinnedAnalysis.write_xml(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed_00.xml...
+2022-06-14 22:53:47 INFO    GTAnalysis.write_fits(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed.fits...
+2022-06-14 22:53:55 INFO    GTBinnedAnalysis.write_model_map(): Generating model map for component 00.
+2022-06-14 22:53:57 INFO    GTAnalysis.write_roi(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed.npy...
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Prefactor', 'Index']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['norm', 'alpha', 'beta']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Prefactor', 'Index']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Fixing parameters for isodiff               : ['Normalization']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Fixing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Prefactor', 'Index']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1217.9+3007     : ['norm', 'alpha', 'beta']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1225.9+2951     : ['norm', 'alpha', 'beta']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.5+2814     : ['Prefactor', 'Index']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Freeing parameters for 4FGL J1231.7+2847     : ['Prefactor', 'Index']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Freeing parameters for isodiff               : ['Normalization']
+2022-06-14 22:53:57 INFO    GTAnalysis.free_source(): Freeing parameters for galdiff               : ['Prefactor', 'Index']
+2022-06-14 22:53:57 INFO    GTAnalysis.sed(): Computing SED for 4FGL J1221.3+3010
+2022-06-14 22:53:57 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:53:57 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:53:57 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1225.9+2951     : ['alpha', 'beta']
+2022-06-14 22:53:57 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.5+2814     : ['Index']
+2022-06-14 22:53:57 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:53:57 DEBUG   GTAnalysis.free_source(): Fixing parameters for galdiff               : ['Index']
+2022-06-14 22:53:57 DEBUG   GTAnalysis.free_source(): Freeing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:53:57 DEBUG   GTAnalysis.fit(): Starting fit.
+2022-06-14 22:53:57 DEBUG   GTAnalysis.fit(): Fit complete.
+2022-06-14 22:53:57 DEBUG   GTAnalysis.fit(): Fit returned successfully. Quality:   3 Status:   0
+2022-06-14 22:53:57 DEBUG   GTAnalysis.fit(): LogLike:     -649.726 DeltaLogLike:        0.000 
+2022-06-14 22:53:58 INFO    GTAnalysis._make_sed(): Fitting SED
+2022-06-14 22:53:58 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Index']
+2022-06-14 22:53:58 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['alpha', 'beta']
+2022-06-14 22:53:58 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1225.9+2951     : ['alpha', 'beta']
+2022-06-14 22:53:58 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.5+2814     : ['Index']
+2022-06-14 22:53:58 INFO    GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Index']
+2022-06-14 22:53:58 INFO    GTAnalysis.free_source(): Fixing parameters for galdiff               : ['Index']
+2022-06-14 22:53:58 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.3+3010     : ['Prefactor']
+2022-06-14 22:53:58 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1217.9+3007     : ['norm']
+2022-06-14 22:53:58 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1225.9+2951     : ['norm']
+2022-06-14 22:53:58 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1221.5+2814     : ['Prefactor']
+2022-06-14 22:53:58 DEBUG   GTAnalysis.free_source(): Fixing parameters for 4FGL J1231.7+2847     : ['Prefactor']
+2022-06-14 22:53:58 DEBUG   GTAnalysis.free_source(): Fixing parameters for isodiff               : ['Normalization']
+2022-06-14 22:53:58 DEBUG   GTAnalysis.free_source(): Fixing parameters for galdiff               : ['Prefactor']
+2022-06-14 22:53:58 DEBUG   GTAnalysis.fit(): Starting fit.
+2022-06-14 22:53:58 DEBUG   GTAnalysis.fit(): Skipping fit.  No free parameters.
+2022-06-14 22:53:58 DEBUG   GTAnalysis._make_sed(): Fitting 4FGL J1221.3+3010 SED from 100 MeV to 316 MeV
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:53:58 DEBUG   GTAnalysis._make_sed(): Fitting 4FGL J1221.3+3010 SED from 316 MeV to 1000 MeV
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:53:58 DEBUG   GTAnalysis._make_sed(): Fitting 4FGL J1221.3+3010 SED from 1000 MeV to 3162 MeV
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:53:58 DEBUG   GTAnalysis._make_sed(): Fitting 4FGL J1221.3+3010 SED from 3162 MeV to 10000 MeV
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:53:58 DEBUG   GTAnalysis._make_sed(): Fitting 4FGL J1221.3+3010 SED from 10000 MeV to 31623 MeV
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:53:58 DEBUG   GTAnalysis._make_sed(): Fitting 4FGL J1221.3+3010 SED from 31623 MeV to 100000 MeV
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Profiling 4FGL J1221.3+3010
+2022-06-14 22:53:58 DEBUG   GTAnalysis.profile_norm(): Finished
+2022-06-14 22:53:58 INFO    GTAnalysis.sed(): Finished SED
+2022-06-14 22:54:04 INFO    GTAnalysis.sed(): Execution time: 6.70 s
+2022-06-14 22:54:04 INFO    GTBinnedAnalysis.write_xml(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed_00.xml...
+2022-06-14 22:54:04 INFO    GTAnalysis.write_fits(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed.fits...
+2022-06-14 22:54:11 INFO    GTBinnedAnalysis.write_model_map(): Generating model map for component 00.
+2022-06-14 22:54:14 INFO    GTAnalysis.write_roi(): Writing /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed.npy...
+2022-06-14 22:54:29 INFO    GTAnalysis.__init__(): 
+--------------------------------------------------------------------------------
+fermipy version v1.1.2 
+ScienceTools version 2.1.30
+2022-06-14 22:54:29 DEBUG   GTAnalysis.print_config(): Configuration:
+binning:
+  binsperdec: 8.0
+  binsz: 0.08
+  coordsys: CEL
+  enumbins: null
+  hpx_ebin: true
+  hpx_order: 10
+  hpx_ordering_scheme: RING
+  npix: null
+  proj: AIT
+  projtype: WCS
+  roiwidth: 12.0
+components: []
+curvature:
+  Index2: 0.6667
+  free_Index2: false
+data:
+  cacheft1: true
+  evfile: ./fermi/EV00.lst
+  ltcube: null
+  scfile: ./fermi/SC00.fits
+extension:
+  fit_ebin: false
+  fit_position: false
+  fix_shape: false
+  free_background: false
+  free_radius: null
+  make_plots: false
+  make_tsmap: true
+  psf_scale_fn: null
+  save_model_map: false
+  spatial_model: RadialGaussian
+  sqrt_ts_threshold: null
+  tsmap_fitter: tsmap
+  update: false
+  width: []
+  width_max: 1.0
+  width_min: 0.01
+  width_nstep: 21
+  write_fits: true
+  write_npy: true
+fileio:
+  logfile: ./fermi/log/fermipy.log
+  outdir: ./fermi/
+  outdir_regex:
+  - \.fits$|\.fit$|\.xml$|\.npy$|\.png$|\.pdf$|\.yaml$
+  savefits: true
+  scratchdir: /scratch
+  usescratch: false
+  workdir: null
+  workdir_regex:
+  - \.fits$|\.fit$|\.xml$|\.npy$
+gtlike:
+  bexpmap: null
+  bexpmap_base: null
+  bexpmap_roi: null
+  bexpmap_roi_base: null
+  convolve: true
+  edisp: true
+  edisp_bins: -1
+  edisp_disable:
+  - isodiff
+  - galdiff
+  expscale: null
+  irfs: P8R3_SOURCE_V3
+  llscan_npts: 20
+  minbinsz: 0.05
+  resample: true
+  rfactor: 2
+  src_expscale: {}
+  srcmap: null
+  srcmap_base: null
+  use_external_srcmap: false
+  use_scaled_srcmap: false
+  wmap: null
+lightcurve:
+  binsz: 86400.0
+  free_background: false
+  free_params: []
+  free_radius: null
+  free_sources: []
+  make_plots: false
+  max_free_sources: 5
+  multithread: false
+  nbins: null
+  nthread: null
+  outdir: null
+  save_bin_data: true
+  shape_ts_threshold: 16.0
+  systematic: 0.02
+  time_bins: []
+  use_local_ltcube: true
+  use_scaled_srcmap: false
+  write_fits: true
+  write_npy: true
+localize:
+  dtheta_max: 0.5
+  fix_shape: false
+  free_background: false
+  free_radius: null
+  make_plots: false
+  nstep: 5
+  tsmap_fitter: tsmap
+  update: true
+  write_fits: true
+  write_npy: true
+logging:
+  chatter: 3
+  prefix: ''
+  verbosity: 2
+ltcube:
+  binsz: 1.0
+  dcostheta: 0.025
+  phibins: 0
+  use_local_ltcube: false
+mc:
+  seed: null
+model:
+  assoc_xmatch_columns:
+  - 3FGL_Name
+  catalogs:
+  - /Users/dtak/Research/scripts/vts-fermi/vtspy/refdata/gll_psc_v22.fit
+  diffuse: []
+  diffuse_dir: []
+  diffuse_xml: []
+  extdir: null
+  extract_diffuse: false
+  galdiff:
+  - $FERMI_DIFFUSE_DIR/gll_iem_v07.fits
+  isodiff:
+  - $FERMI_DIFFUSE_DIR/iso_P8R3_SOURCE_V3_v1.txt
+  limbdiff: []
+  merge_sources: true
+  sources: []
+  src_radius: null
+  src_radius_roi: null
+  src_roiwidth: 12.0
+optimizer:
+  init_lambda: 0.0001
+  max_iter: 100
+  min_fit_quality: 2
+  optimizer: MINUIT
+  retries: 3
+  tol: 0.001
+  verbosity: 0
+plotting:
+  catalogs: []
+  cmap: magma
+  cmap_resid: RdBu_r
+  figsize:
+  - 8.0
+  - 6.0
+  format: png
+  graticule_radii: []
+  interactive: false
+  label_ts_threshold: 0.0
+  loge_bounds: []
+residmap:
+  exclude: []
+  loge_bounds: []
+  make_plots: false
+  model: {}
+  use_weights: false
+  write_fits: true
+  write_npy: true
+roiopt:
+  max_free_sources: 5
+  npred_frac: 0.95
+  npred_threshold: 1.0
+  shape_ts_threshold: 25.0
+  skip: []
+sed:
+  bin_index: 2.0
+  cov_scale: 3.0
+  free_background: false
+  free_pars: []
+  free_radius: null
+  make_plots: false
+  ul_confidence: 0.95
+  use_local_index: false
+  write_fits: true
+  write_npy: true
+selection:
+  convtype: null
+  dec: 30.17694222440679
+  emax: 300000.0
+  emin: 100.0
+  evclass: 128
+  evtype: 3
+  filter: null
+  glat: 82.73442268671826
+  glon: 186.3593855387067
+  logemax: null
+  logemin: null
+  phasemax: null
+  phasemin: null
+  ra: 185.3412470056114
+  radius: null
+  roicut: 'no'
+  target: 1ES1218+304
+  tmax: 599616005
+  tmin: 599529605
+  zmax: 105.0
+sourcefind:
+  free_params: []
+  max_iter: 5
+  min_separation: 1.0
+  model: {}
+  multithread: false
+  nthread: null
+  sources_per_iter: 4
+  sqrt_ts_threshold: 5.0
+  tsmap_fitter: tsmap
+tscube:
+  cov_scale: -1.0
+  cov_scale_bb: -1.0
+  do_sed: true
+  exclude: []
+  init_lambda: 0.0
+  max_iter: 30
+  model: {}
+  nnorm: 10
+  norm_sigma: 5.0
+  remake_test_source: false
+  st_scan_level: 0
+  tol: 0.001
+  tol_type: 0
+tsmap:
+  exclude: []
+  loge_bounds: []
+  make_plots: false
+  max_kernel_radius: 3.0
+  model: {}
+  multithread: false
+  nthread: null
+  write_fits: true
+  write_npy: true
+
+2022-06-14 22:54:30 DEBUG   GTAnalysis._create_component(): Creating Analysis Component: 00
+2022-06-14 22:54:30 DEBUG   GTBinnedAnalysis.__init__(): Automatically setting selection radius to 8.985281374238571 deg
+2022-06-14 22:54:30 DEBUG   GTBinnedAnalysis.print_config(): Configuration:
+binning:
+  binsperdec: 8.0
+  binsz: 0.08
+  coordsys: CEL
+  enumbins: null
+  hpx_ebin: true
+  hpx_order: 10
+  hpx_ordering_scheme: RING
+  npix: null
+  proj: AIT
+  projtype: WCS
+  roiwidth: 12.0
+data:
+  cacheft1: true
+  evfile: ./fermi/EV00.lst
+  ltcube: null
+  scfile: ./fermi/SC00.fits
+file_suffix: _00
+fileio:
+  logfile: ./fermi/log/fermipy.log
+  outdir: ./fermi/
+  outdir_regex:
+  - \.fits$|\.fit$|\.xml$|\.npy$|\.png$|\.pdf$|\.yaml$
+  savefits: true
+  scratchdir: /scratch
+  usescratch: false
+  workdir: /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/
+  workdir_regex:
+  - \.fits$|\.fit$|\.xml$|\.npy$
+gtlike:
+  bexpmap: null
+  bexpmap_base: null
+  bexpmap_roi: null
+  bexpmap_roi_base: null
+  convolve: true
+  edisp: true
+  edisp_bins: -1
+  edisp_disable:
+  - isodiff
+  - galdiff
+  expscale: null
+  irfs: P8R3_SOURCE_V3
+  llscan_npts: 20
+  minbinsz: 0.05
+  resample: true
+  rfactor: 2
+  src_expscale: {}
+  srcmap: null
+  srcmap_base: null
+  use_external_srcmap: false
+  use_scaled_srcmap: false
+  wmap: null
+logging:
+  chatter: 3
+  prefix: ''
+  verbosity: 2
+ltcube:
+  binsz: 1.0
+  dcostheta: 0.025
+  phibins: 0
+  use_local_ltcube: false
+model:
+  assoc_xmatch_columns:
+  - 3FGL_Name
+  catalogs:
+  - /Users/dtak/Research/scripts/vts-fermi/vtspy/refdata/gll_psc_v22.fit
+  diffuse: []
+  diffuse_dir: []
+  diffuse_xml: []
+  extdir: null
+  extract_diffuse: false
+  galdiff:
+  - $FERMI_DIFFUSE_DIR/gll_iem_v07.fits
+  isodiff:
+  - $FERMI_DIFFUSE_DIR/iso_P8R3_SOURCE_V3_v1.txt
+  limbdiff: []
+  merge_sources: true
+  sources: []
+  src_radius: null
+  src_radius_roi: null
+  src_roiwidth: 12.0
+name: '00'
+selection:
+  convtype: null
+  dec: 30.17694222440679
+  emax: 300000.0
+  emin: 100.0
+  evclass: 128
+  evtype: 3
+  filter: null
+  glat: 82.73442268671826
+  glon: 186.3593855387067
+  logemax: !!python/object/apply:numpy.core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - false
+    - true
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    YP1keZLoFUA=
+  logemin: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    AAAAAAAAAEA=
+  phasemax: null
+  phasemin: null
+  ra: 185.3412470056114
+  radius: 8.985281374238571
+  roicut: 'no'
+  target: 1ES1218+304
+  tmax: 599616005
+  tmin: 599529605
+  zmax: 105.0
+
+2022-06-14 22:54:30 INFO    GTAnalysis.load_roi(): Loading ROI file: /Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed.npy
+2022-06-14 22:54:30 INFO    GTBinnedAnalysis._create_binned_analysis(): Creating BinnedAnalysis for component 00.
+2022-06-14 22:54:30 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Creating BinnedObs
+2022-06-14 22:54:30 DEBUG   GTBinnedAnalysis._create_binned_analysis(): {'srcMaps': '/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/srcmap_00.fits', 'expCube': '/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/ltcube_00.fits', 'binnedExpMap': '/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/bexpmap_00.fits', 'irfs': 'P8R3_SOURCE_V3'}
+2022-06-14 22:54:31 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Creating BinnedAnalysis
+2022-06-14 22:54:31 DEBUG   GTBinnedAnalysis._create_binned_analysis(): {'srcModel': '/Users/dtak/Research/scripts/vts-fermi/docs/examples/notebooks/1ES1218+304/./fermi/analyzed_00.xml', 'optimizer': 'MINUIT', 'wmap': None, 'convolve': True, 'resample': True, 'minbinsz': 0.05, 'resamp_fact': 2, 'edisp_bins': -1}
+2022-06-14 22:54:38 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Disabling energy dispersion for isodiff
+2022-06-14 22:54:38 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Disabling energy dispersion for galdiff
+2022-06-14 22:54:38 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Computing fixed weights
+2022-06-14 22:54:38 DEBUG   GTBinnedAnalysis._create_binned_analysis(): Updating source maps
+2022-06-14 22:54:40 INFO    GTAnalysis.load_roi(): Finished Loading ROI

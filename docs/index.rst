@@ -12,7 +12,7 @@ Welcome to vtspy's documentation!
 
    README
    install
-   examples/index
+   examples
    api/index
    
 

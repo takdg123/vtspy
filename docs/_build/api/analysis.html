@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analysis &mdash; vtspy  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utils" href="utils.html" />
+    <link rel="prev" title="API" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> vtspy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Analysis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fermianalysis">FermiAnalysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#veritasanalysis">VeritasAnalysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#jointanalysis">JointAnalysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vtspy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="index.html">API</a> &raquo;</li>
+      <li>Analysis</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/analysis.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="analysis">
+<h1>Analysis<a class="headerlink" href="#analysis" title="Permalink to this heading"></a></h1>
+<section id="fermianalysis">
+<h2>FermiAnalysis<a class="headerlink" href="#fermianalysis" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vtspy.analysis.</span></span><span class="sig-name descname"><span class="pre">FermiAnalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'initial'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_weak_srcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construct_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is to perform a simple Fermi-LAT analysis and to prepare the joint-fit
+analysis. All fermipy.GTanalysis functions and attributes can be accessed
+with the ‘gta’ arribute. e.g.,</p>
+<blockquote>
+<div><p>fermi = FermiAnalysis()
+fermi.gta.optimize()</p>
+</div></blockquote>
+<p>All information about the state of the analysis (See fermipy documentation
+for details) will be saved in the numpy array format (npy).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_file</strong> (<em>str</em>) – state filename (npy)
+Default: initial</p></li>
+<li><p><strong>config_file</strong> (<em>str</em>) – config filename (yaml)
+Default: config.yaml</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – overwrite the state
+Default: False</p></li>
+<li><p><strong>remove_weak_srcs</strong> (<em>bool</em>) – remove sources with TS of nan or 0
+Default: False</p></li>
+<li><p><strong>construct_dataset</strong> (<em>bool</em>) – construct dataset for the gammapy analysis
+Default: False</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em>) – </p></li>
+<li><p><strong>**kwargs</strong> – passed to fermipy.GTAnalysis module</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.analysis">
+<span class="sig-name descname"><span class="pre">analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['ts',</span> <span class="pre">'resid',</span> <span class="pre">'sed']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'analyzed'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.analysis" title="Permalink to this definition"></a></dt>
+<dd><p>Perform various analyses: TS map, Residual map, and SED.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobs</strong> (<em>str</em><em> or </em><em>list</em>) – list of jobs, ‘ts’, ‘resid’, and/or ‘sed’.
+Default: [‘ts’, ‘resid’, ‘sed’]</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – read and write the output
+Default: output</p></li>
+<li><p><strong>state_file</strong> (<em>str</em>) – output state filename (npy)
+Default: analyzed</p></li>
+<li><p><strong>**kwargs</strong> – passed to GTanalysis.sed</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.construct_dataset">
+<span class="sig-name descname"><span class="pre">construct_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eventlist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ft1_00.fits'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bexpmap_00.fits'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gtpsf_00.fits'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.construct_dataset" title="Permalink to this definition"></a></dt>
+<dd><p>Construct a dataset for the gammapy analysis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eventlist</strong> (<em>str</em>) – event list file (gtapp.maketime)
+Default: ft1_00.fits</p></li>
+<li><p><strong>exposure</strong> (<em>str</em>) – exposure map file (gtapp.gtexpmap)</p></li>
+<li><p><strong>psf</strong> (<em>str</em>) – psf file (gtapp.gtpsf)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.find_sources">
+<span class="sig-name descname"><span class="pre">find_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'wt_new_srcs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">re_fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.find_sources" title="Permalink to this definition"></a></dt>
+<dd><p>Find sources within the ROI (using GTanalysis.find_sources).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_file</strong> (<em>str</em>) – output state filename (npy)
+Default: wt_new_srcs</p></li>
+<li><p><strong>re_fit</strong> (<em>bool</em>) – re fit the ROI with new sources</p></li>
+<li><p><strong>**kwargs</strong> – passed to fit.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>output of GTanalysis.find_sources</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_weak_srcs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_ts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NEWMINUIT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Perform a simple fitting with various cuts</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_file</strong> (<em>str</em>) – output state filename (npy)
+Default: simple</p></li>
+<li><p><strong>free_all</strong> (<em>bool</em>) – make the target’s all parameters free
+Default: True</p></li>
+<li><p><strong>free_all</strong> – make all sources parameters free
+Default: False</p></li>
+<li><p><strong>remove_weak_srcs</strong> (<em>bool</em>) – remove sources with TS of nan or 0. This setting
+will trigger another round of fit process after the first run.
+Default: False</p></li>
+<li><p><strong>fix_index</strong> (<em>bool</em>) – fix spectral shapes for sources for TS less than min_ts
+Default: False</p></li>
+<li><p><strong>min_ts</strong> (<em>int</em>) – minimum TS value for fixing a spectral shape
+Default: 5</p></li>
+<li><p><strong>distance</strong> (<em>float</em>) – parameters for sources outside of a certain distance
+from the center are fixed, except for the normalization
+Default: 3.0</p></li>
+<li><p><strong>optimizer</strong> (<em>str</em>) – either MINUIT or NEWMINUIT
+Default: NEWMINUIT</p></li>
+<li><p><strong>return_output</strong> (<em>bool</em>) – return the fitting result (dict)
+Default: False</p></li>
+<li><p><strong>pre_state</strong> (<em>str</em><em>, </em><em>optional</em>) – input state filename (npy). If not defined, starting from
+the current state.
+Default: None</p></li>
+<li><p><strong>**kwargs</strong> – passed to fermipy.GTAnalysis.free_sources function</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Return</dt><dd><p>dict: the output of the fitting when return_output is True</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.load_state">
+<span class="sig-name descname"><span class="pre">load_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.load_state" title="Permalink to this definition"></a></dt>
+<dd><p>Load the state</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state_file</strong> (<em>str</em>) – passed to fermipy.write_roi</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.peek_events">
+<span class="sig-name descname"><span class="pre">peek_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.peek_events" title="Permalink to this definition"></a></dt>
+<dd><p>Show event information</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.peek_irfs">
+<span class="sig-name descname"><span class="pre">peek_irfs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.peek_irfs" title="Permalink to this definition"></a></dt>
+<dd><p>Show instrument response function (irf) information</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.plotting">
+<span class="sig-name descname"><span class="pre">plotting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.plotting" title="Permalink to this definition"></a></dt>
+<dd><p>Show various plots: TS map, Residual map, and SED.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plots</strong> (<em>list</em>) – <p>list of plots to show
+Options: [“sqrt_ts”, “npred”, “ts_hist”,</p>
+<blockquote>
+<div><p>”data”, “model”, “sigma”,
+“excess”, “resid”, “sed”]</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – read the output (from FermiAnalysis.analysis)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.print_association">
+<span class="sig-name descname"><span class="pre">print_association</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.print_association" title="Permalink to this definition"></a></dt>
+<dd><p>Print sources within ROI and their associations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.print_model">
+<span class="sig-name descname"><span class="pre">print_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.print_model" title="Permalink to this definition"></a></dt>
+<dd><p>Print source models within ROI</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.print_params">
+<span class="sig-name descname"><span class="pre">print_params</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.print_params" title="Permalink to this definition"></a></dt>
+<dd><p>Print parameters of sources within ROI</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.print_target">
+<span class="sig-name descname"><span class="pre">print_target</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.print_target" title="Permalink to this definition"></a></dt>
+<dd><p>Print the target properties</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.remove_weak_srcs">
+<span class="sig-name descname"><span class="pre">remove_weak_srcs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.remove_weak_srcs" title="Permalink to this definition"></a></dt>
+<dd><p>Remove sources within ROI if they are too weak (TS &lt; 0.1 or nan).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.save_state">
+<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.save_state" title="Permalink to this definition"></a></dt>
+<dd><p>Save the state</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_file</strong> (<em>str</em>) – passed to fermipy.write_roi</p></li>
+<li><p><strong>init</strong> (<em>bool</em>) – check whether this is the initial analysis.
+Default: False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.set_target">
+<span class="sig-name descname"><span class="pre">set_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.set_target" title="Permalink to this definition"></a></dt>
+<dd><p>Set/change the target</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>target</strong> (<em>str</em><em> or </em><em>int</em>) – target name or id</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.target">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target</span></span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.target" title="Permalink to this definition"></a></dt>
+<dd><p>Return:
+fermipy.roi_model.Source</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.target_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_id</span></span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.target_id" title="Permalink to this definition"></a></dt>
+<dd><p>Return:
+int: target id</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.target_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_name</span></span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.target_name" title="Permalink to this definition"></a></dt>
+<dd><p>Return:
+str: target name</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vtspy.analysis.FermiAnalysis.verbosity">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">verbosity</span></span><a class="headerlink" href="#vtspy.analysis.FermiAnalysis.verbosity" title="Permalink to this definition"></a></dt>
+<dd><p>Return:
+int</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="veritasanalysis">
+<h2>VeritasAnalysis<a class="headerlink" href="#veritasanalysis" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vtspy.analysis.</span></span><span class="sig-name descname"><span class="pre">VeritasAnalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'initial'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.yaml'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.add_exclusion_region">
+<span class="sig-name descname"><span class="pre">add_exclusion_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coord</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.add_exclusion_region" title="Permalink to this definition"></a></dt>
+<dd><p>Add exclusion region manually</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coord</strong> (<em>list</em><em>, </em><em>optioanl</em>) – [ra, dec]</p></li>
+<li><p><strong>name</strong> (<em>list</em><em>, </em><em>optional</em>) – [ra, dec]</p></li>
+<li><p><strong>radius</strong> (<em>float</em>) – size of an exlusion region</p></li>
+<li><p><strong>update_dataset</strong> (<em>bool</em>) – update dataset with the new exclusion region</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.analysis">
+<span class="sig-name descname"><span class="pre">analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['sed']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'analyzed'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.analysis" title="Permalink to this definition"></a></dt>
+<dd><p>Perform a simple analysis, e.g., SED, lightcurve</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobs</strong> (<em>list</em>) – list of jobs, ‘sed’, and/or ‘lc’.
+Default: [‘sed’]</p></li>
+<li><p><strong>state_file</strong> (<em>str</em>) – state filename (pickle)
+Default: analyzed</p></li>
+<li><p><strong>**kwargs</strong> – passed to vtspy.utils.define_time_intervals</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.construct_dataset">
+<span class="sig-name descname"><span class="pre">construct_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.construct_dataset" title="Permalink to this definition"></a></dt>
+<dd><p>Construct dataset for the gammapy analysis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – e.g., eff_cut, bias_cut, max_region_number, or others</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PowerLaw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Perform a simple fitting with a given model:
+PowerLaw, LogParabola, …</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>str</em><em> or </em><em>gammapy.models</em>) – model name or function
+Default: “PowerLaw”</p></li>
+<li><p><strong>state_file</strong> (<em>str</em>) – <dl class="simple">
+<dt>state filename (pickle)</dt><dd><p>Default: simple</p>
+</dd>
+<dt>save_state(bool)</dt><dd><p>Default: True</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.load_state">
+<span class="sig-name descname"><span class="pre">load_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.load_state" title="Permalink to this definition"></a></dt>
+<dd><p>Load the state</p>
+<p>Args:
+state_file (str): the name of state</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.obs_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">obs_ids</span></span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.obs_ids" title="Permalink to this definition"></a></dt>
+<dd><p>Return:
+list: list of observation id</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.peek_dataset">
+<span class="sig-name descname"><span class="pre">peek_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.peek_dataset" title="Permalink to this definition"></a></dt>
+<dd><p>Show dataset information</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.plotting">
+<span class="sig-name descname"><span class="pre">plotting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.plotting" title="Permalink to this definition"></a></dt>
+<dd><p>Show various plot: fit result, flux, SED, and lightcurve</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot</strong> (<em>str</em>) – a plot to show
+Options: [“fit”, “flux”, “sed”, “lc”]</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – read the output (from FermiAnalysis.analysis)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.print_flux">
+<span class="sig-name descname"><span class="pre">print_flux</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.print_flux" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>flux points in SED</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>astropy.table</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.print_lightcurve">
+<span class="sig-name descname"><span class="pre">print_lightcurve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sed_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eflux'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.print_lightcurve" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>flux points in lightcurve</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>astropy.table</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.print_models">
+<span class="sig-name descname"><span class="pre">print_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.print_models" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>fit parameters</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>astropy.table</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.save_state">
+<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.save_state" title="Permalink to this definition"></a></dt>
+<dd><p>Save the state</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_file</strong> (<em>str</em>) – the name of state</p></li>
+<li><p><strong>init</strong> (<em>bool</em>) – check whether this is the initial analysis.
+Default: False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.setup" title="Permalink to this definition"></a></dt>
+<dd><p>This is to initialize the VERITAS analysis; e.g., construct datasets
+To change the setting for this setup, check config file.</p>
+<p>VeritasAnalysis.config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – passed to VeritasAnalysis.construct_dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.target">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target</span></span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.target" title="Permalink to this definition"></a></dt>
+<dd><p>Return:
+astropy.SkyCoord</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.target_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">target_name</span></span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.target_name" title="Permalink to this definition"></a></dt>
+<dd><p>Return:
+str: target name</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vtspy.analysis.VeritasAnalysis.verbosity">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">verbosity</span></span><a class="headerlink" href="#vtspy.analysis.VeritasAnalysis.verbosity" title="Permalink to this definition"></a></dt>
+<dd><p>Return:
+int</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="jointanalysis">
+<h2>JointAnalysis<a class="headerlink" href="#jointanalysis" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vtspy.analysis.JointAnalysis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vtspy.analysis.</span></span><span class="sig-name descname"><span class="pre">JointAnalysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">veritas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'initial'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fermi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'initlal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vtspy.analysis.JointAnalysis" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-right" title="Utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Donggeun Tak.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
