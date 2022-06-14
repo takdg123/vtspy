@@ -17,5 +17,7 @@ dependencies:
   - astropy-healpix
   - gammapy>=0.2
   - fermitools>=2.1.0
+  - fermipy
+  - gammapy
   - pip:
     - -r docs/requirements.txt
