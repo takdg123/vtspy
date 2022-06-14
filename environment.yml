@@ -14,3 +14,10 @@ dependencies:
   - astropy-healpix
   - gammapy>=0.2
   - fermitools>=2.1.0
+  - sphinx>=3
+  - nbsphinx
+  - sphinx-rtd-theme
+  - myst-parser
+  - ipykernel
+  - sphinx-argparse
+  - pygments==2.7.4
