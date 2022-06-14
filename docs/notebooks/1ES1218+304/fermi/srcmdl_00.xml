@@ -1,0 +1,190 @@
+<?xml version="1.0" ?>
+<source_library title="source_library">
+  <source name="4FGL J1221.3+3010" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="30.1677"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="185.3449"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="1.7138954401016235"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-13" value="1.776967516273903"/>
+      <parameter free="0" max="4441.77978515625" min="4441.77978515625" name="Scale" scale="1.0" value="4441.77978515625"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1217.9+3007" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="30.1177"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="184.4762"/>
+    </spatialModel>
+    <spectrum type="LogParabola">
+      <parameter free="0" max="1065.82666015625" min="1065.82666015625" name="Eb" scale="1.0" value="1065.82666015625"/>
+      <parameter free="0" max="5.0" min="-5.0" name="alpha" scale="1.0" value="1.8831372261047363"/>
+      <parameter free="0" max="2.0" min="-2.0" name="beta" scale="1.0" value="0.040205419063568115"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="norm" scale="1e-11" value="0.7542163074636399"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1225.9+2951" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="29.8596"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="186.4902"/>
+    </spatialModel>
+    <spectrum type="LogParabola">
+      <parameter free="0" max="1431.792724609375" min="1431.792724609375" name="Eb" scale="1.0" value="1431.792724609375"/>
+      <parameter free="0" max="5.0" min="-5.0" name="alpha" scale="1.0" value="1.6975390911102295"/>
+      <parameter free="0" max="2.0" min="-2.0" name="beta" scale="1.0" value="0.40886738896369934"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="norm" scale="1e-12" value="0.8702378553014645"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1221.5+2814" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="28.2382"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="185.3784"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="2.1572232246398926"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-11" value="0.3603608947702619"/>
+      <parameter free="0" max="1060.343994140625" min="1060.343994140625" name="Scale" scale="1.0" value="1060.343994140625"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1231.7+2847" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="28.7917"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="187.9349"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="1.9859304428100586"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-12" value="0.8174277227324112"/>
+      <parameter free="0" max="1580.73583984375" min="1580.73583984375" name="Scale" scale="1.0" value="1580.73583984375"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1208.1+3017" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="30.2901"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="182.0252"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="1.7921925783157349"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-14" value="0.41439426759840026"/>
+      <parameter free="0" max="5648.8720703125" min="5648.8720703125" name="Scale" scale="1.0" value="5648.8720703125"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1220.1+3432" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="34.5383"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="185.0462"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="2.0695245265960693"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-13" value="1.646779772008361"/>
+      <parameter free="0" max="1781.507568359375" min="1781.507568359375" name="Scale" scale="1.0" value="1781.507568359375"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1205.8+3321" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="33.3546"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="181.4595"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="2.6826159954071045"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-12" value="0.6839935519017959"/>
+      <parameter free="0" max="639.883544921875" min="639.883544921875" name="Scale" scale="1.0" value="639.883544921875"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1159.5+2914" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="29.2448"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="179.884"/>
+    </spatialModel>
+    <spectrum type="LogParabola">
+      <parameter free="0" max="485.4761047363281" min="485.4761047363281" name="Eb" scale="1.0" value="485.4761047363281"/>
+      <parameter free="0" max="5.0" min="-5.0" name="alpha" scale="1.0" value="2.167933225631714"/>
+      <parameter free="0" max="2.0" min="-2.0" name="beta" scale="1.0" value="0.06747429072856903"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="norm" scale="1e-10" value="0.5099130839791854"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1215.1+3513" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="35.2217"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="183.7957"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="2.6376137733459473"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-12" value="0.575183401341911"/>
+      <parameter free="0" max="681.1495971679688" min="681.1495971679688" name="Scale" scale="1.0" value="681.1495971679688"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1230.2+2517" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="25.2983"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="187.5599"/>
+    </spatialModel>
+    <spectrum type="LogParabola">
+      <parameter free="0" max="816.4609985351562" min="816.4609985351562" name="Eb" scale="1.0" value="816.4609985351562"/>
+      <parameter free="0" max="5.0" min="-5.0" name="alpha" scale="1.0" value="1.9933661222457886"/>
+      <parameter free="0" max="2.0" min="-2.0" name="beta" scale="1.0" value="0.061194874346256256"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="norm" scale="1e-11" value="0.6632308851423074"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1224.4+2436" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="24.6142"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="186.1161"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="1.8886841535568237"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-13" value="2.469968674034817"/>
+      <parameter free="0" max="2355.479736328125" min="2355.479736328125" name="Scale" scale="1.0" value="2355.479736328125"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1212.2+2442" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="24.7128"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="183.0526"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="2.1066670417785645"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-13" value="0.5146610134593166"/>
+      <parameter free="0" max="1946.754150390625" min="1946.754150390625" name="Scale" scale="1.0" value="1946.754150390625"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1241.5+3439" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="34.6501"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="190.3993"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="1.9206734895706177"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-14" value="1.0804000109918694"/>
+      <parameter free="0" max="3655.95849609375" min="3655.95849609375" name="Scale" scale="1.0" value="3655.95849609375"/>
+    </spectrum>
+  </source>
+  <source name="4FGL J1152.8+3308" type="PointSource">
+    <spatialModel type="SkyDirFunction">
+      <parameter free="0" max="90.0" min="-90.0" name="DEC" scale="1.0" value="33.1416"/>
+      <parameter free="0" max="360.0" min="-360.0" name="RA" scale="1.0" value="178.2123"/>
+    </spatialModel>
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="5.0" min="0.0" name="Index" scale="-1.0" value="2.9428679943084717"/>
+      <parameter free="0" max="1000.0" min="1e-05" name="Prefactor" scale="1e-11" value="0.3857969065740319"/>
+      <parameter free="0" max="361.1166687011719" min="361.1166687011719" name="Scale" scale="1.0" value="361.1166687011719"/>
+    </spectrum>
+  </source>
+  <source name="isodiff" type="DiffuseSource">
+    <spectrum file="$(FERMI_DIFFUSE_DIR)/iso_P8R3_SOURCE_V3_v1.txt" type="FileFunction" ctype="-1">
+      <parameter free="0" max="1000.0" min="0.001" name="Normalization" scale="1.0" value="1.0"/>
+    </spectrum>
+    <spatialModel type="ConstantValue">
+      <parameter name="Value" scale="1" value="1" min="0" max="10" free="0"/>
+    </spatialModel>
+  </source>
+  <source name="galdiff" type="DiffuseSource">
+    <spectrum type="PowerLaw">
+      <parameter free="0" max="1.0" min="-1.0" name="Index" scale="-1.0" value="0.0"/>
+      <parameter free="0" max="10.0" min="0.1" name="Prefactor" scale="1.0" value="1.0"/>
+      <parameter free="0" max="1000.0" min="1000.0" name="Scale" scale="1.0" value="1000.0"/>
+    </spectrum>
+    <spatialModel type="MapCubeFunction" file="$(FERMI_DIFFUSE_DIR)/gll_iem_v07.fits">
+      <parameter name="Normalization" scale="1" value="1" min="0" max="10" free="0"/>
+    </spatialModel>
+  </source>
+</source_library>
