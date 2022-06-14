@@ -5,4 +5,3 @@ myst-parser
 ipykernel
 sphinx-argparse
 pygments==2.7.4
-sphinxarg
