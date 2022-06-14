@@ -19,10 +19,10 @@ conda:
 sphinx:
    configuration: docs/conf.py
 
-python:
-  install:
-    - method: pip
-      path: .
+# python:
+#   install:
+#     - method: pip
+#       path: .
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 # formats:
