@@ -16,7 +16,7 @@ We recommand to install Fermitools first. Run::
 This will generate a ``conda`` environment called ``vtspy``. For details, see `Installation-Instructions <https://github.com/fermi-lat/Fermitools-conda/wiki/Installation-Instructions/>`_.
 
 Gammapy and Fermipy
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 Then, install fermipy within the ``conda`` environment (``vtspy``), see also `install <https://fermipy.readthedocs.io/en/latest/install.html#install/>`_::
 
@@ -26,7 +26,7 @@ Then, install fermipy within the ``conda`` environment (``vtspy``), see also `in
 The gammapy package is one of dependencies of the fermipy package so that you do not need to install it additionally.
 
 vtspy
-~~~~~~~~~~
+~~~~~
 
 Run::
   

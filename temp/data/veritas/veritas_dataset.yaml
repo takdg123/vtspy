@@ -1,7 +1,0 @@
-datasets:
-- name: '64080'
-  type: SpectrumDatasetOnOff
-  filename: pha_obs64080.fits
-- name: '64081'
-  type: SpectrumDatasetOnOff
-  filename: pha_obs64081.fits
