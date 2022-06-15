@@ -15,7 +15,7 @@ setup(name='vtspy',
                         'numpy',
                         'matplotlib',
                         'fermipy',
-                        'gammapy'
+                        'gammapy',
                         ],
       extras_require={'tests': ['pytest', 'pytest-ordering'],
                       'examples': ['ipywidgets', 'ipympl', 'nodejs']
