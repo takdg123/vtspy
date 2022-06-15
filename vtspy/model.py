@@ -128,3 +128,4 @@ def spatial_model(src):
 
     spatial_model.parameters.freeze_all()
     return spatial_model
+
