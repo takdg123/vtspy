@@ -6,7 +6,8 @@ channels:
   - defaults
 dependencies:
   - pip
-  - python==3.6
+  - python=3 
+  - clhep=2.4.4.1
   - pyyaml
   - numpy>=1.16
   - scipy
