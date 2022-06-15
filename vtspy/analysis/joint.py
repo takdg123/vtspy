@@ -5,7 +5,7 @@ import astropy.units as u
 from . import FermiAnalysis, VeritasAnalysis
 from ..utils import logger
 from .. import utils
-from ..model import gammapy_default_model
+from ..model import default_model
 
 from gammapy.datasets import Datasets
 from gammapy.modeling import Fit
@@ -68,11 +68,13 @@ class JointAnalysis:
             table = table[table["model"]== self.target_name]
             return table
     
-    def fit(self):
+    def fit(self, **kwargs):
 
-        if self._model_change_flag:
-            self._logging.info("A model is recently updated. Optimize first")
+        optimize = kwargs.pop("optimize", True)
+        if self._model_change_flag and optimize:
+            self._logging.info("A model is recently updated. Optimizing the input parameters...")
             self._optimize()
+            self._logging.info("Completed. Move to the next step.")
 
         self._logging.info("Start fitting...")
 
@@ -195,10 +197,10 @@ class JointAnalysis:
             data=self.flux_points, models=self.datasets.models
         )
         
-    def change_model(self, model, refit=False):
+    def change_model(self, model, optimize=False, **kwargs):
         prevmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
         if type(model) == str:
-            spectral_model = gammapy_default_model(model)
+            spectral_model = default_model(model, **kwargs)
             if model is None:
                 self._logging.error("The input model is not supported yet.")
                 return
@@ -206,7 +208,7 @@ class JointAnalysis:
             spectral_model = model
             self._logging.info(f"A model, {model.tag[0]}, is imported")
         
-        if refit:
+        if optimize:
             self._optimize(model=spectral_model)
             self._model_change_flag = False
         else:
@@ -225,16 +227,16 @@ class JointAnalysis:
         joint_fit = Fit()
         fit_results = joint_fit.run(self.datasets["veritas"])
 
-    def _construct_joint_datasets(self, default_model="VERITAS", init=False):
+    def _construct_joint_datasets(self, inst="VERITAS", init=False):
         vts_model = self.veritas.stacked_dataset.models[0]
         fermi_model = self.fermi.datasets.models[self.fermi.target_name]
 
         self.veritas.stacked_dataset.models = self._find_target_model()
         self.datasets = Datasets([self.fermi.datasets, self.veritas.stacked_dataset])
 
-        if default_model.lower() == "veritas":
+        if inst.lower() == "veritas":
             self.datasets.models[self.fermi.target_name].spectral_model = vts_model.spectral_model
-        elif default_model.lower() == "fermi":
+        elif inst.lower() == "fermi":
             self.datasets.models[self.veritas.target_name].spectral_model = fermi_model.spectral_model
 
         self.datasets.models[self.fermi.target_name]._name = self.target_name

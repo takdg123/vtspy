@@ -8,6 +8,7 @@ import gammapy.modeling.models as gammapy_model
 
 from fermipy.roi_model import Source
 
+from .external.agnpy import *
 
 model_dict = {
     # fermipy to gammapy
@@ -90,20 +91,66 @@ def fermi_isotropic_diffuse_bkg(config, fmodel):
     diffuse_iso._name = "isodiff"
     return diffuse_iso
 
-def gammapy_default_model(model):
+def default_model(model, **kwargs):
     if model.lower() == "powerlaw":
+        amplitude = kwargs.pop("amplitude", 1e-12)
+        index = kwargs.pop("index", 2.5)
+        reference = kwargs.pop("reference", 1)
+
         spectral_model = gammapy_model.PowerLawSpectralModel(
-            amplitude=1e-12 * u.Unit("cm-2 s-1 TeV-1"),
-            index=2.5,
-            reference=1 * u.TeV,
+            amplitude=amplitude * u.Unit("cm-2 s-1 TeV-1"),
+            index=index,
+            reference=reference * u.TeV,
         )
     elif model.lower() == "logparabola":
+        amplitude = kwargs.pop("amplitude", 1e-12)
+        alpha = kwargs.pop("alpha", 3)
+        beta = kwargs.pop("beta", 2)
+        reference = kwargs.pop("reference", 1)
+
         spectral_model = gammapy_model.LogParabolaSpectralModel(
-             alpha=3,
              amplitude=1e-12 * u.Unit("cm-2 s-1 TeV-1"),
-             reference=1 * u.TeV,
+             alpha=3,
              beta=2,
+             reference=1 * u.TeV,
         )
+    elif model.lower() == "agnpy":
+        spectral_model = agnpy_spectral_model()
+        
+        z = kwargs.pop("redshift", 0)
+        d_L = Distance(z=z).to("cm")
+
+        delta_D = kwargs.pop("delta_D", 7)
+        log10_B = kwargs.pop("log10_B", 7e-02)
+        t_var = kwargs.pop("t_var", 1)
+
+        log10_k_e = kwargs.pop("log10_k_e", -7)
+        p1 = kwargs.pop("p1", 2)
+        p2 = kwargs.pop("p2", 4)
+        log10_gamma_b = kwargs.pop("log10_gamma_b", 5.3)
+        log10_gamma_min = kwargs.pop("log10_gamma_min", np.log10(500))
+        log10_gamma_max = kwargs.pop("log10_gamma_max", np.log10(1e6))
+
+        spectral_model.z.quantity = z
+        spectral_model.z.frozen = True
+        spectral_model.d_L.quantity = d_L
+        spectral_model.d_L.frozen = True
+        
+        spectral_model.delta_D.quantity = delta_D
+        spectral_model.log10_B.quantity = log10_B
+        spectral_model.t_var.quantity = t_var * u.d
+        spectral_model.t_var.frozen = True
+        
+        spectral_model.log10_k_e.quantity = log10_k_e
+        spectral_model.log10_k_e._is_norm = True
+        spectral_model.p1.quantity = p1
+        spectral_model.p2.quantity = p2
+        spectral_model.log10_gamma_b.quantity = log10_gamma_b
+        spectral_model.log10_gamma_min.quantity = log10_gamma_min
+        spectral_model.log10_gamma_min.frozen = True
+        spectral_model.log10_gamma_max.quantity = log10_gamma_max
+        spectral_model.log10_gamma_max.frozen = True
+
     else:
         spectral_model = None
     return spectral_model

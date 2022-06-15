@@ -14,7 +14,7 @@ from gammapy.modeling.models import (
 )
 
 
-class AgnpySSC(SpectralModel):
+class agnpy_spectral_model(SpectralModel):
     """
     Wrapper of agnpy's synchrotron and SSC classes. A broken power law is assumed 
     for the electron spectrum. To limit the span of the parameters space, we fit 
@@ -22,7 +22,7 @@ class AgnpySSC(SpectralModel):
     of magnitudes (normalisation, gammas, size and magnetic field of the blob).
     """
 
-    tag = "SSC"
+    tag = ["agnpy(SYN+SSC)", "agnpy"]
     log10_k_e = Parameter("log10_k_e", -5, min=-20, max=10)
     p1 = Parameter("p1", 2.1, min=-2.0, max=5.0)
     p2 = Parameter("p2", 3.1, min=-2.0, max=5.0)
@@ -64,27 +64,23 @@ class AgnpySSC(SpectralModel):
         pars = (z, d_L, delta_D, B, R_b, BrokenPowerLaw, k_e,
                 p1, p2, gamma_b, gamma_min, gamma_max)
         nu = energy.to("Hz", equivalencies=u.spectral())
-        sed_synch_l = Synchrotron.evaluate_sed_flux(
-            nu[:,0],*pars
-        )
-        sed_synch_h = Synchrotron.evaluate_sed_flux(
-            nu[:,1],*pars
-        )
-        sed_synch = np.asarray([sed_synch_l,sed_synch_h]).T
-        sed_ssc_l = SynchrotronSelfCompton.evaluate_sed_flux(
-            nu[:,0],
-            *pars
-        )
-        sed_ssc_h = SynchrotronSelfCompton.evaluate_sed_flux(
-            nu[:,1],
-            *pars
-        )
-        sed_ssc = np.asarray([sed_ssc_l,sed_ssc_h]).T
+        dim = len(energy.shape)
         
-        sed_units = u.erg / u.cm / u.cm / u.second
-        sed = (sed_synch + sed_ssc) * sed_units
+        if dim == 2:
+            sed_synch_l = Synchrotron.evaluate_sed_flux(nu[:,0],*pars)
+            sed_synch_h = Synchrotron.evaluate_sed_flux(nu[:,1],*pars)
+            sed_synch = np.asarray([sed_synch_l,sed_synch_h]).T
+            
+            sed_ssc_l = SynchrotronSelfCompton.evaluate_sed_flux(nu[:,0],*pars)
+            sed_ssc_h = SynchrotronSelfCompton.evaluate_sed_flux(nu[:,1],*pars)
+            sed_ssc = np.asarray([sed_ssc_l,sed_ssc_h]).T
+            
+            sed_units = u.erg / u.cm / u.cm / u.second
+            sed = (sed_synch + sed_ssc) * sed_units
+        else:
+            sed_synch = Synchrotron.evaluate_sed_flux(nu,*pars)
+            sed_ssc = SynchrotronSelfCompton.evaluate_sed_flux(nu,*pars)
+            sed = (sed_synch + sed_ssc) 
         return (sed / energy ** 2).to("1 / (cm2 TeV s)")
 
-if AgnpySSC not in SPECTRAL_MODEL_REGISTRY:
-    SPECTRAL_MODEL_REGISTRY.append(AgnpySSC)
 

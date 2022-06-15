@@ -1,8 +1,8 @@
 name: vtspy
 channels:
-  - fermi/label/dev
   - fermi
   - conda-forge
+  - defaults
 dependencies:
   - pip
   - python

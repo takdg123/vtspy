@@ -11,7 +11,7 @@ from astropy.time import Time
 
 from ..utils import logger
 from .. import utils
-from ..model import gammapy_default_model
+from ..model import default_model
 
 from ..config import JointConfig
 
@@ -77,6 +77,8 @@ class VeritasAnalysis:
 		self._bias_cut = self.config['cuts']['bias_cut']
 		self._max_region_number = self.config['selection']['max_region_number']
 
+		self._energy_bins = MapAxis.from_bounds(0.1, 10, nbin=8, interp="log", unit="TeV").edges
+
 		if overwrite or not(os.path.isfile(f"./{self._outdir}/initial.pickle")):
 
 			self.setup(**kwargs)
@@ -123,12 +125,21 @@ class VeritasAnalysis:
 		return self._obs_ids
 	
 	@property
+	def energy_bins(self):
+		"""
+        Return:
+        	MapAxis.edges: energy bins used in flux points.
+        """
+		return self._energy_bins
+
+	@property
 	def verbosity(self):
 		"""
         Return:
         	int
         """
 		return self._verbosity
+
 
 	
 	def print_flux(self):
@@ -254,7 +265,7 @@ class VeritasAnalysis:
 		
 		self.construct_dataset(**kwargs)
 
-	def fit(self, model = "PowerLaw", state_file="simple", save_state=True):
+	def fit(self, model = "PowerLaw", state_file="simple", save_state=True, **kwargs):
 		"""
         Perform a simple fitting with a given model: 
         PowerLaw, LogParabola, ...
@@ -266,11 +277,11 @@ class VeritasAnalysis:
 	        	Default: simple
 	        save_state(bool)
 	        	Default: True
-
+	        **kwargs: passed to vtspy.model.default_model
         """
 
 		if type(model) == str:
-			spectral_model = gammapy_default_model(model)
+			spectral_model = default_model(model, **kwargs)
 		elif hasattr(model, "tag"):
 			spectral_model = model
 
@@ -305,11 +316,10 @@ class VeritasAnalysis:
 
 		if "sed" in jobs:
 			self._logging.info("Generating flux points and SED...")
-			energy_bins = kwargs.get("energy_bins",
-				MapAxis.from_bounds(0.1, 10, nbin=8, interp="log", unit="TeV").edges)
+			self._energy_bins = kwargs.get("energy_bins", self._energy_bins)
 
 			fpe = FluxPointsEstimator(
-			    energy_edges=energy_bins, 
+			    energy_edges=self.energy_bins, 
 			    source=self.target_name, selection_optional="all", **kwargs
 			    )
 
