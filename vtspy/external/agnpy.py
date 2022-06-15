@@ -53,6 +53,8 @@ class agnpy_spectral_model(SpectralModel):
         t_var,
     ):
         # conversions
+        print(energy)
+        
         k_e = 10 ** log10_k_e * u.Unit("cm-3")
         gamma_b = 10 ** log10_gamma_b
         gamma_min = 10 ** log10_gamma_min

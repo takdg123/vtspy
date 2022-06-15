@@ -7,19 +7,16 @@ channels:
 dependencies:
   - pip
   - python=3 
+  - fermitools>=2
   - clhep=2.4.4.1
-  - pyyaml
-  - numpy>=1.16
+  - numpy
   - scipy
   - astropy
-  - matplotlib>=3.3
-  - healpy
+  - matplotlib
+  - pyyaml
   - uproot
   - html2text
   - astropy-healpix
   - gammapy>=0.2
-  - fermitools>=2.1.0
-  - fermipy
-  - gammapy
   - pip:
     - -r docs/requirements.txt

@@ -74,6 +74,7 @@ class JointAnalysis:
         if self._model_change_flag and optimize:
             self._logging.info("A model is recently updated. Optimizing the input parameters...")
             self._optimize()
+            self._model_change_flag = False
             self._logging.info("Completed. Move to the next step.")
 
         self._logging.info("Start fitting...")
