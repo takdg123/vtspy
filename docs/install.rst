@@ -29,7 +29,11 @@ vtspy
 ~~~~~
 
 Run::
-  
+
+  git clone https://github.com/takdg123/vtspy.git
+ 
+or
+  gh repo clone takdg123/vtspy
   pip install vtspy
 
 Or alternatively, install it from source::
