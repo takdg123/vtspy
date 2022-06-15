@@ -7,8 +7,6 @@ channels:
 dependencies:
   - pip
   - python=3 
-  - fermitools>=2
-  - clhep=2.4.4.1
   - numpy
   - scipy
   - astropy
@@ -17,6 +15,9 @@ dependencies:
   - uproot
   - html2text
   - astropy-healpix
+  - fermitools=2.0.8
+  - clhep=2.4.4.1
+  - fermipy
   - gammapy>=0.2
   - pip:
     - -r docs/requirements.txt

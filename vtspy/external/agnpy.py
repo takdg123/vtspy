@@ -69,16 +69,10 @@ class agnpy_spectral_model(SpectralModel):
         dim = len(energy.shape)
         
         if dim == 2:
-            sed_synch_l = Synchrotron.evaluate_sed_flux(nu[:,0],*pars)
-            sed_synch_h = Synchrotron.evaluate_sed_flux(nu[:,1],*pars)
-            sed_synch = np.asarray([sed_synch_l,sed_synch_h]).T
-            
-            sed_ssc_l = SynchrotronSelfCompton.evaluate_sed_flux(nu[:,0],*pars)
-            sed_ssc_h = SynchrotronSelfCompton.evaluate_sed_flux(nu[:,1],*pars)
-            sed_ssc = np.asarray([sed_ssc_l,sed_ssc_h]).T
-            
+            sed_synch = np.asarray([Synchrotron.evaluate_sed_flux(n,*pars) for n in nu.T])
+            sed_ssc = np.asarray([SynchrotronSelfCompton.evaluate_sed_flux(n,*pars) for n in nu.T])
             sed_units = u.erg / u.cm / u.cm / u.second
-            sed = (sed_synch + sed_ssc) * sed_units
+            sed = (sed_synch.T + sed_ssc.T) * sed_units
         else:
             sed_synch = Synchrotron.evaluate_sed_flux(nu,*pars)
             sed_ssc = SynchrotronSelfCompton.evaluate_sed_flux(nu,*pars)
