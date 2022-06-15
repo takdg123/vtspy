@@ -1,11 +1,12 @@
 name: vtspy
 channels:
+  - fermi/label/dev
   - fermi
   - conda-forge
   - defaults
 dependencies:
-  - python==3.8
   - pip
+  - python==3.8
   - pyyaml
   - numpy>=1.16
   - scipy
