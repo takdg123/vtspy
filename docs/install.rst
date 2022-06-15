@@ -32,11 +32,11 @@ Run::
 
   git clone https://github.com/takdg123/vtspy.git
  
-or
+or::
 
   gh repo clone takdg123/vtspy
-  pip install vtspy
+  pip install .
 
-Or alternatively, install it from source::
+or::
 
   pip install --user git+https://github.com/takdg123/vtspy@master
