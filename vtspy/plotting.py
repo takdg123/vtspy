@@ -36,14 +36,6 @@ def fermi_plotter(name, fermi, subplot = None, **kwargs):
     output = fermi.output
     roi = fermi.gta.roi
     config = fermi.gta.config
-    kwargs.setdefault('graticule_radii', config['plotting']['graticule_radii'])
-    kwargs.setdefault('label_ts_threshold',
-                      config['plotting']['label_ts_threshold'])
-    kwargs.setdefault('cmap', config['plotting']['cmap'])
-    kwargs.setdefault('catalogs', config['plotting']['catalogs'])
-
-    ymin = kwargs.get('ymin', None)
-    
     
     if subplot is None:
         fig = plt.figure(figsize=(14,6))
@@ -51,6 +43,8 @@ def fermi_plotter(name, fermi, subplot = None, **kwargs):
         ax = plt.gca()
     else:
         ax = None
+
+    kwargs.setdefault('cmap', config['plotting']['cmap'])
 
     if name == "sqrt_ts":
         sigma_levels = [3, 5, 7] + list(np.logspace(1, 3, 17))
@@ -102,10 +96,9 @@ def fermi_plotter(name, fermi, subplot = None, **kwargs):
         ax.set_title('Residual histogram')
 
     if name == "sed":
-        plotter = SEDPlotter(output["sed"])
-        plotter.plot()
+        kwargs.pop('cmap')
+        plot_sed(output, **kwargs)
         ax = plt.gca()
-        ax.set_ylim(ymin)
     
     return ax 
 
@@ -195,4 +188,61 @@ def plot_ROI(veritas=None, fermi=None):
         #fermi._src_in_roi(ax)
 
     plt.show(block=False)
+
+def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg=False, units="MeV", color="k", **kwargs):
+
+    sed = output["sed"]
+    fermi_model = output["sed"]['model_flux']
+    m_engs = 10**fermi_model['log_energies']
+    
+    if units == "MeV":
+        conv_u = 1
+    elif units == "GeV":
+        conv_u = 1e-3
+    elif units == "TeV":
+        conv_u = 1e-6
+    
+    if erg:
+        e2 = m_engs**2.*utils.MeV2Erg
+        conv_f = utils.MeV2Erg
+        f_units = "erg/cm$^2$/s"
+    else:
+        e2 = m_engs**2.*conv_u**2.
+        conv_f = conv_u**2.
+        f_units = f"{units}/cm$^2$/s"
+    
+    ul_ts_threshold = kwargs.pop('ul_ts_threshold', 4)
+    m = sed['ts'] < ul_ts_threshold
+    x = sed['e_ctr']*conv_u
+    y = sed['e2dnde']*conv_f
+
+    yerr = sed['e2dnde_err']*conv_f
+    yerr_lo = sed['e2dnde_err_lo']*conv_f
+    yerr_hi = sed['e2dnde_err_hi']*conv_f
+    yul = sed['e2dnde_ul95']*conv_f
+    delo = sed['e_ctr'] - sed['e_min']
+    dehi = sed['e_max'] - sed['e_ctr']
+    xerr0 = np.vstack((delo[m], dehi[m]))*conv_u
+    xerr1 = np.vstack((delo[~m], dehi[~m]))*conv_u
+    
+    if show_flux_points:
+        plt.errorbar(x[~m], y[~m], xerr=xerr1, label="Fermi-LAT",
+                     yerr=(yerr_lo[~m], yerr_hi[~m]), ls="", color=color)
+        plt.errorbar(x[m], yul[m], xerr=xerr0,
+                     yerr=yul[m] * 0.2, uplims=True, ls="", color=color)
+
+    if show_model:
+        plt.plot(m_engs*conv_u, fermi_model['dnde'] * e2, color=color, **kwargs)
+        if show_band:
+            plt.fill_between(m_engs*conv_u, fermi_model['dnde_lo'] * e2, fermi_model['dnde_hi'] * e2,
+            alpha=0.2, color=color)
+
+    plt.xscale("log")
+    plt.yscale("log")
+    plt.legend(fontsize=13)
+    plt.grid(which="major", ls="-")
+    plt.grid(which="minor", ls=":")
+
+    plt.xlabel(f"Energy [{units}]", fontsize=13)
+    plt.ylabel(f"Energy flux [{f_units}]", fontsize=13)
 

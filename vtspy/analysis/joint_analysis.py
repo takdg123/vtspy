@@ -7,6 +7,7 @@ from . import FermiAnalysis, VeritasAnalysis
 from ..utils import logger
 from .. import utils
 from ..model import default_model
+from ..plotting import plot_sed
 
 from gammapy.datasets import Datasets, FluxPointsDataset
 from gammapy.modeling import Fit
@@ -146,37 +147,7 @@ class JointAnalysis:
             i+=1
 
         if fermi:
-            fermi_model = self.fermi.output["sed"]['model_flux']
-
-            m_engs = 10**fermi_model['log_energies']
-            to_TeV = 1e-6
-
-            e2 = m_engs**2.*utils.MeV2Erg
-
-            sed = self.fermi.output["sed"]
-            ul_ts_threshold = kwargs.pop('ul_ts_threshold', 4)
-            m = sed['ts'] < ul_ts_threshold
-            x = sed['e_ctr']*to_TeV
-            y = sed['e2dnde']*utils.MeV2Erg
-
-            yerr = sed['e2dnde_err']*utils.MeV2Erg
-            yerr_lo = sed['e2dnde_err_lo']*utils.MeV2Erg
-            yerr_hi = sed['e2dnde_err_hi']*utils.MeV2Erg
-            yul = sed['e2dnde_ul95']*utils.MeV2Erg
-            delo = sed['e_ctr'] - sed['e_min']
-            dehi = sed['e_max'] - sed['e_ctr']
-            xerr0 = np.vstack((delo[m], dehi[m]))*to_TeV
-            xerr1 = np.vstack((delo[~m], dehi[~m]))*to_TeV
-            if show_flux_points:
-                plt.errorbar(x[~m], y[~m], xerr=xerr1, label="Fermi-LAT",
-                             yerr=(yerr_lo[~m], yerr_hi[~m]), ls="", color=cmap(i))
-                plt.errorbar(x[m], yul[m], xerr=xerr0,
-                             yerr=yul[m] * 0.2, uplims=True, ls="", color=cmap(i))
-
-            if not(fit):
-                plt.plot(m_engs*to_TeV, fermi_model['dnde'] * e2, color=cmap(i))
-                plt.fill_between(m_engs*to_TeV, fermi_model['dnde_lo'] * e2, fermi_model['dnde_hi'] * e2,
-                alpha=0.2, color="k")
+            plot_sed(self.fermi.output, show_flux_points=show_flux_points, show_model = not(fit))
 
             plt.xlim(5e-5, 30)
             i+=1

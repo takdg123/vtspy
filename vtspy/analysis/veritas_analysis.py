@@ -12,7 +12,7 @@ from astropy.time import Time
 from ..utils import logger
 from .. import utils
 from ..model import default_model
-
+from ..plotting import plot_ROI
 from ..config import JointConfig
 
 from gammapy.data import DataStore
@@ -363,10 +363,12 @@ class VeritasAnalysis:
         
         Args:
             output (str): a plot to show
-                Options: ["fit", "flux", "sed", "lc"]
+                Options: ["roi", "fit", "flux", "sed", "lc"]
             filename (str): read the output (from FermiAnalysis.analysis)
         """
-		if output == "fit":
+		if output == "roi":
+			plot_ROI(veritas = self)
+		elif output == "fit":
 			self.stacked_dataset.plot_fit()
 		elif output == "flux":
 			ax = plt.gca()
