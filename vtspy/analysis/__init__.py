@@ -1,5 +1,5 @@
-from .fermi import FermiAnalysis
+from .fermi_analysis import FermiAnalysis
 
-from .veritas import VeritasAnalysis
+from .veritas_analysis import VeritasAnalysis
 
-from .joint import JointAnalysis
+from .joint_analysis import JointAnalysis
