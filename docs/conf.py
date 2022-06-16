@@ -13,6 +13,12 @@
 import os
 import sys
 
+autodoc_mock_imports = ["pyLikelihood"]
+
+autodoc_mock_imports = ['pyLikelihood','pyIrfLoader',
+                'BinnedAnalysis','UnbinnedAnalysis','SrcModel','AnalysisBase',
+                'SummedLikelihood','FluxDensity','LikelihoodState',
+                'GtApp']
 
 # -- Project information -----------------------------------------------------
 
@@ -51,8 +57,7 @@ source_suffix = [
 
 # nbsphinx
 nbsphinx_allow_errors = True
-nbsphinx_execute = 'never'  # disable with 'never', force with 'always'
-autodoc_mock_imports = ["pyLikelihood"]
+nbsphinx_execute = 'always'  # disable with 'never', force with 'always'
 
 
 # -- Options for HTML output -------------------------------------------------
