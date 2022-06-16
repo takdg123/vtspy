@@ -50,8 +50,8 @@ source_suffix = [
 ]
 
 # nbsphinx
-nbsphinx_allow_errors = False
-nbsphinx_execute = 'always'  # disable with 'never', force with 'always'
+nbsphinx_allow_errors = True
+nbsphinx_execute = 'never'  # disable with 'never', force with 'always'
 
 # -- Options for HTML output -------------------------------------------------
 
