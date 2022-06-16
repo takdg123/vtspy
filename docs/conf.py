@@ -52,6 +52,8 @@ source_suffix = [
 # nbsphinx
 nbsphinx_allow_errors = True
 nbsphinx_execute = 'never'  # disable with 'never', force with 'always'
+autodoc_mock_imports = ["pyLikelihood"]
+
 
 # -- Options for HTML output -------------------------------------------------
 
