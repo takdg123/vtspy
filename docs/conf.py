@@ -32,6 +32,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'nbsphinx',
     'myst_parser',
+    'sphinx_gallery.load_style',
 ]
 
 
