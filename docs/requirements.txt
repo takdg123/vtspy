@@ -7,3 +7,4 @@ sphinx-argparse
 pygments==2.7.4
 uproot
 html2text
+agnpy

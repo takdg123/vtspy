@@ -10,7 +10,7 @@ Welcome to vtspy's documentation!
    :maxdepth: 3
    :caption: Contents:
 
-   README
+   README.MD
    install
    examples
    api/index
