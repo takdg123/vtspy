@@ -1,8 +1,2 @@
-numpy>=1.16
-astropy
-matplotlib>=3.3
-fermipy>=1.1
 uproot
 html2text
-pyyaml
-gammapy>=0.2
