@@ -4,18 +4,24 @@ Examples
 
 VERITAS analysis
 ----------------------
+.. toctree::
+   :maxdepth: 1
+   :glob:
 
-.. nbgallery::
    notebooks/1ES1218+304/Tutorial_1_VERITAS_analysis.ipynb
 
 Fermi-LAT analysis
 ----------------------
-
-.. nbgallery::
+.. toctree::
+   :maxdepth: 1
+   :glob:
+   
    notebooks/1ES1218+304/Tutorial_2_Fermi-LAT_analysis.ipynb
 
 Joint-fit analysis
 ----------------------
-
-.. nbgallery::
+.. toctree::
+   :maxdepth: 1
+   :glob:
+   
    notebooks/1ES1218+304/Tutorial_3_Jointi-fit_analysis.ipynb

@@ -31,8 +31,8 @@ extensions = [
     'sphinxarg.ext',
     'sphinx.ext.napoleon',
     'nbsphinx',
-    'myst_parser',
-    'sphinx_gallery.load_style',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.githubpages',
 ]
 
 
