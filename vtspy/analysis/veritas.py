@@ -357,27 +357,27 @@ class VeritasAnalysis:
 		self.save_state(state_file)
 
 
-	def plotting(self, plot, **kwargs):
+	def plot(self, output, **kwargs):
 		"""
         Show various plot: fit result, flux, SED, and lightcurve
         
         Args:
-            plot (str): a plot to show
+            output (str): a plot to show
                 Options: ["fit", "flux", "sed", "lc"]
             filename (str): read the output (from FermiAnalysis.analysis)
         """
-		if plot == "fit":
+		if output == "fit":
 			self.stacked_dataset.plot_fit()
-		elif plot == "flux":
+		elif output == "flux":
 			ax = plt.gca()
 			self.flux_points.plot(ax, sed_type="e2dnde", color="lightblue", label=self.target_name)
 			self.flux_points.plot_ts_profiles(ax=ax, sed_type="e2dnde");
 			ax.legend()
-		elif plot == "sed":
+		elif output == "sed":
 			kwargs_spectrum = {**kwargs, "kwargs_model": {"color":"blue", "label":"Pwl"}, "kwargs_fp":{"color":"blue", "marker":"o", "label":self.target_name}}
 			kwargs_residuals = {"color": "blue", "markersize":4, "marker":'s', }
 			ax_spec, ax_res = self._flux_points_dataset.plot_fit(kwargs_spectrum=kwargs_spectrum)
-		elif plot == "lc":
+		elif output == "lc":
 			self._lightcurve.plot(sed_type='eflux', label=self.target_name)
 
 	def add_exclusion_region(self, coord = None, name=None, radius=0.3, update_dataset=False, **kwargs):

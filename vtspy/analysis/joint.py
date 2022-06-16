@@ -89,7 +89,11 @@ class JointAnalysis:
         else:
             self._logging.error("Fit fails.")
         
-    def sed_plot(self, fermi=True, veritas=True, joint=True, **kwargs):
+    def plot(self, output, **kwargs):
+        if output == "sed":
+            self.plot_sed(**kwargs)
+            
+    def plot_sed(self, fermi=True, veritas=True, joint=True, **kwargs):
 
         show_flux_points=True
         
@@ -261,7 +265,7 @@ class JointAnalysis:
             fit_results = joint_fit.run(self.datasets[instrument.lower()])
         else:
             return
-            
+
     def _construct_joint_datasets(self, inst="VERITAS", init=False):
         vts_model = self.veritas.stacked_dataset.models[0]
         fermi_model = self.fermi.datasets.models[self.fermi.target_name]

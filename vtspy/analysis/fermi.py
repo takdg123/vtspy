@@ -413,12 +413,12 @@ class FermiAnalysis():
 
         self.save_state(state_file)
 
-    def plotting(self, plots, filename="output", **kwargs):
+    def plot(self, output, filename="output", **kwargs):
         """
         Show various plots: TS map, Residual map, and SED.
         
         Args:
-            plots (list): list of plots to show
+            output (str or list): list of plots to show
                 Options: ["sqrt_ts", "npred", "ts_hist", 
                           "data", "model", "sigma", 
                           "excess", "resid", "sed"]
@@ -437,26 +437,26 @@ class FermiAnalysis():
                         "data", "model", "sigma", "excess", "resid",
                         "sed"]
 
-        if type(plots) == str:
-            plots = [plots]
+        if type(output) == str:
+            output = [output]
 
-        for o in plots:
+        for o in output:
             if o not in list_of_fig:
-                plots.remove(o)
+                output.remove(o)
 
-        if len(plots) == 1:
+        if len(output) == 1:
             sub = "11"
-        elif len(plots) <= 3:
-            sub = "1"+str(len(plots))
-            f = plt.figure(figsize=(4*len(plots), 4))
-        elif len(plots) == 4:
+        elif len(output) <= 3:
+            sub = "1"+str(len(output))
+            f = plt.figure(figsize=(4*len(output), 4))
+        elif len(output) == 4:
             sub = "22"
             f = plt.figure(figsize=(8, 8))
-        elif len(plots) == 6:
+        elif len(output) == 6:
             sub = "23"
             f = plt.figure(figsize=(12, 8))
 
-        for i, o in enumerate(plots):
+        for i, o in enumerate(output):
 
             subplot = int(sub+f"{i+1}")
             ax = fermi_plotter(o, self, subplot=subplot, **kwargs)
@@ -567,7 +567,7 @@ class FermiAnalysis():
             target = self.target_name
         
         distance = kwargs.pop("distance", 3.0)
-        
+
         loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.value))
         
         self.gta.free_sources(free=False)
