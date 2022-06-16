@@ -16,3 +16,4 @@ dependencies:
   - fermipy
   - pip:
     - -r requirements.txt
+    - -r docs/requirements.txt
