@@ -92,7 +92,7 @@ def fermi_isotropic_diffuse_bkg(config, fmodel):
     return diffuse_iso
 
 def default_model(model, **kwargs):
-    if model.lower() == "powerlaw":
+    if (model.lower() == "powerlaw") or (model.lower() == "pl"):
         amplitude = kwargs.pop("amplitude", 1e-12)
         index = kwargs.pop("index", 2.5)
         reference = kwargs.pop("reference", 1)
@@ -120,14 +120,17 @@ def default_model(model, **kwargs):
         z = kwargs.pop("redshift", 0)
         d_L = Distance(z=z).to("cm")
 
-        delta_D = kwargs.pop("delta_D", 7)
-        log10_B = kwargs.pop("log10_B", 7e-02)
+        norm_e = kwargs.pop("norm_e", 5e-7)
+        norm_e = norm_e/u.cm**3
+        p1 = kwargs.pop("p1", 1.5)
+        p2 = kwargs.pop("p2", 3.5)
+        
+        delta_D = kwargs.pop("delta_D", 10)
+        log10_B = kwargs.pop("log10_B", 0.1)
         t_var = kwargs.pop("t_var", 1)
+        t_var = t_var* u.d
 
-        log10_k_e = kwargs.pop("log10_k_e", -7)
-        p1 = kwargs.pop("p1", 2)
-        p2 = kwargs.pop("p2", 4)
-        log10_gamma_b = kwargs.pop("log10_gamma_b", 5.3)
+        log10_gamma_b = kwargs.pop("log10_gamma_b", 5)
         log10_gamma_min = kwargs.pop("log10_gamma_min", np.log10(500))
         log10_gamma_max = kwargs.pop("log10_gamma_max", np.log10(1e6))
 
@@ -138,11 +141,11 @@ def default_model(model, **kwargs):
         
         spectral_model.delta_D.quantity = delta_D
         spectral_model.log10_B.quantity = log10_B
-        spectral_model.t_var.quantity = t_var * u.d
+        spectral_model.t_var.quantity = t_var 
         spectral_model.t_var.frozen = True
         
-        spectral_model.log10_k_e.quantity = log10_k_e
-        spectral_model.log10_k_e._is_norm = True
+        spectral_model.norm_e.quantity = norm_e
+        spectral_model.norm_e._is_norm = True
         spectral_model.p1.quantity = p1
         spectral_model.p2.quantity = p2
         spectral_model.log10_gamma_b.quantity = log10_gamma_b

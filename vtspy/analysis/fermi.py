@@ -82,7 +82,7 @@ class FermiAnalysis():
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
 
-        
+        self._energy_bins = MapAxis.from_bounds(1e2, 1e5, nbin=6, interp="log", unit="MeV").edges
 
         if overwrite or not(os.path.isfile("./{}/initial.fits".format(self._outdir))):
             
@@ -567,7 +567,8 @@ class FermiAnalysis():
             target = self.target_name
         
         distance = kwargs.pop("distance", 3.0)
-        loge_bins = kwargs.pop("loge_bins", [2.0,2.5,3.0,3.5,4.0,4.5,5.0])
+        
+        loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.value))
         
         self.gta.free_sources(free=False)
         self.gta.free_sources(skydir=self.gta.roi[target].skydir, distance=[distance], free=True)
