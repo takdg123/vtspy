@@ -13,6 +13,6 @@ dependencies:
   - healpy
   - astropy-healpix
   - gammapy>=0.2
-  - fermipy>=1.1
+  - fermipy
   - pip:
     - -r requirements.txt
