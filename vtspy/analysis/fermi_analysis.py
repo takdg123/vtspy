@@ -378,7 +378,6 @@ class FermiAnalysis():
             state_file (str): output state filename (npy)
                 Default: analyzed
             **kwargs: passed to GTanalysis.sed
-
         """
 
         try:
@@ -419,11 +418,9 @@ class FermiAnalysis():
         
         Args:
             output (str or list): list of plots to show
-                Options: ["sqrt_ts", "npred", "ts_hist", 
-                          "data", "model", "sigma", 
-                          "excess", "resid", "sed"]
+                Options: ["sqrt_ts", "npred", "ts_hist", "data", 
+                "model", "sigma", "excess", "resid", "sed"]
             filename (str): read the output (from FermiAnalysis.analysis)
-
         """
 
         try:
