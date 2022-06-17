@@ -28,7 +28,7 @@ class JointConfig:
 	    verbosity (int)
 	"""
 
-	def __init__(self, files=None, config_file="config.yaml", gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt", info = {}, verbosity=1):
+	def __init__(self, files=None, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
 		self._logging = logger(verbosity=verbosity)
 
 		path = Path(config_file)
@@ -38,11 +38,11 @@ class JointConfig:
 			self.veritas_config = config.pop("veritas")
 			self._logging.info(f'a configuration file ({config_file}) is loaded.') 
 		else:
-			self.init(files=files, config_file = config_file, info=info, gald=gald, iso=iso)
+			self.init(files=files, config_file = config_file, info=info, **kwargs)
 			self._logging.info(f'a configuration file ({config_file}) is created.') 
 
 
-	def init(self, files, config_file="config.yaml", gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt", info = {}, verbosity=1):
+	def init(self, files, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
 
 		"""
 	    Initiate to generate a config file
@@ -55,6 +55,9 @@ class JointConfig:
 	        info (dict, optional): manual inputs
 	        verbosity (int)
 		"""
+
+		gald = kwargs.pop("gald", "gll_iem_v07.fits")
+		iso = kwargs.pop("iso", "iso_P8R3_SOURCE_V3_v1.txt")
 		
 		if files is not None:
 			filelist = glob.glob(files+"*")

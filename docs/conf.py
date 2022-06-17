@@ -13,8 +13,6 @@
 import os
 import sys
 
-autodoc_mock_imports = ["pyLikelihood"]
-
 autodoc_mock_imports = ['pyLikelihood','pyIrfLoader',
                 'BinnedAnalysis','UnbinnedAnalysis','SrcModel','AnalysisBase',
                 'SummedLikelihood','FluxDensity','LikelihoodState',
