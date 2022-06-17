@@ -29,10 +29,12 @@ vtspy
 ~~~~~
 
 Run::
+  
+  pip install vtspy
 
+or::
+  
   git clone https://github.com/takdg123/vtspy.git
   pip install .
 
-or::
-
-  pip install --user git+https://github.com/takdg123/vtspy@master
+  
