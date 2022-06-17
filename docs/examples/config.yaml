@@ -1,0 +1,63 @@
+fermi:
+  binning:
+    binsperdec: 8
+    binsz: 0.08
+    coordsys: null
+    projtype: WCS
+    roiwidth: 12
+  data:
+    evfile: ./fermi/EV00.lst
+    ltcube: null
+    scfile: ./fermi/SC00.fits
+  fileio:
+    logfile: ./fermi/log/fermipy.log
+    outdir: ./fermi/
+    usescratch: false
+  gtlike:
+    edisp: true
+    edisp_disable:
+    - isodiff
+    - galdiff
+    irfs: P8R3_SOURCE_V3
+  model:
+    catalogs: /Users/dtak/Research/scripts/vts-fermi/vtspy/refdata/gll_psc_v22.fit
+    galdiff: $FERMI_DIFFUSE_DIR/gll_iem_v07.fits
+    isodiff: $FERMI_DIFFUSE_DIR/iso_P8R3_SOURCE_V3_v1.txt
+    src_roiwidth: 12
+  selection:
+    dec: null
+    emax: 300000
+    emin: 100
+    evclass: 128
+    evtype: 3
+    glat: null
+    glon: null
+    ra: null
+    target: null
+    tmax: null
+    tmin: null
+    zmax: 105
+veritas:
+  background:
+    distance: 1.75
+    file: Hipparcos_MAG8_1997
+    magnitude: 7
+  cuts:
+    bias_cut: 0
+    eff_cut: 0
+    th2cut: 0.008
+  fileio:
+    outdir: ./veritas/
+  selection:
+    dec: null
+    emax: 2.0
+    emin: 0.1
+    exc_on_region_radius: 0.7
+    exc_radius: 0.25
+    format: mjd
+    max_region_number: 6
+    ra: null
+    radius: 2.0
+    target: null
+    tmax: null
+    tmin: null

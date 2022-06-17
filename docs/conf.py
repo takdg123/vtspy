@@ -13,6 +13,8 @@
 import os
 import sys
 
+import fermipy
+
 autodoc_mock_imports = ['pyLikelihood','pyIrfLoader',
                 'BinnedAnalysis','UnbinnedAnalysis','SrcModel','AnalysisBase',
                 'SummedLikelihood','FluxDensity','LikelihoodState',
@@ -54,7 +56,7 @@ source_suffix = [
 ]
 
 # nbsphinx
-nbsphinx_allow_errors = True
+nbsphinx_allow_errors = False
 nbsphinx_execute = 'always'  # disable with 'never', force with 'always'
 
 
