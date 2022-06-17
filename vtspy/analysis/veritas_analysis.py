@@ -359,7 +359,7 @@ class VeritasAnalysis:
 
 	def plot(self, output, **kwargs):
 		"""
-        Show various plot: fit result, flux, SED, and lightcurve
+        Show various results: fit result, flux, SED, and lightcurve
         
         Args:
             output (str): a plot to show

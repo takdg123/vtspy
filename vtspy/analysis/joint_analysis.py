@@ -17,6 +17,18 @@ from gammapy.modeling.models import SkyModel
 
 
 class JointAnalysis:
+    """
+    This is to perform a joint VERITAS and Fermi-LAT analysis. This class
+    exploits results from VeritasAnalysis and FermiAnalysis.
+    
+    Args:
+        veritas (str or vtspy.VeritasAnalysis): state filename or class for VERITAS
+            Default: initial
+        fermi (str or vtspy.FermiAnalysis): state filename or class for Fermi-LAT
+            Default: initial
+        verbosity (int)
+    """
+
     
     def __init__(self, veritas = "initial", fermi = "initlal", verbosity=1):
         self._verbosity = verbosity
@@ -49,34 +61,121 @@ class JointAnalysis:
         
     @property
     def target_model(self):
+        """
+        Return:
+            gammapy.modeling.models.SkyModel
+        """
         return self.datasets.models[self.target_name]
     
     @property
     def verbosity(self):
+        """
+        Return:
+            int
+        """
         return self._verbosity
 
     @property
     def target_name(self):
+        """
+        Return:
+            str: target name
+        """
         return self._target_name
     
     def print_datasets(self):
+        """
+        Print datasets
+        
+        Return:
+            astropy.table
+        """
+
         return self._logging.info(self.datasets)
 
     
     def print_models(self, full_output=False):
+        """
+        Print model and parameters
+
+        Args:
+            full_output (bool): return a target model or all models
+                default: False
+        Return:
+            astropy.table
+        """
         if full_output:
             return self._logging.info(self.datasets.models)
         else:
             table = self.datasets.models.to_parameters_table()
             table = table[table["model"]== self.target_name]
             return table
+
+    def optimize(self, method="flux", model=None, instrument="VERITAS", **kwargs):
+        """
+        To find good initial parameters for a given model.
+        
+        Args:
+            method (str): either "flux" or "inst". The "flux" method will fit flux points
+            from VeritasAnalysis.analysis("sed") and FermiAnalysis.analysis("sed"). The 
+            "inst" method will fit the model with one of datasets (defined by instrument)
+            model (gammapy.modeling.models.SpectralModel): a model to fit
+                Default: None (fit with the current target model)
+            instrument(str): instrument used for the "inst" method
+                Default: VERITAS
+            **kwargs
+        """
+
+        if model is None:
+            model = self.datasets.models[self.target_name].spectral_model
+        
+        if method == "flux":
+            test_model = SkyModel(spectral_model=model, name="test")
+            fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/sed.fits")
+
+            if not(os.path.isfile(fermi_sed)):
+                self.fermi.analysis("sed")
+
+            data = FluxPoints.read(fermi_sed, reference_model=self.target_model, hdu=1)
+
+            fermi_dataset = FluxPointsDataset(data=data, models=test_model)
+            fermi_dataset.mask_safe = ~fermi_dataset.data.to_table()["is_ul"]
+
+            veritas_dataset = FluxPointsDataset(data=self.veritas.flux_points, models=test_model)
+            nan_norm = ~np.isnan(veritas_dataset.data.to_table()["norm"])
+            veritas_dataset.mask_safe = veritas_dataset.mask_safe*nan_norm
+
+            datasets = Datasets([fermi_dataset, veritas_dataset])
+            datasets.models = test_model
+
+            optimize_opts = {
+                "method": "L-BFGS-B",
+                "options": {"ftol": 1e-4, "gtol": 1e-05},
+                "backend": "scipy",
+            }
+
+            fit_ = Fit(optimize_opts =  optimize_opts)
+            fit_.run(datasets)
+            self.datasets.models[self.target_name].spectral_model = test_model.spectral_model
+        elif method == "inst":
+            self.datasets.models[self.target_name].spectral_model = model
+            joint_fit = Fit()
+            fit_results = joint_fit.run(self.datasets[instrument.lower()])
+        else:
+            return
     
     def fit(self, **kwargs):
+        """
+        Perform a joint-fit analysis
+        
+        Args:
+            **kwargs: passed to vtspy.JointAnalysis.optimize
+        """
 
         optimize = kwargs.pop("optimize", True)
         if self._model_change_flag and optimize:
             self._logging.info("A model is recently updated. Optimizing the input parameters...")
-            self._optimize(**kwargs)
+            self.optimize(**kwargs)
             self._model_change_flag = False
             self._logging.info("Completed. Move to the next step.")
 
@@ -89,14 +188,57 @@ class JointAnalysis:
             self._logging.info("Fit successfully.")
         else:
             self._logging.error("Fit fails.")
+    
+    def analysis(self):
+
+        """
+        Perform a SED analysis.
+
+        Args:
+            **kwargs: passed to FluxPointsEstimator
+        """
+
+        energy_bins = kwargs.get("energy_bins", np.geomspace(0.0001, 10, 20) * u.TeV)
+
+        fpe = FluxPointsEstimator(
+            energy_edges=energy_bins, 
+            source=self.target_name, selection_optional="all"
+            )
+
+        self.flux_points = fpe.run(self.datasets)
+
+        self._flux_points_dataset = FluxPointsDataset(
+            data=self.flux_points, models=self.datasets.models
+        )
         
+
     def plot(self, output, **kwargs):
+        """
+        Show various results: SED
+        
+        Args:
+            output (str): a plot to show
+                Options: ["sed"]
+            **kwargs: passed to vtspy.JointAnalysis.plot_sed
+        """
+
         if output == "sed":
             self.plot_sed(**kwargs)
             
-    def plot_sed(self, fermi=True, veritas=True, joint=True, **kwargs):
-
-        show_flux_points=True
+    def plot_sed(self, fermi=True, veritas=True, joint=True, show_flux_points=True):
+        """
+        Plot a spectral energy distribution (SED) with a model and flux points.
+        
+        Args:
+            fermi (bool): show Fermi-LAT results
+                Default: True
+            veritas (bool): show VERITAS results
+                Default: True
+            fermi (bool): show Joint-fit results
+                Default: True
+            show_flux_points (bool): flow flux points
+                Default: True
+        """
         
         if fermi and not(hasattr(self.fermi, "output")):
             self.fermi.simple_analysis("sed")
@@ -108,7 +250,6 @@ class JointAnalysis:
             fit = False
         else:
             fit = True
-            show_flux_points = kwargs.pop("show_flux_points", False)
 
         cmap = plt.get_cmap("tab10")
         i = 0
@@ -160,22 +301,18 @@ class JointAnalysis:
         plt.xlabel("Energy [TeV]", fontsize=13)
         plt.ylabel(r"Energy flux [erg/cm$^2$/s]", fontsize=13)
 
-    def analysis(self, **kwargs):
-        
-        energy_bins = kwargs.get("energy_bins", np.geomspace(0.0001, 10, 20) * u.TeV)
-
-        fpe = FluxPointsEstimator(
-            energy_edges=energy_bins, 
-            source=self.target_name, selection_optional="all", **kwargs
-            )
-
-        self.flux_points = fpe.run(self.datasets)
-
-        self._flux_points_dataset = FluxPointsDataset(
-            data=self.flux_points, models=self.datasets.models
-        )
-        
+    
     def change_model(self, model, optimize=False, **kwargs):
+        """
+        To change a target model
+        
+        Args:
+            model (str or gammapy.modeling.models.SpectralModel): a new target model
+            optimize (bool): perform optimization (JointAnalysis.optimize)
+                Default: False
+            **kwargs: passed to JointAnalysis.optimize
+        """
+
         prevmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
         if type(model) == str:
             spectral_model = default_model(model, **kwargs)
@@ -187,7 +324,7 @@ class JointAnalysis:
             self._logging.info(f"A model, {model.tag[0]}, is imported")
         
         if optimize:
-            self._optimize(model=spectral_model, **kwargs)
+            self.optimize(model=spectral_model, **kwargs)
             self._model_change_flag = False
         else:
             self._model_change_flag = True
@@ -196,46 +333,6 @@ class JointAnalysis:
         newmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
         self._logging.info(f"The spectral model for the target is chaged:")
         self._logging.info(f"{prevmodel}->{newmodel}")
-
-    def _optimize(self, model=None, method="flux", instrument="VERITAS", **kwargs):
-        if model is None:
-            model = self.datasets.models[self.target_name].spectral_model
-        
-        if method == "flux":
-            test_model = SkyModel(spectral_model=model, name="test")
-            fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/sed.fits")
-
-            if not(os.path.isfile(fermi_sed)):
-                self.fermi.analysis("sed")
-
-            data = FluxPoints.read(fermi_sed, reference_model=self.target_model, hdu=1)
-
-            fermi_dataset = FluxPointsDataset(data=data, models=test_model)
-            fermi_dataset.mask_safe = ~fermi_dataset.data.to_table()["is_ul"]
-
-            veritas_dataset = FluxPointsDataset(data=self.veritas.flux_points, models=test_model)
-            nan_norm = ~np.isnan(veritas_dataset.data.to_table()["norm"])
-            veritas_dataset.mask_safe = veritas_dataset.mask_safe*nan_norm
-
-            datasets = Datasets([fermi_dataset, veritas_dataset])
-            datasets.models = test_model
-
-            optimize_opts = {
-                "method": "L-BFGS-B",
-                "options": {"ftol": 1e-4, "gtol": 1e-05},
-                "backend": "scipy",
-            }
-
-            fit_ = Fit(optimize_opts =  optimize_opts)
-            fit_.run(datasets)
-
-            self.datasets.models[self.target_name].spectral_model = test_model.spectral_model
-        elif method == "inst":
-            self.datasets.models[self.target_name].spectral_model = model
-            joint_fit = Fit()
-            fit_results = joint_fit.run(self.datasets[instrument.lower()])
-        else:
-            return
 
     def _construct_joint_datasets(self, inst="VERITAS", init=False):
         vts_model = self.veritas.stacked_dataset.models[0]
