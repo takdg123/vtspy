@@ -12,7 +12,7 @@
 #
 import os
 import sys
-os.system("python -m ipykernel install vtspy")
+os.system("python -m ipykernel install --name vtspy")
 
 # -- Project information -----------------------------------------------------
 
