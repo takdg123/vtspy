@@ -284,11 +284,12 @@ class JointAnalysis:
                 veritas_model = vts.models[0].spectral_model
                 veritas_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i))
                 veritas_model.plot_error(energy_bounds=energy_bounds, 
-                                         sed_type="e2dnde", alpha=0.2, color="k")
+                                         sed_type="e2dnde", alpha=0.2, facecolor=cmap(i))
             i+=1
 
         if fermi:
-            plot_sed(self.fermi.output, show_flux_points=show_flux_points, show_model = not(fit))
+            plot_sed(self.fermi.output, units="TeV", erg=True, show_flux_points=show_flux_points, 
+                show_model = not(fit), color=cmap(i))
 
             plt.xlim(5e-5, 30)
             i+=1
