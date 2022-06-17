@@ -9,18 +9,22 @@ This package is mainly based on three packages: `Gammapy
 FermiTools
 ~~~~~~~~~~
 
-We recommand to install Fermitools first. Run::
+We recommand to install Fermitools first with ``mamba``. Run::
 
-  conda create -n vtspy -c conda-forge -c fermi fermitools python=3 clhep=2.4.4.1
+  conda install mamba -n base -c conda-forge
+  
+then::
+
+  mamba create --name fermipy -c conda-forge -c fermi -c fermi/label/rc python=3.9 "fermitools>=2.1.0" healpy gammapy
  
-This will generate a ``conda`` environment called ``vtspy``. For details, see `Installation-Instructions <https://github.com/fermi-lat/Fermitools-conda/wiki/Installation-Instructions/>`_.
+This will generate a ``mamba`` environment called ``vtspy``. For details, see `Installation-Instructions <https://github.com/fermi-lat/Fermitools-conda/wiki/Installation-Instructions/>`_.
 
 Gammapy and Fermipy
 ~~~~~~~~~~~~~~~~~~~
 
 Then, install fermipy within the ``conda`` environment (``vtspy``), see also `install <https://fermipy.readthedocs.io/en/latest/install.html#install/>`_::
 
-  conda activate vtspy
+  mamba activate vtspy
   pip install fermipy
 
 The gammapy package is one of dependencies of the fermipy package so that you do not need to install it additionally.
