@@ -2,7 +2,7 @@ fermi:
   binning:
     binsperdec: 8
     binsz: 0.08
-    coordsys: null
+    coordsys: CEL
     projtype: WCS
     roiwidth: 12
   data:
@@ -25,17 +25,17 @@ fermi:
     isodiff: $FERMI_DIFFUSE_DIR/iso_P8R3_SOURCE_V3_v1.txt
     src_roiwidth: 12
   selection:
-    dec: null
+    dec: 30.17694222440679
     emax: 300000
     emin: 100
     evclass: 128
     evtype: 3
-    glat: null
-    glon: null
-    ra: null
-    target: null
-    tmax: null
-    tmin: null
+    glat: 82.73442268671826
+    glon: 186.3593855387067
+    ra: 185.3412470056114
+    target: 1ES1218+304
+    tmax: 599616005.0
+    tmin: 599529605.0
     zmax: 105
 veritas:
   background:
@@ -49,15 +49,17 @@ veritas:
   fileio:
     outdir: ./veritas/
   selection:
-    dec: null
+    dec: 30.17694222440679
     emax: 2.0
     emin: 0.1
     exc_on_region_radius: 0.7
     exc_radius: 0.25
     format: mjd
+    glat: 82.73442268671826
+    glon: 186.3593855387067
     max_region_number: 6
-    ra: null
+    ra: 185.3412470056114
     radius: 2.0
-    target: null
-    tmax: null
-    tmin: null
+    target: 1ES1218+304
+    tmax: 58849.552106979165
+    tmin: 58849.46887128472

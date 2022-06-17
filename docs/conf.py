@@ -12,13 +12,7 @@
 #
 import os
 import sys
-
-import fermipy
-
-autodoc_mock_imports = ['pyLikelihood','pyIrfLoader',
-                'BinnedAnalysis','UnbinnedAnalysis','SrcModel','AnalysisBase',
-                'SummedLikelihood','FluxDensity','LikelihoodState',
-                'GtApp']
+os.system("python -m ipykernel install vtspy")
 
 # -- Project information -----------------------------------------------------
 
@@ -56,7 +50,7 @@ source_suffix = [
 ]
 
 # nbsphinx
-nbsphinx_allow_errors = False
+nbsphinx_allow_errors = True
 nbsphinx_execute = 'always'  # disable with 'never', force with 'always'
 
 
@@ -71,3 +65,10 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+autodoc_mock_imports = ['pyLikelihood','pyIrfLoader',
+                'BinnedAnalysis','UnbinnedAnalysis','SrcModel','AnalysisBase',
+                'SummedLikelihood','FluxDensity','LikelihoodState',
+                'GtApp']
+
