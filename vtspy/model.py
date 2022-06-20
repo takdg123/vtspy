@@ -6,10 +6,6 @@ from gammapy.modeling.models import SkyModel
 
 import gammapy.modeling.models as gammapy_model
 
-from fermipy.roi_model import Source
-
-from .external.agnpy import *
-
 model_dict = {
     # fermipy to gammapy
     "PowerLaw": gammapy_model.PowerLawSpectralModel,
@@ -56,6 +52,8 @@ def fermipy2gammapy(like, src):
     return source
 
 def gammapy2fermipy(spectral, src=None):
+    from fermipy.roi_model import Source
+    
     if src is None:
         new_model = Source("new", 
                 {"SpectrumType": model_dict[spectral.tag[0]]})
@@ -115,6 +113,8 @@ def default_model(model, **kwargs):
              reference=1 * u.TeV,
         )
     elif model.lower() == "agnpy":
+        from .external.agnpy import agnpy_spectral_model
+        
         spectral_model = agnpy_spectral_model()
         
         z = kwargs.pop("redshift", 0)

@@ -1,7 +1,5 @@
 import numpy as np
 
-from fermipy.plotting import ROIPlotter, SEDPlotter
-
 from gammapy.visualization import plot_spectrum_datasets_off_regions
 
 import matplotlib.pyplot as plt
@@ -32,7 +30,8 @@ def fermi_plotter(name, fermi, subplot = None, **kwargs):
     Return:
         AxesSubplot
     """
-
+    from fermipy.plotting import ROIPlotter, SEDPlotter
+    
     output = fermi.output
     roi = fermi.gta.roi
     config = fermi.gta.config
