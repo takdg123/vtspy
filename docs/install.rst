@@ -15,7 +15,7 @@ We recommand to install Fermitools first with ``mamba``. Run::
   
 then::
 
-  mamba create --name fermipy -c conda-forge -c fermi -c fermi/label/rc python=3.9 "fermitools>=2.1.0" healpy gammapy
+  mamba create --name vtspy -c conda-forge -c fermi -c fermi/label/rc python=3.9 "fermitools>=2.1.0" healpy gammapy
  
 This will generate a ``mamba`` environment called ``vtspy``. For details, see `Installation-Instructions <https://github.com/fermi-lat/Fermitools-conda/wiki/Installation-Instructions/>`_.
 
