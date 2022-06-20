@@ -22,12 +22,12 @@ This will generate a ``mamba`` environment called ``vtspy``. For details, see `I
 Gammapy and Fermipy
 ~~~~~~~~~~~~~~~~~~~
 
-Then, install fermipy within the ``conda`` environment (``vtspy``), see also `install <https://fermipy.readthedocs.io/en/latest/install.html#install/>`_::
+Then, install ``fermipy`` within the ``conda`` environment (``vtspy``), see also `install <https://fermipy.readthedocs.io/en/latest/install.html#install/>`_::
 
   mamba activate vtspy
   pip install fermipy
 
-The gammapy package is one of dependencies of the fermipy package so that you do not need to install it additionally.
+The ``gammapy`` package is one of dependencies of the ``fermipy`` package so that you do not need to install it additionally.
 
 vtspy
 ~~~~~
