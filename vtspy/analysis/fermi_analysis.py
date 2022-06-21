@@ -285,15 +285,18 @@ class FermiAnalysis():
             self._logging.info(f"The target is set to {src.name}")
         self._logging.warning("The entered target is not found. Check sources by using print_association.")
     
-    def remove_weak_srcs(self):
+    def remove_weak_srcs(self, ts_cut=1):
         """
         Remove sources within ROI if they are too weak (TS < 0.1 or nan).
+        Args:
+            ts_cut (float): remove sources with a TS cut
+                Default: 1
         """
         N = 0
         for src in self.gta.roi.sources:
             if src.name == "isodiff" or src.name=="galdiff":
                 continue
-            if np.isnan(src['ts']) or src['ts'] < 0.1:
+            if np.isnan(src['ts']) or src['ts'] < ts_cut:
                 self.gta.delete_source(src.name)
                 N+=1
         self._logging.info(f"{N} sources are deleted.")
@@ -649,4 +652,4 @@ class FermiAnalysis():
             self._logging.debug(f"A source model for {src.name} is converted.")
 
         return Models(gammapy_models)
-      
+
