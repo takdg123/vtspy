@@ -164,6 +164,7 @@ def bright_source_list(source, save_npy=True):
 
                     bright_sources.append([float(ra), float(dec), float(bright), float(brightbv)])
             if save_npy:
+                source = source.replace(".dat", ".npy")
                 np.save(source, bright_sources)
     return np.asarray(bright_sources)
 
