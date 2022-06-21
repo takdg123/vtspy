@@ -10,10 +10,12 @@ model_dict = {
     # fermipy to gammapy
     "PowerLaw": gammapy_model.PowerLawSpectralModel,
     "LogParabola": gammapy_model.LogParabolaSpectralModel,
+    "PLSuperExpCutoff2":gammapy_model.ExpCutoffPowerLawSpectralModel,
 
     # gammapy to fermipy
     "PowerLawSpectralModel": "Powerlaw",
     "LogParabolaSpectralModel": "LogParabola",
+    "ExpCutoffPowerLawSpectralModel": "PLSuperExpCutoff2"
 }
 
 params = {
@@ -23,10 +25,16 @@ params = {
     "LogParabola": {"alpha": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled, 1], 
                     "beta": ["beta", u.dimensionless_unscaled, u.dimensionless_unscaled, 1], 
                     "norm": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1],
-                    "Eb": ["reference", u.MeV, u.TeV, 1]}
+                    "Eb": ["reference", u.MeV, u.TeV, 1]},
+    "PLSuperExpCutoff": {"index1": ["index", u.dimensionless_unscaled, u.dimensionless_unscaled, -1], 
+                    "index2": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled, 1], 
+                    "Expfactor": ["lambda_", 1/u.MeV, 1/u.TeV, 1], 
+                    "Prefactor": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1],
+                    "Scale": ["reference", u.MeV, u.TeV, 1]},
 }
 
 not_spectral_shape = ["Prefactor", "norm", "Scale"]
+
 def fermipy2gammapy(like, src):
     
     spectral = model_dict[src['SpectrumType']]()

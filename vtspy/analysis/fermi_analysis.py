@@ -99,6 +99,7 @@ class FermiAnalysis():
             self._logging.debug("Optimize the ROI.")
             self.gta.optimize()
             
+            self._update_model()
             if remove_weak_srcs:
                 self.remove_weak_srcs()
             
@@ -284,8 +285,6 @@ class FermiAnalysis():
             self._logging.info(f"The target is set to {src.name}")
         self._logging.warning("The entered target is not found. Check sources by using print_association.")
     
-
-
     def remove_weak_srcs(self):
         """
         Remove sources within ROI if they are too weak (TS < 0.1 or nan).
@@ -650,6 +649,4 @@ class FermiAnalysis():
             self._logging.debug(f"A source model for {src.name} is converted.")
 
         return Models(gammapy_models)
-
-    
-
+      

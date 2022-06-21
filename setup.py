@@ -13,7 +13,7 @@ setup(name='vtspy',
       packages=find_packages(),
       install_requires=['astropy',
                         'numpy',
-                        'matplotlib',
+                        'matplotlib>=3.5.2',
                         'gammapy',
                         'uproot',
                         'html2text'
@@ -21,7 +21,10 @@ setup(name='vtspy',
       extras_require={'tests': ['pytest', 'pytest-ordering'],
                       'examples': ['ipywidgets', 'ipympl', 'nodejs']
                       },
-      package_data={},
+      package_data={
+        'vtspy': ['refdata/*.fit', 'refdata/*.dat']
+      },
+      include_package_data=True,
       author='Donggeun Tak',
       author_email='donggeun.tak@gmail.com',
       url='https://vtspy.readthedocs.io/en/latest/',
