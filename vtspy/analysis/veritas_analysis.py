@@ -1,4 +1,3 @@
-
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,7 +8,7 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord, Angle
 from astropy.time import Time
 
-from ..utils import logger
+from ..utils import logger, LiMaSiginficance
 from .. import utils
 from ..model import default_model
 from ..plotting import plot_ROI
@@ -253,7 +252,7 @@ class VeritasAnalysis:
 		self.observations = self._data_store.get_observations(self._obs_ids, required_irf=["aeff", "edisp"])
 		time_intervals = [self.config["selection"]["tmin"], self.config["selection"]["tmax"]]
 		self.observations, self._obs_ids = utils.time_filter(self.observations, time_intervals, time_format="mjd")
-		self._logging.info(f"The number of observations is {{len(self._observations)}}")
+		self._logging.info(f"The number of observations is {len(self.observations)}")
 
 		self._logging.info("Define exclusion regions.")
 		self._exclusion_mask = self._exclusion_from_bright_srcs(**kwargs)
@@ -465,7 +464,13 @@ class VeritasAnalysis:
 			datasets.append(dataset_on_off)
 
 		self.datasets = datasets
+		self.info_table = self.datasets.info_table()
 		self.stacked_dataset = self.datasets.stack_reduce(name="veritas")
+		self._N_off = sum(self.info_table["counts_off"])
+		self._N_on = sum(self.info_table["counts"])
+		self._alpha = np.average(self.info_table["alpha"], weights=1/self.info_table["livetime"])
+		self._sigma = LiMaSiginficance(self._N_on, self._N_off, self._alpha)
+		self._logging.info(r"N_on: {}, N_off: {}, alpha: {:.3f}, and sigma={:.1f}".format(self._N_on, self._N_off, self._alpha, self._sigma))
 
 	def _exclusion_from_bright_srcs(self):
 		srcfile = self.config["background"]["file"]

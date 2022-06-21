@@ -77,7 +77,7 @@ class FermiAnalysis():
         config = JointConfig.get_config(config_file=config_file).pop("fermi")
 
         self._logging = logger(self.verbosity)
-        self._logging.info("Initializing the Fermi-LAT analysis...")
+        self._logging.info("Initialize the Fermi-LAT analysis.")
         
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
@@ -178,11 +178,14 @@ class FermiAnalysis():
         """
         return self.gta.print_model(loglevel=40)
 
-    def print_params(self):
+    def print_params(self, full_output=False):
         """
         Print parameters of sources within ROI
         """
-        return self.gta.print_params(True, loglevel=40)
+        if full_output:
+            return self.gta.print_params(True, loglevel=40)
+        else:
+            return self.gta.print_params(False, loglevel=40)
 
     
     @property

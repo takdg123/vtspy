@@ -45,13 +45,15 @@ class JointAnalysis:
             self.veritas = veritas
         else:
             return
+
         self._target_name = self.veritas.target_name
 
         if type(fermi) == str:
             self.fermi = FermiAnalysis(fermi, construct_dataset=True)
-        elif hasattr(fermi, "datasets"):
-            self._logging.info("Fermi-LAT datasets is imported.")
+        elif hasattr(fermi, "gta"):
             self.fermi = fermi
+            self.fermi.construct_dataset()
+            self._logging.info("Fermi-LAT datasets is imported.")
         else:
             return
         

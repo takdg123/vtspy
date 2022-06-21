@@ -121,7 +121,7 @@ class JointConfig:
 					tmax_utc = utils.MJD2UTC(tmax_mjd)
 					tmax = utils.UTC2MET(tmax_utc[:10])+60*60*24
 					
-				elif '.fits' in file:
+				elif 'anasum.fits' in file:
 
 					header = fits.open(file)[1].header
 					
@@ -219,6 +219,22 @@ class JointConfig:
 	    """
 		return yaml.load(open(config_file), Loader=yaml.FullLoader)
 	
+	@classmethod
+	def print_config(self, config_file="config.yaml"):
+		"""
+	    print a config file.
+
+	    Args:
+	    	config_file (str): Fermi config filename (yaml)
+				Default: config.yaml
+	    """
+		self.config = self.get_config(config_file)
+
+		if not(hasattr(self, "_logging")):
+			self._logging = logger()
+		self._logging.info("\n"+yaml.dump(self.config, sort_keys=False, default_flow_style=False))
+
+	
 	@staticmethod
 	def set_config(info, config_file="config.yaml"):		
 		"""
@@ -252,18 +268,6 @@ class JointConfig:
 		
 		self.set_config(pre_info, config_file)
 
-	def print_config(self, config_file="config.yaml"):
-		"""
-	    print a config file.
-
-	    Args:
-	    	config_file (str): Fermi config filename (yaml)
-				Default: config.yaml
-	    """
-		if not(hasattr(self, "config")):
-			self.config = self.get_config(config_file)
-		self._logging.info("\n"+yaml.dump(self.config, sort_keys=False, default_flow_style=False))
-
 	@staticmethod
 	def _filter(pre_info, info):
 		if len(info) != 0:
@@ -295,7 +299,8 @@ class JointConfig:
 
 		return pre_info
 
-	def _empty4fermi(self, gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt"):
+	@staticmethod
+	def _empty4fermi(gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt"):
 		if not(os.path.isdir("./fermi")):
 			os.system("mkdir fermi")
 		if not(os.path.isdir("./fermi/log")):
@@ -348,14 +353,15 @@ class JointConfig:
 				}
 		return info
 
-	def _empty4veritas(self):
+	@staticmethod
+	def _empty4veritas():
 		if not(os.path.isdir("./veritas")):
 			os.system("mkdir veritas")
 
 		info = {
 			'background':
 			{
-				'file': "Hipparcos_MAG8_1997",
+				'file': SCRIPT_DIR+"/refdata/Hipparcos_MAG8_1997.dat",
 				'distance': 1.75,
 				'magnitude': 7,
 			},

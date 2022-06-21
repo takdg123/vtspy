@@ -14,8 +14,9 @@ setup(name='vtspy',
       install_requires=['astropy',
                         'numpy',
                         'matplotlib',
-                        'fermipy',
                         'gammapy',
+                        'uproot',
+                        'html2text'
                         ],
       extras_require={'tests': ['pytest', 'pytest-ordering'],
                       'examples': ['ipywidgets', 'ipympl', 'nodejs']

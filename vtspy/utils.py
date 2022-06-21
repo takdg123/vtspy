@@ -147,13 +147,13 @@ def GAL2CEL(l, b):
 	c = SkyCoord(l=float(l)*u.degree, b=float(b)*u.degree, frame='galactic')
 	return c.icrs.ra.deg, c.icrs.dec.deg 
 
-def bright_source_list(source = "Hipparcos_MAG8_1997", save_npy=True):
+def bright_source_list(source, save_npy=True):
 
-    if os.path.exists(SCRIPT_DIR+"/refdata/"+source+".npy"):
-        bright_sources = np.load(SCRIPT_DIR+"/refdata/"+source+".npy")
+    if ".npy" in source:
+        bright_sources = np.load(source)
     else:
         bright_sources = []
-        with open(SCRIPT_DIR+"/refdata/"+source+".dat") as f: 
+        with open(source) as f: 
             for line in f.readlines()[27:]:
                 info = line.split()
                 if len(info) == 5:
@@ -164,7 +164,7 @@ def bright_source_list(source = "Hipparcos_MAG8_1997", save_npy=True):
 
                     bright_sources.append([float(ra), float(dec), float(bright), float(brightbv)])
             if save_npy:
-                np.save(SCRIPT_DIR+"/refdata/"+source, bright_sources)
+                np.save(source, bright_sources)
     return np.asarray(bright_sources)
 
 def time_filter(obs, time, time_format=None):
@@ -194,14 +194,55 @@ def time_filter(obs, time, time_format=None):
     
     return newobs, newobs.ids
 
+def LiMaSiginficance(N_on, N_off, alpha, type=1):
+    """
+    Calculate the Li&Ma significance
+    
+    Args:
+        N_on (int): the number of events from the ON region
+        N_off (int): the number of events from the OFF region
+        alpha (float): the relative exposure time
+        type (int): method for calculating signficance 
+            1: Li&MA, 2: chisq
+            Default: 1
+    Return
+        float: Li&Ma significance
+
+    """
+
+    if type == 1:
+        temp = N_on*np.log((1.+alpha)/alpha*(N_on/(N_on+N_off)))+N_off*np.log((1+alpha)*(N_off/(N_on+N_off)))
+    
+        if np.size(temp) != 1:
+            for i, t in enumerate(temp):
+                if t > 0:
+                    temp[i] = np.sqrt(t)
+                else:
+                    temp[i] = np.nan
+        else:
+            if temp >0:
+                temp = np.sqrt(temp)
+            else:
+                temp = np.nan
+
+        significance = np.sign(N_on-alpha*N_off)*np.sqrt(2.)*temp
+    else:
+        significance = (N_on-alpha*N_off)/np.sqrt(alpha*(N_on+N_off))
+    return significance
+
+
 def define_time_intervals(tmin, tmax, binsz=None, nbins=None):
     """
     Define time intervals by either a bin size or the number of bins
     
     Args:
-        plots (str): a plot to show
-            Options: ["fit", "flux", "sed", "lc"]
-        filename (str): read the output (from FermiAnalysis.simple_analysis)
+        tmin (float): minimum time
+        tmax (float): maximum time
+        binsz (astropy.Quantity, optional): bin size with astropy.units
+        nbins (int, optional): the number of bins
+    
+    Return:
+        list: time interval (astropy.Time)
     """
     if binsz is not None:
         _, tmin = MJD2UTC(tmin, return_astropy=True)
