@@ -5,6 +5,9 @@ For full documentation visit: https://vtspy.readthedocs.io/en/latest/index.html
 
 ## Install
 
+### Prerequisite
+fermitools (>=2.2), fermipy (>=1.1), and gammapy (>=0.19).
+
 ### Users
 ``` 
 pip install vtspy
