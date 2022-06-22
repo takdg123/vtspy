@@ -259,14 +259,17 @@ class VeritasAnalysis:
 		self.observations, self._obs_ids = utils.time_filter(self.observations, time_intervals, time_format="mjd")
 		self._logging.info(f"The number of observations is {len(self.observations)}")
 
+		self._th2cut = self.config["cuts"]['th2cut']
+		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(self._th2cut)*u.deg))
+
 		self._logging.info("Define exclusion regions.")
-		self._exclusion_mask = self._exclusion_from_bright_srcs(**kwargs)
+		if kwargs.pop("simbad", True):
+			self._exclusion_mask = self._exclusion_from_simbad(**kwargs)
+		else:
+			self._exclusion_mask = self._exclusion_from_bright_src_list(**kwargs)
 		self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=self.config["selection"]["exc_on_region_radius"])
 		
 		self._logging.info("Define ON- and OFF-regions.")
-		self._th2cut = self.config["cuts"]['th2cut']
-		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(self._th2cut)*u.deg))
-		
 		self.construct_dataset(**kwargs)
 
 	def fit(self, model = "PowerLaw", state_file="simple", save_state=True, **kwargs):
@@ -478,7 +481,7 @@ class VeritasAnalysis:
 		if not(kwargs.get("silent", False)):
 			self._logging.info(r"N_on: {}, N_off: {}, alpha: {:.3f}, and sigma={:.1f}".format(self._N_on, self._N_off, self._alpha, self._sigma))
 
-	def _exclusion_from_bright_srcs(self):
+	def _exclusion_from_bright_src_list(self):
 		srcfile = self.config["background"]["file"]
 		distance = self.config["background"]["distance"]
 		magnitude = self.config["background"]["magnitude"]
@@ -514,9 +517,17 @@ class VeritasAnalysis:
 			self._logging.error("A simbad module cannot be found. pip install astroquery.")
 			return
 
+		distance = self.config["background"]["distance"]
 		ex_radius = self.config["selection"]["exc_radius"]
+		magnitude = self.config["background"]["magnitude"]
 
-		srcs_tab = Simbad.query_region(self._on_region.center, radius=1*u.deg)
+		simbad = Simbad()
+		simbad.reset_votable_fields()
+		simbad.add_votable_fields('ra', 'dec', "flux(B)", "flux(V)", "jp11")
+		simbad.remove_votable_fields('coordinates')
+		srcs_tab = simbad.query_region(self._on_region.center, radius=distance*u.deg)
+		srcs_tab = srcs_tab[srcs_tab["FLUX_B"]<magnitude]
+		srcs_tab = srcs_tab[srcs_tab["FLUX_V"]!=np.ma.masked]
 		srcs = SkyCoord(['{} {}'.format(src["RA"], src["DEC"]) for src in srcs_tab], unit=(u.hourangle, u.deg))
 		self._excluded_regions = [CircleSkyRegion(center=src, radius=ex_radius * u.deg,) for src in srcs]
 
