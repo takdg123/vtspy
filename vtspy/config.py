@@ -224,6 +224,9 @@ class JointConfig:
 		tmax (float or str): end time
 		scale (str): "utc", "mjd", or "met"
 			Default: "utc"
+		instrument (str): "fermi", "veritas", or "all"
+			Default: "all"
+
 
 		"""
 
