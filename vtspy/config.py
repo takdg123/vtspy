@@ -17,10 +17,10 @@ class JointConfig:
 	This is to generate the configuration file compatible to
 	the Fermipy configuration. The input file is the VERITAS
 	event file from EventDisplay. The format can be either
-	`.root' or `.fits'. 
+	`.root' or `.fits'.
 
 	Args:
-	    files (str): a input file or directory containing 
+	    files (str): a input file or directory containing
 	    	root or fits files (root or fits)
 	    config_file (str): Fermi config filename (yaml)
 	    	Default: config.yaml
@@ -39,11 +39,11 @@ class JointConfig:
 			self.fermi_config = config.pop("fermi")
 			self.veritas_config = config.pop("veritas")
 			self.print_info()
-			self._logging.info(f'a configuration file ({config_file}) is loaded.') 
+			self._logging.info(f'a configuration file ({config_file}) is loaded.')
 		else:
 			self.init(files=files, config_file = config_file, info=info, **kwargs)
 			self.print_info()
-			self._logging.info(f'a configuration file ({config_file}) is created.') 
+			self._logging.info(f'a configuration file ({config_file}) is created.')
 
 	def init(self, files=None, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
 
@@ -61,7 +61,7 @@ class JointConfig:
 
 		gald = kwargs.pop("gald", "gll_iem_v07.fits")
 		iso = kwargs.pop("iso", "iso_P8R3_SOURCE_V3_v1.txt")
-		
+
 		if files is None:
 			filelist = glob.glob("./veritas/")
 		else:
@@ -71,17 +71,17 @@ class JointConfig:
 			if ".gz" in file:
 				filelist.remove(file)
 
-		self.fermi_config = self._empty4fermi(gald=gald, iso=iso)	
-		self.veritas_config = self._empty4veritas()	
+		self.fermi_config = self._empty4fermi(gald=gald, iso=iso)
+		self.veritas_config = self._empty4veritas()
 
 		self.veritas_config["data"]["anasum"] = os.path.dirname(filelist[0])
 
-		info = {**info, 
+		info = {**info,
 			'fermi':{
 			'selection':{
-				'ra': None, 
-				'dec': None, 
-				'tmin': None, 
+				'ra': None,
+				'dec': None,
+				'tmin': None,
 				'tmax':None}},
 			'veritas':{
 			'selection':{
@@ -95,7 +95,7 @@ class JointConfig:
 
 		ra = info['fermi']['selection']['ra']
 		dec = info['fermi']['selection']['dec']
-		
+
 		for file in filelist:
 
 			if file!=None:
@@ -105,71 +105,71 @@ class JointConfig:
 					anasum = uproot.open(file)
 
 					tRun = anasum['total_1']['stereo']['tRunSummary']
-					
+
 					if info['fermi']['selection']['ra'] == None:
 						ra = float(tRun['TargetRAJ2000'].arrays(library="np")['TargetRAJ2000'][0])
 					else:
 						temp = float(tRun['TargetRAJ2000'].arrays(library="np")['TargetRAJ2000'][0])
 						if temp != ra:
 							self._logging.error("[Error] RA values in input files are different.")
-							
+
 					if dec == None:
 						dec = float(tRun['TargetDecJ2000'].arrays(library="np")['TargetDecJ2000'][0])
 					else:
 						temp = float(tRun['TargetDecJ2000'].arrays(library="np")['TargetDecJ2000'][0])
 						if temp != dec:
-							self._logging.error("[Error] DEC values in input files are different.")		
-					
+							self._logging.error("[Error] DEC values in input files are different.")
+
 					tmin_mjd = tRun['MJDOn'].arrays(library="np")['MJDOn'][0]
 					tmin_utc = utils.MJD2UTC(tmin_mjd)
 					tmin = utils.UTC2MET(tmin_utc[:10])
-					
+
 					tmax_mjd = tRun['MJDOff'].arrays(library="np")['MJDOff'][0]
 					tmax_utc = utils.MJD2UTC(tmax_mjd)
 					tmax = utils.UTC2MET(tmax_utc[:10])+60*60*24
-					
+
 				elif 'anasum.fits' in file:
 
 					header = fits.open(file)[1].header
-					
+
 					if ra == None:
 						ra = header['RA_OBJ']
 					else:
 						temp = header['RA_OBJ']
 						if temp != ra:
 							self._logging.error("[Error] RA values in input files are different.")
-					
+
 					if dec == None:
 						dec = header['DEC_OBJ']
 					else:
 						temp = header['DEC_OBJ']
 						if temp != dec:
-							self._logging.error("[Error] DEC values in input files are different.")		
-					
+							self._logging.error("[Error] DEC values in input files are different.")
+
 					tmin_utc = header['DATE-OBS']
 					tmin = utils.UTC2MET(tmin_utc[:10])
 					tmin_mjd = utils.UTC2MJD(tmin_utc)
-					
+
 					tmax_utc = header['DATE-END']
 					tmax = utils.UTC2MET(tmax_utc[:10])+60*60*24
 					tmax_mjd = utils.UTC2MJD(tmax_utc)
-					
+
 					target = header['OBJECT']
 				else:
 					continue
-				
+
 				if info['fermi']['selection']['tmin'] is not None:
 					if info['fermi']['selection']['tmin'] < tmin:
 						tmin = info['fermi']['selection']['tmin']
 					else:
 						info['fermi']['selection']['tmin'] = tmin
-				
+
 				if info['fermi']['selection']['tmax'] is not None:
 					if info['fermi']['selection']['tmax'] > tmax:
 						tmax = info['fermi']['selection']['tmax']
 					else:
 						info['fermi']['selection']['tmax'] = tmax
-						
+
 				if info['veritas']['selection']['tmin'] is not None:
 					if info['veritas']['selection']['tmin'] < tmin_mjd:
 						tmin_mjd = info['veritas']['selection']['tmin']
@@ -181,41 +181,41 @@ class JointConfig:
 					else:
 						info['veritas']['selection']['tmax'] = tmax_mjd
 
-				
-				info = {**info, 
+
+				info = {**info,
 					'fermi':{
 					'selection':{
-						'ra': ra, 
-						'dec': dec, 
-						'tmin': tmin, 
-						'tmax': tmax, 
+						'ra': ra,
+						'dec': dec,
+						'tmin': tmin,
+						'tmax': tmax,
 						'target': target},
 						},
 					'veritas':{
 					'selection':{
-						'ra': ra, 
-						'dec': dec, 
-						'tmin': tmin_mjd, 
+						'ra': ra,
+						'dec': dec,
+						'tmin': tmin_mjd,
 						'tmax': tmax_mjd,
-						'target': target, 
+						'target': target,
 					}}
 					}
 
 
-		
+
 		info['fermi'] = self._filter(self.fermi_config, info['fermi'])
 		info['veritas'] = self._filter(self.veritas_config, info['veritas'])
 
 		self.fermi_config = self._update(self.fermi_config, info['fermi'])
 		self.veritas_config = self._update(self.veritas_config, info['veritas'])
-		
+
 		info = {"fermi": self.fermi_config, "veritas": self.veritas_config}
-		
+
 		self.set_config(info, config_file)
 
 		self.config = info
 
-	def change_time_interval(self, tmin, tmax, scale = "utc"):
+	def change_time_interval(self, tmin, tmax, scale = "utc", instrument="all"):
 		"""
 		Change and update a time interval
 
@@ -250,15 +250,17 @@ class JointConfig:
 			self._logging.error("The input 'scale' parameter is not 'MJD', 'MET', or 'UTC'.")
 			return
 
-		self.fermi_config["selection"]["tmin"] = tmin_met
-		self.fermi_config["selection"]["tmax"] = tmax_met
+		if instrument.lower() == "fermi" or instrument.lower() == "all":
+			self.fermi_config["selection"]["tmin"] = tmin_met
+			self.fermi_config["selection"]["tmax"] = tmax_met
 
-		self.veritas_config["selection"]["tmin"] = tmin_mjd
-		self.veritas_config["selection"]["tmax"] = tmax_mjd
+		if instrument.lower() == "veritas" or instrument.lower() == "all":
+			self.veritas_config["selection"]["tmin"] = tmin_mjd
+			self.veritas_config["selection"]["tmax"] = tmax_mjd
 
 		self.set_config(self.config, self._filename)
 		self.print_info()
-		
+
 
 	@staticmethod
 	def get_config(config_file="config.yaml"):
@@ -270,7 +272,7 @@ class JointConfig:
 	        	Default: config.yaml
 	    """
 		return yaml.load(open(config_file), Loader=yaml.FullLoader)
-	
+
 	@classmethod
 	def print_config(self, config_file="config.yaml"):
 		"""
@@ -297,14 +299,14 @@ class JointConfig:
 		self._logging.info("-"*20+" Info "+"-"*20)
 		self._logging.info("target: {}".format(self.veritas_config["selection"]["target"]))
 		self._logging.info("localization:")
-		self._logging.info("\t(ra, dec) : ({}, {})".format(self.veritas_config["selection"]["ra"], 
+		self._logging.info("\t(ra, dec) : ({}, {})".format(self.veritas_config["selection"]["ra"],
 		                                    self.veritas_config["selection"]["dec"]))
-		self._logging.info("\t(glat, glon) : ({}, {})".format(self.veritas_config["selection"]["glat"], 
+		self._logging.info("\t(glat, glon) : ({}, {})".format(self.veritas_config["selection"]["glat"],
 		                                    self.veritas_config["selection"]["glon"]))
 		self._logging.info("time interval:")
-		self._logging.info("\tveritas : {} - {}".format(utils.MJD2UTC(self.veritas_config["selection"]["tmin"]), 
+		self._logging.info("\tveritas : {} - {}".format(utils.MJD2UTC(self.veritas_config["selection"]["tmin"]),
 		                                    utils.MJD2UTC(self.veritas_config["selection"]["tmax"])))
-		self._logging.info("\tfermi : {} - {}".format(utils.MET2UTC(self.fermi_config["selection"]["tmin"]), 
+		self._logging.info("\tfermi : {} - {}".format(utils.MET2UTC(self.fermi_config["selection"]["tmin"]),
 		                                  utils.MET2UTC(self.fermi_config["selection"]["tmax"])))
 		self._logging.info("-"*45)
 
@@ -312,7 +314,7 @@ class JointConfig:
 
 
 	@staticmethod
-	def set_config(info, config_file="config.yaml"):		
+	def set_config(info, config_file="config.yaml"):
 		"""
 	    Write inputs into a config file.
 
@@ -324,7 +326,7 @@ class JointConfig:
 		with open(config_file, "w") as f:
 			yaml.dump(info, f)
 
-	
+
 	@classmethod
 	def update_config(self, info, instrument, config_file="config.yaml"):
 		"""
@@ -337,11 +339,11 @@ class JointConfig:
 				Default: config.yaml
 	    """
 		pre_info = self.get_config(config_file)
-		
+
 		info = self._filter(pre_info[instrument], info)
-		
+
 		pre_info[instrument] = self._update(pre_info[instrument], info)
-		
+
 		self.set_config(pre_info, config_file)
 
 	@staticmethod
@@ -453,7 +455,7 @@ class JointConfig:
 				'bias_cut': 0,
 			},
 			'selection':
-			{	
+			{
 				'target': None,
 				'ra': None,
 				'dec': None,
@@ -470,4 +472,3 @@ class JointConfig:
 
 			}
 		return info
-		
