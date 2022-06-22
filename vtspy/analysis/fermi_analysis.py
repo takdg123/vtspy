@@ -99,7 +99,6 @@ class FermiAnalysis():
             self._logging.debug("Optimize the ROI.")
             self.gta.optimize()
             
-            self._update_model()
             if remove_weak_srcs:
                 self.remove_weak_srcs()
             
@@ -294,7 +293,7 @@ class FermiAnalysis():
         """
         N = 0
         for src in self.gta.roi.sources:
-            if src.name == "isodiff" or src.name=="galdiff":
+            if (src.name == "isodiff") or (src.name=="galdiff") or (src.name == self.target_name):
                 continue
             if np.isnan(src['ts']) or src['ts'] < ts_cut:
                 self.gta.delete_source(src.name)

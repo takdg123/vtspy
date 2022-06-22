@@ -39,6 +39,5 @@ Run::
 or::
   
   git clone https://github.com/takdg123/vtspy.git
+  cd vtspy
   pip install .
-
-  
