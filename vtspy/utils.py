@@ -72,7 +72,7 @@ def UTC2MET(utc):
         utc (astorpy.time): UTC time
     
     Return:
-        float: Fermi MET
+        float: MET
     """
     refMET = Time('2001-01-01', format='isot', scale='utc')
     currentTime = Time(utc, format='isot', scale='utc')
@@ -115,7 +115,7 @@ def UTC2MJD(utc):
         mjd (astorpy.time): MJD time
     
     Return:
-        astropy.time: UTC
+        float: MJD
     """
     refUTC= Time(utc, format='isot', scale='utc')
     return float(refUTC.mjd)

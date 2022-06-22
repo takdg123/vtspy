@@ -31,18 +31,21 @@ class JointConfig:
 	def __init__(self, files=None, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
 		self._logging = logger(verbosity=verbosity)
 
+		self._filename = config_file
+
 		path = Path(config_file)
 		if path.is_file() and (files is None):
 			config = self.get_config(config_file)
 			self.fermi_config = config.pop("fermi")
 			self.veritas_config = config.pop("veritas")
+			self.print_info()
 			self._logging.info(f'a configuration file ({config_file}) is loaded.') 
 		else:
 			self.init(files=files, config_file = config_file, info=info, **kwargs)
+			self.print_info()
 			self._logging.info(f'a configuration file ({config_file}) is created.') 
 
-
-	def init(self, files, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
+	def init(self, files=None, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
 
 		"""
 	    Initiate to generate a config file
@@ -59,16 +62,20 @@ class JointConfig:
 		gald = kwargs.pop("gald", "gll_iem_v07.fits")
 		iso = kwargs.pop("iso", "iso_P8R3_SOURCE_V3_v1.txt")
 		
-		if files is not None:
+		if files is None:
+			filelist = glob.glob("./veritas/")
+		else:
 			filelist = glob.glob(files+"*")
-		
+
 		for file in filelist:
 			if ".gz" in file:
 				filelist.remove(file)
 
 		self.fermi_config = self._empty4fermi(gald=gald, iso=iso)	
 		self.veritas_config = self._empty4veritas()	
-		
+
+		self.veritas_config["data"]["anasum"] = os.path.dirname(filelist[0])
+
 		info = {**info, 
 			'fermi':{
 			'selection':{
@@ -208,6 +215,51 @@ class JointConfig:
 
 		self.config = info
 
+	def change_time_interval(self, tmin, tmax, scale = "utc"):
+		"""
+		Change and update a time interval
+
+		Args:
+		tmin (float or str): start time
+		tmax (float or str): end time
+		scale (str): "utc", "mjd", or "met"
+			Default: "utc"
+
+		"""
+
+		if scale.lower() == "utc":
+			tmin_mjd = utils.UTC2MJD(tmin)
+			tmax_mjd = utils.UTC2MJD(tmax)
+			tmin_met= utils.UTC2MET(tmin[:10])
+			tmax_met = utils.UTC2MET(tmax[:10])+60*60*24
+		elif scale.lower() == "mjd":
+			tmin_mjd = tmin
+			tmax_mjd = tmax
+			tmin_utc = utils.MJD2UTC(tmin)
+			tmax_utc = utils.MJD2UTC(tmax)
+			tmin_met = utils.UTC2MET(tmin_utc[:10])
+			tmax_met = utils.UTC2MET(tmax_utc[:10])+60*60*24
+		elif scale.lower() == "met":
+			tmin_met = tmin
+			tmax_met = tmax
+			tmin_utc = utils.MET2UTC(tmin)
+			tmax_utc = utils.MET2UTC(tmax)
+			tmin_mjd = utils.UTC2MJD(tmin_utc)
+			tmax_mjd = utils.UTC2MJD(tmax_utc)
+		else:
+			self._logging.error("The input 'scale' parameter is not 'MJD', 'MET', or 'UTC'.")
+			return
+
+		self.fermi_config["selection"]["tmin"] = tmin_met
+		self.fermi_config["selection"]["tmax"] = tmax_met
+
+		self.veritas_config["selection"]["tmin"] = tmin_mjd
+		self.veritas_config["selection"]["tmax"] = tmax_mjd
+
+		self.set_config(self.config, self._filename)
+		self.print_info()
+		
+
 	@staticmethod
 	def get_config(config_file="config.yaml"):
 		"""
@@ -229,12 +281,36 @@ class JointConfig:
 				Default: config.yaml
 	    """
 		self.config = self.get_config(config_file)
+		self.fermi_config = self.config.get("fermi")
+		self.veritas_config = self.config.get("veritas")
 
 		if not(hasattr(self, "_logging")):
 			self._logging = logger()
 		self._logging.info("\n"+yaml.dump(self.config, sort_keys=False, default_flow_style=False))
 
-	
+	@classmethod
+	def print_info(self, config_file="config.yaml"):
+		self.config = self.get_config(config_file)
+		self.fermi_config = self.config.pop("fermi")
+		self.veritas_config = self.config.pop("veritas")
+		self._logging = logger()
+		self._logging.info("-"*20+" Info "+"-"*20)
+		self._logging.info("target: {}".format(self.veritas_config["selection"]["target"]))
+		self._logging.info("localization:")
+		self._logging.info("\t(ra, dec) : ({}, {})".format(self.veritas_config["selection"]["ra"], 
+		                                    self.veritas_config["selection"]["dec"]))
+		self._logging.info("\t(glat, glon) : ({}, {})".format(self.veritas_config["selection"]["glat"], 
+		                                    self.veritas_config["selection"]["glon"]))
+		self._logging.info("time interval:")
+		self._logging.info("\tveritas : {} - {}".format(utils.MJD2UTC(self.veritas_config["selection"]["tmin"]), 
+		                                    utils.MJD2UTC(self.veritas_config["selection"]["tmax"])))
+		self._logging.info("\tfermi : {} - {}".format(utils.MET2UTC(self.fermi_config["selection"]["tmin"]), 
+		                                  utils.MET2UTC(self.fermi_config["selection"]["tmax"])))
+		self._logging.info("-"*45)
+
+
+
+
 	@staticmethod
 	def set_config(info, config_file="config.yaml"):		
 		"""
@@ -364,6 +440,9 @@ class JointConfig:
 				'file': SCRIPT_DIR+"/refdata/Hipparcos_MAG8_1997.dat",
 				'distance': 1.75,
 				'magnitude': 7,
+			},
+			'data': {
+				'anasum': "./veritas/"
 			},
 			'fileio':{
 				'outdir': "./veritas/",

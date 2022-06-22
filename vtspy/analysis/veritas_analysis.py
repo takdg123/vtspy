@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 import glob
 import pickle
 import copy
+import re
 import astropy.units as u
 from astropy.coordinates import SkyCoord, Angle
 from astropy.time import Time
+from astropy.io import fits
 
 from ..utils import logger, LiMaSiginficance
 from .. import utils
@@ -70,6 +72,7 @@ class VeritasAnalysis:
 
 		self._logging.info("Initialize the VERITAS analysis.")
 
+		self._datadir = self.config['data']['anasum']
 		self._outdir = self.config['fileio']['outdir']
 		
 		self._eff_cut = self.config['cuts']['eff_cut']
@@ -232,8 +235,10 @@ class VeritasAnalysis:
 
 		self._logging.info("Load the data files.")
 
-		if not(os.path.exists(f"{self._outdir}/hdu-index.fits.gz")):
-			self._logging.warning("The 'hdu index' file is not found.")
+		rflag = self._quick_check_runlist()
+
+		if not(os.path.exists(f"{self._datadir}/hdu-index.fits.gz")) or not(rflag):
+			self._logging.warning("The 'hdu/obs index' file is not found, or they are not matched.")
 			try:
 				from pyV2DL3 import generateObsHduIndex
 			except:
@@ -241,11 +246,11 @@ class VeritasAnalysis:
 				return
 
 			import glob
-			filelist = glob.glob(f"{self._outdir}/*fit*")
-			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._outdir)
+			filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
+			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
 			self._logging.info("The hdu-index and obs-index files are created.")	
 
-		self._data_store = DataStore.from_dir(f"{self._outdir}")
+		self._data_store = DataStore.from_dir(f"{self._datadir}")
 
 		self._obs_ids = self._data_store.obs_table.select_observations(selection)["OBS_ID"]
 
@@ -376,7 +381,7 @@ class VeritasAnalysis:
 			ax.legend()
 		elif output == "sed":
 			kwargs_spectrum = {**kwargs, "kwargs_model": {"color":"blue", "label":"Pwl"}, "kwargs_fp":{"color":"blue", "marker":"o", "label":self.target_name}}
-			kwargs_residuals = {"color": "blue", "markersize":4, "marker":'s', }
+			kwargs_residuals = {"color": "blue", "markersize":4, "marker":'s'}
 			ax_spec, ax_res = self._flux_points_dataset.plot_fit(kwargs_spectrum=kwargs_spectrum)
 		elif output == "lc":
 			self._lightcurve.plot(sed_type='eflux', label=self.target_name)
@@ -498,3 +503,13 @@ class VeritasAnalysis:
 
 		return geom.region_mask(regions=self._excluded_regions, inside=False)
 
+	def _quick_check_runlist(self):
+		run_list = fits.open(self._datadir+"/obs-index.fits.gz")
+
+		run_list = run_list[1].data["OBS_ID"]
+
+		run_exist = []
+		for file in glob.glob(self._datadir+"/*.anasum.fits"):
+		    run_exist.append(re.findall("([0-9]+)", file)[0])
+
+		return (len(run_exist) == len(run_list))
