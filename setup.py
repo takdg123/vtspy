@@ -16,7 +16,8 @@ setup(name='vtspy',
                         'matplotlib>=3.5.2',
                         'gammapy',
                         'uproot',
-                        'html2text'
+                        'html2text',
+                        'astroquery',
                         ],
       extras_require={'tests': ['pytest', 'pytest-ordering'],
                       'examples': ['ipywidgets', 'ipympl', 'nodejs']
