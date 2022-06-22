@@ -264,8 +264,8 @@ class VeritasAnalysis:
 		self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=self.config["selection"]["exc_on_region_radius"])
 		
 		self._logging.info("Define ON- and OFF-regions.")
-		th2cut = self.config["cuts"]['th2cut']
-		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
+		self._th2cut = self.config["cuts"]['th2cut']
+		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(self._th2cut)*u.deg))
 		
 		self.construct_dataset(**kwargs)
 
@@ -417,8 +417,8 @@ class VeritasAnalysis:
 		self._exclusion_mask = geom.region_mask(regions=self._excluded_regions, inside=False)
 
 		if update_dataset:
-			self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(th2cut)*u.deg))
-			self.construct_dataset(**kwargs)
+			self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(self._th2cut)*u.deg))
+			self.construct_dataset(silent=True, **kwargs)
 
 	def construct_dataset(self, **kwargs):
 		"""
@@ -475,7 +475,8 @@ class VeritasAnalysis:
 		self._N_on = sum(self.info_table["counts"])
 		self._alpha = np.average(self.info_table["alpha"], weights=1/self.info_table["livetime"])
 		self._sigma = LiMaSiginficance(self._N_on, self._N_off, self._alpha)
-		self._logging.info(r"N_on: {}, N_off: {}, alpha: {:.3f}, and sigma={:.1f}".format(self._N_on, self._N_off, self._alpha, self._sigma))
+		if not(kwargs.get("silent", False)):
+			self._logging.info(r"N_on: {}, N_off: {}, alpha: {:.3f}, and sigma={:.1f}".format(self._N_on, self._N_off, self._alpha, self._sigma))
 
 	def _exclusion_from_bright_srcs(self):
 		srcfile = self.config["background"]["file"]
@@ -499,6 +500,29 @@ class VeritasAnalysis:
 		geom = WcsGeom.create(
 			npix=(150, 150), binsz=0.05, skydir=self.target.galactic,
 			proj="TAN", frame="icrs"
+		)
+
+		return geom.region_mask(regions=self._excluded_regions, inside=False)
+
+	def _exclusion_from_simbad(self):
+
+		## under testing
+		
+		try:
+			from astroquery.simbad import Simbad
+		except:
+			self._logging.error("A simbad module cannot be found. pip install astroquery.")
+			return
+
+		ex_radius = self.config["selection"]["exc_radius"]
+
+		srcs_tab = Simbad.query_region(self._on_region.center, radius=1*u.deg)
+		srcs = SkyCoord(['{} {}'.format(src["RA"], src["DEC"]) for src in srcs_tab], unit=(u.hourangle, u.deg))
+		self._excluded_regions = [CircleSkyRegion(center=src, radius=ex_radius * u.deg,) for src in srcs]
+
+		geom = WcsGeom.create(
+		    npix=(150, 150), binsz=0.05, skydir=self.target.galactic, 
+		    proj="TAN", frame="icrs"
 		)
 
 		return geom.region_mask(regions=self._excluded_regions, inside=False)
