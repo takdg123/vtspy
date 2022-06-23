@@ -41,14 +41,6 @@ from gammapy.estimators import FluxPointsEstimator, ExcessMapEstimator, FluxPoin
 
 class VeritasAnalysis:
 
-	_energy_axis = MapAxis.from_energy_bounds(
-		    0.05, 50., nbin=100, per_decade=False, unit="TeV", name="energy"
-		)
-	_energy_axis_true = MapAxis.from_energy_bounds(
-		    0.05, 50., nbin=200, per_decade=False, unit="TeV", name="energy_true"
-		)
-	_excluded_regions = []
-
 	def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, verbosity=1, **kwargs):
 		"""
 	    This is to perform a simple VERITAS analysis and to prepare the joint-fit
@@ -79,7 +71,14 @@ class VeritasAnalysis:
 		self._bias_cut = self.config['cuts']['bias_cut']
 		self._max_region_number = self.config['selection']['max_region_number']
 
-		self._energy_bins = MapAxis.from_bounds(0.1, 10, nbin=8, interp="log", unit="TeV").edges
+		self._energy_bins = MapAxis.from_bounds(self.config["selection"]["emin"], self.config["selection"]["emax"], nbin=self.config["selection"]["nbin"], interp="log", unit="TeV").edges
+		self._energy_axis = MapAxis.from_energy_bounds(
+		    1e-2, 1e4, nbin=10, per_decade=True, unit="TeV", name="energy"
+		)
+		self._energy_axis_true = MapAxis.from_energy_bounds(
+		    1e-2, 1e4, nbin=5, per_decade=True, unit="TeV", name="energy_true"
+		)
+		self._excluded_regions = []
 
 		if overwrite or not(os.path.isfile(f"./{self._outdir}/initial.pickle")):
 
@@ -233,10 +232,10 @@ class VeritasAnalysis:
 
 		self._logging.info("Load the data files.")
 
-		rflag = self._quick_check_runlist()
+		
 
-		if not(os.path.exists(f"{self._datadir}/hdu-index.fits.gz")) or not(rflag):
-			self._logging.warning("The 'hdu/obs index' file is not found, or they are not matched.")
+		if not(os.path.exists(f"{self._datadir}/hdu-index.fits.gz")):
+			self._logging.warning("The 'hdu-/obs-index' files is not found.")
 			try:
 				from pyV2DL3 import generateObsHduIndex
 			except:
@@ -247,6 +246,20 @@ class VeritasAnalysis:
 			filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
 			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
 			self._logging.info("The hdu-index and obs-index files are created.")	
+		else:
+			rflag = self._quick_check_runlist()
+			if not(rflag):
+				self._logging.warning("A mismatch in the obs-index file is found.")
+				try:
+					from pyV2DL3 import generateObsHduIndex
+				except:
+					self._logging.error("The pyV2DL3 package is required to proceed.")
+					return
+
+				import glob
+				filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
+				generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
+				self._logging.info("The hdu-index and obs-index files are created.")
 
 		self._data_store = DataStore.from_dir(f"{self._datadir}")
 
@@ -301,6 +314,7 @@ class VeritasAnalysis:
 			self._logging.info("Fit successfully.")
 			if save_state:
 				self.save_state(state_file)
+				self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.VeritasAnalysis('{state_file}').")
 		else:
 			self._logging.error("Fit failed.")
 
@@ -360,7 +374,7 @@ class VeritasAnalysis:
 			self._logging.info("Generating lightcurve is completed.")
 
 		self.save_state(state_file)
-
+		self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.VeritasAnalysis('{state_file}').")
 
 	def plot(self, output, **kwargs):
 		"""

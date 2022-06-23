@@ -334,6 +334,9 @@ class JointAnalysis:
             self.datasets.models[self.target_name].spectral_model = spectral_model
 
         newmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
+
+        if hasattr(self, "fit_results"):
+            del self.fit_results
         self._logging.info(f"The spectral model for the target is chaged:")
         self._logging.info(f"{prevmodel}->{newmodel}")
 
