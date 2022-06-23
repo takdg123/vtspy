@@ -141,8 +141,6 @@ class VeritasAnalysis:
         	int
         """
 		return self._verbosity
-
-
 	
 	def print_flux(self):
 		"""
@@ -263,7 +261,7 @@ class VeritasAnalysis:
 		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(self._th2cut)*u.deg))
 
 		self._logging.info("Define exclusion regions.")
-		if kwargs.pop("simbad", True):
+		if kwargs.pop("simbad", self.config["background"]["simbad"]):
 			self._exclusion_mask = self._exclusion_from_simbad(**kwargs)
 		else:
 			self._exclusion_mask = self._exclusion_from_bright_src_list(**kwargs)

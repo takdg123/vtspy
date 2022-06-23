@@ -6,6 +6,9 @@ from gammapy.modeling.models import SkyModel
 
 import gammapy.modeling.models as gammapy_model
 
+from astropy.coordinates import Distance
+
+
 model_dict = {
     # fermipy to gammapy
     "PowerLaw": gammapy_model.PowerLawSpectralModel,
@@ -121,7 +124,7 @@ def default_model(model, **kwargs):
              reference=1 * u.TeV,
         )
     elif model.lower() == "agnpy":
-        from .external.agnpy import *
+        from .external.agnpy import agnpy_spectral_model
         
         spectral_model = agnpy_spectral_model()
         

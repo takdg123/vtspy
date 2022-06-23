@@ -445,6 +445,7 @@ class JointConfig:
 				'file': SCRIPT_DIR+"/refdata/Hipparcos_MAG8_1997.dat",
 				'distance': 1.75,
 				'magnitude': 7,
+				'simbad': True,
 			},
 			'data': {
 				'anasum': "./veritas/"
