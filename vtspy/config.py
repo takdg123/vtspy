@@ -42,7 +42,7 @@ class JointConfig:
 			self._logging.info(f'a configuration file ({config_file}) is loaded.')
 		else:
 			self.init(files=files, config_file = config_file, info=info, **kwargs)
-			self.print_info()
+			self.print_info(config_file = config_file)
 			self._logging.info(f'a configuration file ({config_file}) is created.')
 
 	def init(self, files=None, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
