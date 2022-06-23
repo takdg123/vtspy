@@ -8,6 +8,8 @@ import gammapy.modeling.models as gammapy_model
 
 from astropy.coordinates import Distance
 
+import numpy as np
+
 
 model_dict = {
     # fermipy to gammapy
@@ -22,16 +24,16 @@ model_dict = {
 }
 
 params = {
-    "PowerLaw": {"Index": ["index", u.dimensionless_unscaled, u.dimensionless_unscaled, -1], 
-                 "Prefactor": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1], 
+    "PowerLaw": {"Index": ["index", u.dimensionless_unscaled, u.dimensionless_unscaled, -1],
+                 "Prefactor": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1],
                  "Scale": ["reference",u.MeV, u.TeV, 1]},
-    "LogParabola": {"alpha": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled, 1], 
-                    "beta": ["beta", u.dimensionless_unscaled, u.dimensionless_unscaled, 1], 
+    "LogParabola": {"alpha": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled, 1],
+                    "beta": ["beta", u.dimensionless_unscaled, u.dimensionless_unscaled, 1],
                     "norm": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1],
                     "Eb": ["reference", u.MeV, u.TeV, 1]},
-    "PLSuperExpCutoff2": {"Index1": ["index", u.dimensionless_unscaled, u.dimensionless_unscaled, -1], 
-                    "Index2": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled, 1], 
-                    "Expfactor": ["lambda_", 1/u.MeV, 1/u.TeV, 1], 
+    "PLSuperExpCutoff2": {"Index1": ["index", u.dimensionless_unscaled, u.dimensionless_unscaled, -1],
+                    "Index2": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled, 1],
+                    "Expfactor": ["lambda_", 1/u.MeV, 1/u.TeV, 1],
                     "Prefactor": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1],
                     "Scale": ["reference", u.MeV, u.TeV, 1]},
 }
@@ -39,7 +41,7 @@ params = {
 not_spectral_shape = ["Prefactor", "norm", "Scale"]
 
 def fermipy2gammapy(like, src):
-    
+
     spectral = model_dict[src['SpectrumType']]()
     for par in src.spectral_pars.keys():
         idx = like.par_index(src.name, par)
@@ -64,14 +66,14 @@ def fermipy2gammapy(like, src):
 
 def gammapy2fermipy(spectral, src=None):
     from fermipy.roi_model import Source
-    
+
     if src is None:
-        new_model = Source("new", 
+        new_model = Source("new",
                 {"SpectrumType": model_dict[spectral.tag[0]]})
     else:
-        new_model = Source(src.name, 
+        new_model = Source(src.name,
                 {"ra": src.radec[0],
-                 "dec": src.radec[0], 
+                 "dec": src.radec[0],
                  "SpectrumType": model_dict[spectral.tag[0]]})
 
     params = {}
@@ -94,7 +96,7 @@ def fermi_galactic_diffuse_bkg(config, fmodel):
 
 def fermi_isotropic_diffuse_bkg(config, fmodel):
     diffuse_iso = gammapy_model.create_fermi_isotropic_diffuse_model(
-        filename=config['model']['isodiff'][0], 
+        filename=config['model']['isodiff'][0],
         interp_kwargs={"fill_value": None})
     diffuse_iso.spectral_model.model2.value = fmodel.params["Normalization"]["value"]
     diffuse_iso._name = "isodiff"
@@ -125,9 +127,9 @@ def default_model(model, **kwargs):
         )
     elif model.lower() == "agnpy":
         from .external.agnpy import agnpy_spectral_model
-        
+
         spectral_model = agnpy_spectral_model()
-        
+
         z = kwargs.pop("redshift", 0)
         d_L = Distance(z=z).to("cm")
 
@@ -135,7 +137,7 @@ def default_model(model, **kwargs):
         norm_e = norm_e/u.cm**3
         p1 = kwargs.pop("p1", 0)
         p2 = kwargs.pop("p2", 3)
-        
+
         delta_D = kwargs.pop("delta_D", 10)
         log10_B = kwargs.pop("log10_B", 1)
         t_var = kwargs.pop("t_var", 1)
@@ -149,12 +151,12 @@ def default_model(model, **kwargs):
         spectral_model.z.frozen = True
         spectral_model.d_L.quantity = d_L
         spectral_model.d_L.frozen = True
-        
+
         spectral_model.delta_D.quantity = delta_D
         spectral_model.log10_B.quantity = log10_B
-        spectral_model.t_var.quantity = t_var 
+        spectral_model.t_var.quantity = t_var
         spectral_model.t_var.frozen = True
-        
+
         spectral_model.norm_e.quantity = norm_e
         spectral_model.norm_e._is_norm = True
         spectral_model.p1.quantity = p1
@@ -189,4 +191,3 @@ def spatial_model(src):
 
     spatial_model.parameters.freeze_all()
     return spatial_model
-
