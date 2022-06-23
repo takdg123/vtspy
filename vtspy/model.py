@@ -121,7 +121,7 @@ def default_model(model, **kwargs):
              reference=1 * u.TeV,
         )
     elif model.lower() == "agnpy":
-        from .external.agnpy import agnpy_spectral_model
+        from .external.agnpy import *
         
         spectral_model = agnpy_spectral_model()
         

@@ -525,9 +525,13 @@ class VeritasAnalysis:
 		simbad.reset_votable_fields()
 		simbad.add_votable_fields('ra', 'dec', "flux(B)", "flux(V)", "jp11")
 		simbad.remove_votable_fields('coordinates')
+		
+		self._logging.info("Querying bright sources within FoV with Simbad.")
 		srcs_tab = simbad.query_region(self._on_region.center, radius=distance*u.deg)
 		srcs_tab = srcs_tab[srcs_tab["FLUX_B"]<magnitude]
 		srcs_tab = srcs_tab[srcs_tab["FLUX_V"]!=np.ma.masked]
+		self._logging.info(f"{len(srcs_tab)} sources have been found.")
+
 		srcs = SkyCoord(['{} {}'.format(src["RA"], src["DEC"]) for src in srcs_tab], unit=(u.hourangle, u.deg))
 		self._excluded_regions = [CircleSkyRegion(center=src, radius=ex_radius * u.deg,) for src in srcs]
 
