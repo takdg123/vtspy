@@ -404,7 +404,7 @@ class JointConfig:
 					'emax': 300000,
 					'tmin': None,
 					'tmax': None,
-					'zmax': 105,
+					'zmax': 90,
 					'evclass': 128,
 					'evtype': 3,
 					'glon': None,
@@ -419,7 +419,7 @@ class JointConfig:
 					'edisp_disable': ['isodiff', 'galdiff']
 					},
 				'model': {
-					'src_roiwidth': 12,
+					'src_roiwidth': 15,
 					'galdiff': f'$FERMI_DIFFUSE_DIR/{gald}',
 					'isodiff': f'$FERMI_DIFFUSE_DIR/{iso}',
 					'catalogs': SCRIPT_DIR+'/refdata/gll_psc_v22.fit'
@@ -464,7 +464,8 @@ class JointConfig:
 				'tmin' : None,
 				'tmax' : None,
 				'emin': 0.1,
-				'emax': 2.0,
+				'emax': 10,
+				'nbin': 6,
 				'format': "mjd",
 				'max_region_number': 6,
 				'radius': 2.0,

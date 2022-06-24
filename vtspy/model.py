@@ -40,7 +40,7 @@ params = {
 
 not_spectral_shape = ["Prefactor", "norm", "Scale"]
 
-def fermipy2gammapy(like, src):
+def fermipy2gammapy(like, src, fix_pars=False):
 
     spectral = model_dict[src['SpectrumType']]()
     for par in src.spectral_pars.keys():
@@ -53,7 +53,10 @@ def fermipy2gammapy(like, src):
         gpar = getattr(spectral, gpar_setup[0])
         val = (fpar.getValue()*fpar.getScale()*gpar_setup[1]*gpar_setup[3]).to(gpar_setup[2])
         gpar.value = val.value
-        gpar.frozen = not(fpar.isFree())
+        if fix_pars:
+            gpar.frozen = True
+        else:
+            gpar.frozen = not(fpar.isFree())
 
     spatial = spatial_model(src)
 
@@ -131,6 +134,10 @@ def default_model(model, **kwargs):
         spectral_model = agnpy_spectral_model()
 
         z = kwargs.pop("redshift", 0)
+        t_var = kwargs.pop("t_var", 0)
+
+        if (z == 0) or (t_var == 0):
+            logg
         d_L = Distance(z=z).to("cm")
 
         norm_e = kwargs.pop("norm_e", 4e-6)
@@ -140,8 +147,6 @@ def default_model(model, **kwargs):
 
         delta_D = kwargs.pop("delta_D", 10)
         log10_B = kwargs.pop("log10_B", 1)
-        t_var = kwargs.pop("t_var", 30)
-        t_var = t_var* u.d
 
         log10_gamma_b = kwargs.pop("log10_gamma_b", 4)
         log10_gamma_min = kwargs.pop("log10_gamma_min", np.log10(500))

@@ -82,7 +82,10 @@ class FermiAnalysis():
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
 
-        self._energy_bins = MapAxis.from_bounds(1e2, 1e5, nbin=6, interp="log", unit="MeV").edges
+        self._energy_bins = MapAxis.from_bounds(self.gta.config["selection"]["emin"], 
+                self.gta.config["selection"]["emax"], 
+                nbin=8, 
+                interp="log", unit="MeV").edges
 
         if overwrite or not(os.path.isfile("./{}/{}.fits".format(self._outdir,state_file))):
 
@@ -119,9 +122,6 @@ class FermiAnalysis():
             if flag == -1:
                 return
 
-            if construct_dataset:
-                self.construct_dataset()
-
         try:
             self.output = np.load(f"./{self._outdir}/output.npy", allow_pickle=True).item()
         except:
@@ -130,6 +130,9 @@ class FermiAnalysis():
         self._test_model = {'Index' : 2.0, 'SpatialModel' : 'PointSource' }
         self._find_target()
         self._logging.info("Completed (Fermi-LAT initialization).")
+        
+        if construct_dataset:
+            self.construct_dataset()
 
     @property
     def target(self):
@@ -284,18 +287,21 @@ class FermiAnalysis():
             self._logging.info(f"The target is set to {src.name}")
         self._logging.warning("The entered target is not found. Check sources by using print_association.")
 
-    def remove_weak_srcs(self, ts_cut=1):
+    def remove_weak_srcs(self, ts_cut=1, npred_cut=0):
+
         """
-        Remove sources within ROI if they are too weak (TS < 0.1 or nan).
+        Remove sources within ROI if they are too weak.
         Args:
             ts_cut (float): remove sources with a TS cut
                 Default: 1
+            npred_cut (float): remove sources with a npred cut
+                Default: 0
         """
         N = 0
         for src in self.gta.roi.sources:
             if (src.name == "isodiff") or (src.name=="galdiff") or (src.name == self.target_name):
                 continue
-            if np.isnan(src['ts']) or src['ts'] < ts_cut:
+            if np.isnan(src['ts']) or src['ts'] < ts_cut or src['npred'] < npred_cut:
                 self.gta.delete_source(src.name)
                 N+=1
         self._logging.info(f"{N} sources are deleted.")
@@ -354,18 +360,21 @@ class FermiAnalysis():
         if free_target:
             self.gta.free_sources_by_name(self.target_name, free=True, pars=None)
 
-        o = self.gta.fit(optimizer=optimizer, verbosity=False)
 
+        o = self.gta.fit(optimizer=optimizer, reoptimize=True, min_fit_quality=2, verbosity=False)
+        
         if remove_weak_srcs:
             self.remove_weak_srcs()
-            o = self.gta.fit(optimizer=optimizer, verbosity=False)
-
+            o = self.gta.fit(optimizer=optimizer, reoptimize=True, min_fit_quality=2, verbosity=False)
+        
         if o["fit_success"]:
-            self._logging.info("Fit successfully.")
+            self._logging.info("Fit successfully ({}).".format(o["fit_quality"]))
         else:
             self._logging.error("Fit failed.")
 
         self.save_state(state_file)
+        self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.VeritasAnalysis('{state_file}').")
+        
         if return_output:
             return o
 
@@ -390,7 +399,7 @@ class FermiAnalysis():
             output = {}
 
         model = kwargs.get("model", self._test_model)
-        energy_bins = kwargs.get("energy_bins", [2.0,2.5,3.0,3.5,4.0,4.5,5.0])
+        energy_bins = kwargs.get("energy_bins", np.log10(self._energy_bins.value))
 
         free = self.gta.get_free_param_vector()
 
@@ -415,6 +424,7 @@ class FermiAnalysis():
         np.save(f"./{self._outdir}/"+filename, output)
 
         self.save_state(state_file)
+        self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.VeritasAnalysis('{state_file}').")
 
     def plot(self, output, filename="output", **kwargs):
         """
@@ -458,7 +468,6 @@ class FermiAnalysis():
             f = plt.figure(figsize=(12, 8))
 
         for i, o in enumerate(output):
-
             subplot = int(sub+f"{i+1}")
             ax = fermi_plotter(o, self, subplot=subplot, **kwargs)
 
@@ -491,15 +500,18 @@ class FermiAnalysis():
         return srcs
 
 
-    def construct_dataset(self,
-                        eventlist = "ft1_00.fits",
-                        exposure = "bexpmap_00.fits",
+    def construct_dataset(self, 
+                        fix_other_srcs = False,
+                        eventlist = "ft1_00.fits", 
+                        exposure = "bexpmap_00.fits", 
                         psf = "gtpsf_00.fits"):
 
         """
         Construct a dataset for the gammapy analysis.
 
         Args:
+            fix_other_srcs (bool): fix source parameters except for the target
+                Default: False
             eventlist (str): event list file (gtapp.maketime)
                 Default: ft1_00.fits
             exposure (str): exposure map file (gtapp.gtexpmap)
@@ -511,7 +523,7 @@ class FermiAnalysis():
         self._logging.info("Loading the Fermi-LAT IRFs...")
         irf = self._load_fermi_irfs(counts, exposure=exposure, psf=psf)
         self._logging.info("Loading the Fermi-LAT models...")
-        models =  self._convert_model()
+        models =  self._convert_model(fix_other_srcs=fix_other_srcs)
         self.datasets = MapDataset(
             name="fermi", models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
         )
@@ -637,7 +649,7 @@ class FermiAnalysis():
 
         return irf
 
-    def _convert_model(self):
+    def _convert_model(self, fix_other_srcs=False):
         gammapy_models = []
         for src in self.gta.roi.sources:
 
@@ -645,8 +657,10 @@ class FermiAnalysis():
                 gammapy_models.append(fermi_isotropic_diffuse_bkg(self.gta.config, src))
             elif src.name == "galdiff":
                 gammapy_models.append(fermi_galactic_diffuse_bkg(self.gta.config, src))
-            else:
+            elif src.name == self.target_name:
                 gammapy_models.append(fermipy2gammapy(self.gta.like, src))
+            else:
+                gammapy_models.append(fermipy2gammapy(self.gta.like, src, fix_pars = fix_other_srcs))
 
             self._logging.debug(f"A source model for {src.name} is converted.")
 
