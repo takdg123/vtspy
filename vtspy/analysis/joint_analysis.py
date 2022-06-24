@@ -113,6 +113,35 @@ class JointAnalysis:
             table = table[table["model"]== self.target_name]
             return table
 
+    def save_state(self, state_file):
+        """
+        Save the state
+
+        Args:
+            state_file (str): the name of state
+        """
+
+        filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+        with open(filename, 'wb') as file:
+            del(self._logging)
+            pickle.dump(self, file)
+            self._logging = logger(self.verbosity)
+
+    def load_state(self, state_file):
+        """
+        Load the state
+
+        Args:
+        state_file (str): the name of state
+        """
+        try:
+            filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+            with open(filename, 'rb') as file:
+                self.__dict__.update(pickle.load(file).__dict__)
+        except:
+            self._logging.error("The state file does not exist. Check the name again")
+            return -1
+
     def optimize(self, method="flux", model=None, instrument="VERITAS", **kwargs):
         """
         To find good initial parameters for a given model.
@@ -227,7 +256,7 @@ class JointAnalysis:
         if output == "sed":
             self.plot_sed(**kwargs)
             
-    def plot_sed(self, fermi=True, veritas=True, joint=True, show_flux_points=True):
+    def plot_sed(self, fermi=True, veritas=True, joint=True, show_modelshow_flux_points=True):
         """
         Plot a spectral energy distribution (SED) with a model and flux points.
         

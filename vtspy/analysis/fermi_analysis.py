@@ -107,10 +107,7 @@ class FermiAnalysis():
             
             self._logging.debug("Generate PSF.")
             generatePSF(self.gta.config)
-            
-            if construct_dataset:
-                self.construct_dataset()
-
+        
             self.save_state("initial", init=True, **kwargs)
             
             self._logging.info("The initial setup and configuration is saved [state_file = initial].")
@@ -122,9 +119,6 @@ class FermiAnalysis():
             if flag == -1:
                 return
 
-            if construct_dataset:
-                self.construct_dataset()
-
         try:
             self.output = np.load(f"./{self._outdir}/output.npy", allow_pickle=True).item()
         except:
@@ -134,6 +128,9 @@ class FermiAnalysis():
         self._find_target()
         self._logging.info("Completed (Fermi-LAT initialization).")
         
+        if construct_dataset:
+            self.construct_dataset()
+
     @property
     def target(self):
         """
@@ -499,6 +496,7 @@ class FermiAnalysis():
 
 
     def construct_dataset(self, 
+                        fix_other_srcs = True,
                         eventlist = "ft1_00.fits", 
                         exposure = "bexpmap_00.fits", 
                         psf = "gtpsf_00.fits"):
@@ -507,6 +505,8 @@ class FermiAnalysis():
         Construct a dataset for the gammapy analysis. 
         
         Args:
+            fix_other_srcs (bool): fix source parameters except for the target
+                Default: True
             eventlist (str): event list file (gtapp.maketime)
                 Default: ft1_00.fits
             exposure (str): exposure map file (gtapp.gtexpmap)
@@ -518,7 +518,7 @@ class FermiAnalysis():
         self._logging.info("Loading the Fermi-LAT IRFs...")
         irf = self._load_fermi_irfs(counts, exposure=exposure, psf=psf)
         self._logging.info("Loading the Fermi-LAT models...")
-        models =  self._convert_model()
+        models =  self._convert_model(fix_other_srcs=fix_other_srcs)
         self.datasets = MapDataset(
             name="fermi", models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
         )
@@ -644,7 +644,7 @@ class FermiAnalysis():
 
         return irf
 
-    def _convert_model(self):
+    def _convert_model(self, fix_other_srcs=True):
         gammapy_models = []
         for src in self.gta.roi.sources:
             
@@ -652,8 +652,10 @@ class FermiAnalysis():
                 gammapy_models.append(fermi_isotropic_diffuse_bkg(self.gta.config, src))
             elif src.name == "galdiff":
                 gammapy_models.append(fermi_galactic_diffuse_bkg(self.gta.config, src))
-            else:
+            elif src.name == self.target_name:
                 gammapy_models.append(fermipy2gammapy(self.gta.like, src))
+            else:
+                gammapy_models.append(fermipy2gammapy(self.gta.like, src, fix_pars = fix_other_srcs))
             
             self._logging.debug(f"A source model for {src.name} is converted.")
 

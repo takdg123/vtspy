@@ -40,7 +40,7 @@ params = {
 
 not_spectral_shape = ["Prefactor", "norm", "Scale"]
 
-def fermipy2gammapy(like, src):
+def fermipy2gammapy(like, src, fix_pars=False):
 
     spectral = model_dict[src['SpectrumType']]()
     for par in src.spectral_pars.keys():
@@ -53,7 +53,10 @@ def fermipy2gammapy(like, src):
         gpar = getattr(spectral, gpar_setup[0])
         val = (fpar.getValue()*fpar.getScale()*gpar_setup[1]*gpar_setup[3]).to(gpar_setup[2])
         gpar.value = val.value
-        gpar.frozen = not(fpar.isFree())
+        if fix_pars:
+            gpar.frozen = True
+        else:
+            gpar.frozen = not(fpar.isFree())
 
     spatial = spatial_model(src)
 
