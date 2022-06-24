@@ -496,7 +496,7 @@ class FermiAnalysis():
 
 
     def construct_dataset(self, 
-                        fix_other_srcs = True,
+                        fix_other_srcs = False,
                         eventlist = "ft1_00.fits", 
                         exposure = "bexpmap_00.fits", 
                         psf = "gtpsf_00.fits"):
@@ -506,7 +506,7 @@ class FermiAnalysis():
         
         Args:
             fix_other_srcs (bool): fix source parameters except for the target
-                Default: True
+                Default: False
             eventlist (str): event list file (gtapp.maketime)
                 Default: ft1_00.fits
             exposure (str): exposure map file (gtapp.gtexpmap)
@@ -644,7 +644,7 @@ class FermiAnalysis():
 
         return irf
 
-    def _convert_model(self, fix_other_srcs=True):
+    def _convert_model(self, fix_other_srcs=False):
         gammapy_models = []
         for src in self.gta.roi.sources:
             

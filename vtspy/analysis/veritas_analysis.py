@@ -193,6 +193,7 @@ class VeritasAnalysis:
 			del(self._logging)
 			pickle.dump(self, file)
 			self._logging = logger(self.verbosity)
+			
 
 	def load_state(self, state_file):
 		"""
@@ -208,8 +209,6 @@ class VeritasAnalysis:
 		except:
 			self._logging.error("The state file does not exist. Check the name again")
 			return -1
-
-	
 
 	def setup(self, **kwargs):
 		"""

@@ -2,12 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 import os
+import pickle
+import copy
 
 from . import FermiAnalysis, VeritasAnalysis
 from ..utils import logger
 from .. import utils
 from ..model import default_model
-from ..plotting import plot_sed
+from .. import plotting
 
 from gammapy.datasets import Datasets, FluxPointsDataset
 from gammapy.modeling import Fit
@@ -30,14 +32,17 @@ class JointAnalysis:
     """
 
     
-    def __init__(self, veritas = "initial", fermi = "initlal", verbosity=1):
+    def __init__(self, veritas = "initial", fermi = "initlal", verbosity=1, **kwargs):
         self._verbosity = verbosity
         self._logging = logger(self.verbosity)
         self._logging.info("Initialize the joint-fit analysis...")
-        self._outdir = "./joint/"
+        self._outdir = kwargs.pop("outdir", "./joint/")
+
+        if not(os.path.isdir(self._outdir)):
+            os.system(f"mkdir {self._outdir}")
+        
         self._model_change_flag = False
         
-
         if type(veritas) == str:
             self.veritas = VeritasAnalysis(veritas)
         elif hasattr(veritas, "datasets"):
@@ -123,9 +128,13 @@ class JointAnalysis:
 
         filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
         with open(filename, 'wb') as file:
+            temp = [copy.copy(self.veritas), copy.copy(self.fermi)]
+            del(self.veritas)
+            del(self.fermi)
             del(self._logging)
             pickle.dump(self, file)
             self._logging = logger(self.verbosity)
+            self.veritas, self.fermi = temp
 
     def load_state(self, state_file):
         """
@@ -256,7 +265,7 @@ class JointAnalysis:
         if output == "sed":
             self.plot_sed(**kwargs)
             
-    def plot_sed(self, fermi=True, veritas=True, joint=True, show_modelshow_flux_points=True):
+    def plot_sed(self, fermi=True, veritas=True, joint=True, show_model = True, show_flux_points=True):
         """
         Plot a spectral energy distribution (SED) with a model and flux points.
         
@@ -267,7 +276,9 @@ class JointAnalysis:
                 Default: True
             fermi (bool): show Joint-fit results
                 Default: True
-            show_flux_points (bool): flow flux points
+            show_flux_points (bool): slow flux points
+                Default: True
+            show_model (bool) show model
                 Default: True
         """
         
@@ -285,7 +296,7 @@ class JointAnalysis:
         cmap = plt.get_cmap("tab10")
         i = 0
 
-        if joint:
+        if joint and show_model:
             if fit:
                 energy_bounds = [100 * u.MeV, 30 * u.TeV]
                 jf_model = self.datasets.models[0].spectral_model
@@ -305,13 +316,12 @@ class JointAnalysis:
             i+=1
 
         if veritas:
-            
             vts = self.veritas._flux_points_dataset
             energy_bounds = vts._energy_bounds
             if show_flux_points:
                 vts.data.plot(sed_type="e2dnde", color = cmap(i), label="VERITAS")
 
-            if not(fit):
+            if not(fit) and show_model:
                 veritas_model = vts.models[0].spectral_model
                 veritas_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i))
                 veritas_model.plot_error(energy_bounds=energy_bounds, 
@@ -319,8 +329,8 @@ class JointAnalysis:
             i+=1
 
         if fermi:
-            plot_sed(self.fermi.output, units="TeV", erg=True, show_flux_points=show_flux_points, 
-                show_model = not(fit), color=cmap(i))
+            plotting.plot_sed(self.fermi.output, units="TeV", erg=True, show_flux_points=show_flux_points, 
+                show_model = not(fit)*show_model, color=cmap(i))
 
             plt.xlim(5e-5, 30)
             i+=1
