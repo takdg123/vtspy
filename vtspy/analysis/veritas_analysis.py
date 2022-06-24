@@ -53,7 +53,7 @@ class VeritasAnalysis:
 		"""
 	    This is to perform a simple VERITAS analysis and to prepare the joint-fit
 	    analysis. All analysis is done with the gammapy package
-	    
+
 	    Args:
 	        state_file (str): state filename (pickle)
 	        	Default: initial
@@ -65,7 +65,7 @@ class VeritasAnalysis:
 	        **kwargs: passed to VeritasAnalysis.setup
 	    """
 		self._verbosity = verbosity
-		
+
 		self.config = JointConfig.get_config(config_file).pop("veritas")
 
 		self._logging = logger(self.verbosity)
@@ -74,27 +74,27 @@ class VeritasAnalysis:
 
 		self._datadir = self.config['data']['anasum']
 		self._outdir = self.config['fileio']['outdir']
-		
+
 		self._eff_cut = self.config['cuts']['eff_cut']
 		self._bias_cut = self.config['cuts']['bias_cut']
 		self._max_region_number = self.config['selection']['max_region_number']
 
 		self._energy_bins = MapAxis.from_bounds(0.1, 10, nbin=8, interp="log", unit="TeV").edges
 
-		if overwrite or not(os.path.isfile(f"./{self._outdir}/initial.pickle")):
+		if overwrite or not(os.path.isfile("./{}/{}.pickle".format(self._outdir, state_file))):
 
 			self.setup(**kwargs)
 
 			self._logging.debug("Save the initial state.")
-			
-			self.save_state("initial", init=True)
 
-			self._logging.info("The initial setup is saved [state_file = initial].")
+			self.save_state(state_file, init=True)
+
+			self._logging.info("The initial setup is saved [state_file = {}].".format(state_file))
 
 		else:
 			self._logging.info("The setup is found [state_file = {}]. Read the state.".format(state_file))
 			flag = self.load_state(state_file)
-			
+
 			if flag == -1:
 				return
 
@@ -106,8 +106,8 @@ class VeritasAnalysis:
         Return:
             astropy.SkyCoord
         """
-		return SkyCoord(ra = self.config["selection"]["ra"], 
-						dec = self.config["selection"]["dec"], 
+		return SkyCoord(ra = self.config["selection"]["ra"],
+						dec = self.config["selection"]["dec"],
                   		unit="deg", frame="icrs")
 
 	@property
@@ -125,7 +125,7 @@ class VeritasAnalysis:
             list: list of observation id
         """
 		return self._obs_ids
-	
+
 	@property
 	def energy_bins(self):
 		"""
@@ -141,7 +141,7 @@ class VeritasAnalysis:
         	int
         """
 		return self._verbosity
-	
+
 	def print_flux(self):
 		"""
         Return:
@@ -157,7 +157,7 @@ class VeritasAnalysis:
         """
 		if hasattr(self, "_lightcurve"):
 			return self._lightcurve.to_table(sed_type='eflux',format='lightcurve')
-	
+
 	def print_models(self):
 		"""
         Return:
@@ -210,7 +210,7 @@ class VeritasAnalysis:
 			self._logging.error("The state file does not exist. Check the name again")
 			return -1
 
-	
+
 
 	def setup(self, **kwargs):
 		"""
@@ -218,7 +218,7 @@ class VeritasAnalysis:
 	    To change the setting for this setup, check config file.
 
 	    VeritasAnalysis.config
-	    
+
 	    Args:
 	        **kwargs: passed to VeritasAnalysis.construct_dataset
 	    """
@@ -246,7 +246,7 @@ class VeritasAnalysis:
 			import glob
 			filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
 			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
-			self._logging.info("The hdu-index and obs-index files are created.")	
+			self._logging.info("The hdu-index and obs-index files are created.")
 
 		self._data_store = DataStore.from_dir(f"{self._datadir}")
 
@@ -266,15 +266,15 @@ class VeritasAnalysis:
 		else:
 			self._exclusion_mask = self._exclusion_from_bright_src_list(**kwargs)
 		self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=self.config["selection"]["exc_on_region_radius"])
-		
+
 		self._logging.info("Define ON- and OFF-regions.")
 		self.construct_dataset(**kwargs)
 
 	def fit(self, model = "PowerLaw", state_file="simple", save_state=True, **kwargs):
 		"""
-        Perform a simple fitting with a given model: 
+        Perform a simple fitting with a given model:
         PowerLaw, LogParabola, ...
-        
+
         Args:
             model (str or gammapy.models): model name or function
                 Default: "PowerLaw"
@@ -324,12 +324,12 @@ class VeritasAnalysis:
 			self._energy_bins = kwargs.get("energy_bins", self._energy_bins)
 
 			fpe = FluxPointsEstimator(
-			    energy_edges=self.energy_bins, 
+			    energy_edges=self.energy_bins,
 			    source=self.target_name, selection_optional="all", **kwargs
 			    )
 
 			self.flux_points = fpe.run(datasets=[self.stacked_dataset])
-			
+
 
 			self._flux_points_dataset = FluxPointsDataset(
 			    data=self.flux_points, models=self.stacked_dataset.models
@@ -347,7 +347,7 @@ class VeritasAnalysis:
 
 			time_intervals = utils.define_time_intervals(tmin, tmax, **kwargs)
 			self._logging.info(f"The number of time intervals is {len(time_intervals)}")
-			
+
 			lc_maker = LightCurveEstimator(
 			    energy_edges=[emin, emax] * u.TeV,
 			    source=self.target_name,
@@ -365,7 +365,7 @@ class VeritasAnalysis:
 	def plot(self, output, **kwargs):
 		"""
         Show various results: fit result, flux, SED, and lightcurve
-        
+
         Args:
             output (str): a plot to show
                 Options: ["roi", "fit", "flux", "sed", "lc"]
@@ -390,7 +390,7 @@ class VeritasAnalysis:
 	def add_exclusion_region(self, coord = None, name=None, radius=0.3, update_dataset=False, **kwargs):
 		"""
         Add exclusion region manually
-        
+
         Args:
             coord (list, optioanl): [ra, dec]
             name (list, optional): [ra, dec]
@@ -411,7 +411,7 @@ class VeritasAnalysis:
 			return
 
 		geom = WcsGeom.create(
-		    	npix=(150, 150), binsz=0.05, skydir=self.target.galactic, 
+		    	npix=(150, 150), binsz=0.05, skydir=self.target.galactic,
 		    	proj="TAN", frame="icrs"
 		)
 
@@ -437,7 +437,7 @@ class VeritasAnalysis:
 
 		dataset_maker = SpectrumDatasetMaker(selection=["counts", "exposure", "edisp"], containment_correction=False)
 		bkg_maker = ReflectedRegionsBackgroundMaker(exclusion_mask=self._exclusion_mask, max_region_number=self._max_region_number)
-		
+
 		if self._eff_cut > 0:
 			safe_mask_maker_eff = SafeMaskMaker(methods=["aeff-max"], aeff_percent=self._eff_cut)
 		else:
@@ -490,9 +490,9 @@ class VeritasAnalysis:
 		roi_cut = (abs(bright_sources[:,0]-self.target.ra.deg) < distance) \
         		* (abs(bright_sources[:,1]-self.target.dec.deg) < distance) \
         		* (bright_sources[:,2]+bright_sources[:,3] < magnitude)
-                                                                                             
+
 		bright_sources = bright_sources[roi_cut]
-        
+
 		for src_pos in bright_sources:
 			self._excluded_regions.append(CircleSkyRegion(
 				center=SkyCoord(src_pos[0], src_pos[1], unit="deg", frame="icrs"),
@@ -508,7 +508,7 @@ class VeritasAnalysis:
 	def _exclusion_from_simbad(self):
 
 		## under testing
-		
+
 		try:
 			from astroquery.simbad import Simbad
 		except:
@@ -523,7 +523,7 @@ class VeritasAnalysis:
 		simbad.reset_votable_fields()
 		simbad.add_votable_fields('ra', 'dec', "flux(B)", "flux(V)", "jp11")
 		simbad.remove_votable_fields('coordinates')
-		
+
 		self._logging.info("Querying bright sources within FoV with Simbad.")
 		srcs_tab = simbad.query_region(self._on_region.center, radius=distance*u.deg)
 		srcs_tab = srcs_tab[srcs_tab["FLUX_B"]<magnitude]
@@ -534,7 +534,7 @@ class VeritasAnalysis:
 		self._excluded_regions = [CircleSkyRegion(center=src, radius=ex_radius * u.deg,) for src in srcs]
 
 		geom = WcsGeom.create(
-		    npix=(150, 150), binsz=0.05, skydir=self.target.galactic, 
+		    npix=(150, 150), binsz=0.05, skydir=self.target.galactic,
 		    proj="TAN", frame="icrs"
 		)
 

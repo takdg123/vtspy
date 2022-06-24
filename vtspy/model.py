@@ -133,14 +133,14 @@ def default_model(model, **kwargs):
         z = kwargs.pop("redshift", 0)
         d_L = Distance(z=z).to("cm")
 
-        norm_e = kwargs.pop("norm_e", 5e-6)
+        norm_e = kwargs.pop("norm_e", 4e-6)
         norm_e = norm_e/u.cm**3
-        p1 = kwargs.pop("p1", 0)
+        p1 = kwargs.pop("p1", -1)
         p2 = kwargs.pop("p2", 3)
 
         delta_D = kwargs.pop("delta_D", 10)
         log10_B = kwargs.pop("log10_B", 1)
-        t_var = kwargs.pop("t_var", 1)
+        t_var = kwargs.pop("t_var", 30)
         t_var = t_var* u.d
 
         log10_gamma_b = kwargs.pop("log10_gamma_b", 4)
