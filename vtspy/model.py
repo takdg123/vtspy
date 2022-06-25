@@ -133,11 +133,12 @@ def default_model(model, **kwargs):
 
         spectral_model = agnpy_spectral_model()
 
-        z = kwargs.pop("redshift", 0)
+        z = kwargs.pop("z", 0)
         t_var = kwargs.pop("t_var", 0)
 
         if (z == 0) or (t_var == 0):
-            logg
+            self._logging.error("The source redshfit and variability are required.")
+            raise
         d_L = Distance(z=z).to("cm")
 
         norm_e = kwargs.pop("norm_e", 4e-6)
