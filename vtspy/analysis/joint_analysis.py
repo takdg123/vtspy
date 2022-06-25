@@ -32,7 +32,7 @@ class JointAnalysis:
     """
 
 
-    def __init__(self, veritas = "initial", fermi = "initlal", verbosity=1, **kwargs):
+    def __init__(self, veritas = "initial", fermi = "initial", verbosity=1, **kwargs):
         self._verbosity = verbosity
         self._logging = logger(self.verbosity)
         self._logging.info("Initialize the joint-fit analysis...")

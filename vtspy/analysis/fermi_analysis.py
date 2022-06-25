@@ -82,9 +82,9 @@ class FermiAnalysis():
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
 
-        self._energy_bins = MapAxis.from_bounds(self.gta.config["selection"]["emin"], 
-                self.gta.config["selection"]["emax"], 
-                nbin=8, 
+        self._energy_bins = MapAxis.from_bounds(self.gta.config["selection"]["emin"],
+                self.gta.config["selection"]["emax"],
+                nbin=8,
                 interp="log", unit="MeV").edges
 
         if overwrite or not(os.path.isfile("./{}/{}.fits".format(self._outdir,state_file))):
@@ -130,7 +130,7 @@ class FermiAnalysis():
         self._test_model = {'Index' : 2.0, 'SpatialModel' : 'PointSource' }
         self._find_target()
         self._logging.info("Completed (Fermi-LAT initialization).")
-        
+
         if construct_dataset:
             self.construct_dataset()
 
@@ -362,19 +362,19 @@ class FermiAnalysis():
 
 
         o = self.gta.fit(optimizer=optimizer, reoptimize=True, min_fit_quality=2, verbosity=False)
-        
+
         if remove_weak_srcs:
             self.remove_weak_srcs()
             o = self.gta.fit(optimizer=optimizer, reoptimize=True, min_fit_quality=2, verbosity=False)
-        
+
         if o["fit_success"]:
             self._logging.info("Fit successfully ({}).".format(o["fit_quality"]))
         else:
             self._logging.error("Fit failed.")
 
         self.save_state(state_file)
-        self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.VeritasAnalysis('{state_file}').")
-        
+        self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.FermiAnalysis('{state_file}').")
+
         if return_output:
             return o
 
@@ -424,7 +424,7 @@ class FermiAnalysis():
         np.save(f"./{self._outdir}/"+filename, output)
 
         self.save_state(state_file)
-        self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.VeritasAnalysis('{state_file}').")
+        self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.FermiAnalysis('{state_file}').")
 
     def plot(self, output, filename="output", **kwargs):
         """
@@ -500,10 +500,10 @@ class FermiAnalysis():
         return srcs
 
 
-    def construct_dataset(self, 
+    def construct_dataset(self,
                         fix_other_srcs = False,
-                        eventlist = "ft1_00.fits", 
-                        exposure = "bexpmap_00.fits", 
+                        eventlist = "ft1_00.fits",
+                        exposure = "bexpmap_00.fits",
                         psf = "gtpsf_00.fits"):
 
         """
