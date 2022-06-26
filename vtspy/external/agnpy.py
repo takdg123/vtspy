@@ -25,7 +25,7 @@ class agnpy_spectral_model(SpectralModel):
     tag = ["agnpy(SYN+SSC)", "agnpy"]
 
     # electron spectrum parameters
-    norm_e = Parameter("norm_e", "1e-5 cm^-3", min=1e-10, max=1e.10)
+    norm_e = Parameter("norm_e", "1e-5 cm^-3", min=1e-10, max=1e10)
     p1 = Parameter("p1", 2.1, min=-2.0, max=5.0)
     p2 = Parameter("p2", 3.1, min=-2.0, max=5.0)
 
