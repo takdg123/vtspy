@@ -42,28 +42,28 @@ class JointAnalysis:
             os.system(f"mkdir {self._outdir}")
 
         self._model_change_flag = False
+        self._fit_flag = False
 
         if type(veritas) == str:
             self.veritas = VeritasAnalysis(veritas)
+            self._veritas_state = veritas
+            self._target_name = self.veritas.target_name
         elif hasattr(veritas, "datasets"):
             self._logging.info("VERITAS datasets is imported.")
             self.veritas = veritas
-        else:
-            return
-
-        self._target_name = self.veritas.target_name
+            self._target_name = self.veritas.target_name
 
         if type(fermi) == str:
             self.fermi = FermiAnalysis(fermi, construct_dataset=True)
+            self._fermi_state = veritas
         elif hasattr(fermi, "gta"):
             self.fermi = fermi
             self.fermi.construct_dataset()
             self._logging.info("Fermi-LAT datasets is imported.")
-        else:
-            return
 
-        self._logging.info("Constructing a joint datasets")
-        self._construct_joint_datasets(init=True)
+        if hasattr(self, "fermi") and hasattr(self, "veritas"):
+            self._logging.info("Constructing a joint datasets")
+            self._construct_joint_datasets(init=True)
         self._logging.info("Completed.")
 
     @property
@@ -226,6 +226,7 @@ class JointAnalysis:
 
         if self.fit_results.success:
             self._logging.info("Fit successfully.")
+            self._fit_flag = True
         else:
             self._logging.error("Fit fails.")
 
@@ -288,7 +289,7 @@ class JointAnalysis:
         if veritas and not(hasattr(self.veritas, "_flux_points_dataset")):
             self.veritas.simple_analysis()
 
-        if joint and not(hasattr(self, "fit_results")):
+        if joint and not(self._fit_flag):
             fit = False
         else:
             fit = True
@@ -373,9 +374,7 @@ class JointAnalysis:
             self.datasets.models[self.target_name].spectral_model = spectral_model
 
         newmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
-
-        if hasattr(self, "fit_results"):
-            del self.fit_results
+        self._fit_flag = False
         self._logging.info(f"The spectral model for the target is chaged:")
         self._logging.info(f"{prevmodel}->{newmodel}")
 
