@@ -32,7 +32,6 @@ class JointConfig:
 		self._logging = logger(verbosity=verbosity)
 
 		self._filename = config_file
-
 		path = Path(config_file)
 		if path.is_file() and (files is None):
 			config = self.get_config(config_file)
@@ -41,8 +40,8 @@ class JointConfig:
 			self.print_info()
 			self._logging.info(f'a configuration file ({config_file}) is loaded.')
 		else:
-			self.init(files=files, config_file = config_file, info=info, **kwargs)
-			self.print_info(config_file = config_file)
+			self.init(files=files, config_file=config_file, info=info, **kwargs)
+			self.print_info(config_file=config_file)
 			self._logging.info(f'a configuration file ({config_file}) is created.')
 
 	def init(self, files=None, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
@@ -65,7 +64,7 @@ class JointConfig:
 		if files is None:
 			filelist = glob.glob("./veritas/")
 		else:
-			filelist = glob.glob(files+"*")
+			filelist = glob.glob(files+"/*")
 
 		for file in filelist:
 			if ".gz" in file:
@@ -131,7 +130,6 @@ class JointConfig:
 				elif 'anasum.fits' in file:
 
 					header = fits.open(file)[1].header
-
 					if ra == None:
 						ra = header['RA_OBJ']
 					else:
@@ -262,7 +260,7 @@ class JointConfig:
 			self.veritas_config["selection"]["tmax"] = tmax_mjd
 
 		self.set_config(self.config, self._filename)
-		self.print_info()
+		self.print_info(self._filename)
 
 
 	@staticmethod

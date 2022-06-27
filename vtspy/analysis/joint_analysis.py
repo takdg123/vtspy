@@ -22,7 +22,7 @@ class JointAnalysis:
     """
     This is to perform a joint VERITAS and Fermi-LAT analysis. This class
     exploits results from VeritasAnalysis and FermiAnalysis.
-    
+
     Args:
         veritas (str or vtspy.VeritasAnalysis): state filename or class for VERITAS
             Default: initial
@@ -31,8 +31,8 @@ class JointAnalysis:
         verbosity (int)
     """
 
-    
-    def __init__(self, veritas = "initial", fermi = "initlal", verbosity=1, **kwargs):
+
+    def __init__(self, veritas = "initial", fermi = "initial", verbosity=1, **kwargs):
         self._verbosity = verbosity
         self._logging = logger(self.verbosity)
         self._logging.info("Initialize the joint-fit analysis...")
@@ -40,9 +40,9 @@ class JointAnalysis:
 
         if not(os.path.isdir(self._outdir)):
             os.system(f"mkdir {self._outdir}")
-        
+
         self._model_change_flag = False
-        
+
         if type(veritas) == str:
             self.veritas = VeritasAnalysis(veritas)
         elif hasattr(veritas, "datasets"):
@@ -61,11 +61,11 @@ class JointAnalysis:
             self._logging.info("Fermi-LAT datasets is imported.")
         else:
             return
-        
+
         self._logging.info("Constructing a joint datasets")
         self._construct_joint_datasets(init=True)
         self._logging.info("Completed.")
-        
+
     @property
     def target_model(self):
         """
@@ -73,7 +73,7 @@ class JointAnalysis:
             gammapy.modeling.models.SkyModel
         """
         return self.datasets.models[self.target_name]
-    
+
     @property
     def verbosity(self):
         """
@@ -89,18 +89,18 @@ class JointAnalysis:
             str: target name
         """
         return self._target_name
-    
+
     def print_datasets(self):
         """
         Print datasets
-        
+
         Return:
             astropy.table
         """
 
         return self._logging.info(self.datasets)
 
-    
+
     def print_models(self, full_output=False):
         """
         Print model and parameters
@@ -154,10 +154,10 @@ class JointAnalysis:
     def optimize(self, method="flux", model=None, instrument="VERITAS", **kwargs):
         """
         To find good initial parameters for a given model.
-        
+
         Args:
             method (str): either "flux" or "inst". The "flux" method will fit flux points
-            from VeritasAnalysis.analysis("sed") and FermiAnalysis.analysis("sed"). The 
+            from VeritasAnalysis.analysis("sed") and FermiAnalysis.analysis("sed"). The
             "inst" method will fit the model with one of datasets (defined by instrument)
             model (gammapy.modeling.models.SpectralModel): a model to fit
                 Default: None (fit with the current target model)
@@ -168,7 +168,7 @@ class JointAnalysis:
 
         if model is None:
             model = self.datasets.models[self.target_name].spectral_model
-        
+
         if method == "flux":
             test_model = SkyModel(spectral_model=model, name="test")
             fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/sed.fits")
@@ -203,11 +203,11 @@ class JointAnalysis:
             fit_results = joint_fit.run(self.datasets[instrument.lower()])
         else:
             return
-    
+
     def fit(self, **kwargs):
         """
         Perform a joint-fit analysis
-        
+
         Args:
             **kwargs: passed to vtspy.JointAnalysis.optimize
         """
@@ -228,8 +228,8 @@ class JointAnalysis:
             self._logging.info("Fit successfully.")
         else:
             self._logging.error("Fit fails.")
-    
-    def analysis(self):
+
+    def analysis(self, **kwargs):
 
         """
         Perform a SED analysis.
@@ -241,7 +241,7 @@ class JointAnalysis:
         energy_bins = kwargs.get("energy_bins", np.geomspace(0.0001, 10, 20) * u.TeV)
 
         fpe = FluxPointsEstimator(
-            energy_edges=energy_bins, 
+            energy_edges=energy_bins,
             source=self.target_name, selection_optional="all"
             )
 
@@ -250,12 +250,12 @@ class JointAnalysis:
         self._flux_points_dataset = FluxPointsDataset(
             data=self.flux_points, models=self.datasets.models
         )
-        
+
 
     def plot(self, output, **kwargs):
         """
         Show various results: SED
-        
+
         Args:
             output (str): a plot to show
                 Options: ["sed"]
@@ -264,11 +264,11 @@ class JointAnalysis:
 
         if output == "sed":
             self.plot_sed(**kwargs)
-            
+
     def plot_sed(self, fermi=True, veritas=True, joint=True, show_model = True, show_flux_points=True):
         """
         Plot a spectral energy distribution (SED) with a model and flux points.
-        
+
         Args:
             fermi (bool): show Fermi-LAT results
                 Default: True
@@ -281,13 +281,13 @@ class JointAnalysis:
             show_model (bool) show model
                 Default: True
         """
-        
+
         if fermi and not(hasattr(self.fermi, "output")):
             self.fermi.simple_analysis("sed")
-        
+
         if veritas and not(hasattr(self.veritas, "_flux_points_dataset")):
             self.veritas.simple_analysis()
-        
+
         if joint and not(hasattr(self, "fit_results")):
             fit = False
         else:
@@ -301,15 +301,15 @@ class JointAnalysis:
                 energy_bounds = [100 * u.MeV, 30 * u.TeV]
                 jf_model = self.datasets.models[0].spectral_model
                 jf_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i), label=self.target_name)
-                jf_model.plot_error(energy_bounds=energy_bounds, 
+                jf_model.plot_error(energy_bounds=energy_bounds,
                                          sed_type="e2dnde", alpha=0.2, color="k")
             else:
                 energy_bounds = [100 * u.MeV, 30 * u.TeV]
                 jf_model = self.datasets.models[self.target_name].spectral_model
-                
+
                 if fit:
                     jf_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i), label=self.target_name, ls="-")
-                    jf_model.plot_error(energy_bounds=energy_bounds, 
+                    jf_model.plot_error(energy_bounds=energy_bounds,
                                          sed_type="e2dnde", alpha=0.2, color="k")
                 else:
                     jf_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i), label="Before fit", ls="--")
@@ -324,12 +324,12 @@ class JointAnalysis:
             if not(fit) and show_model:
                 veritas_model = vts.models[0].spectral_model
                 veritas_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i))
-                veritas_model.plot_error(energy_bounds=energy_bounds, 
+                veritas_model.plot_error(energy_bounds=energy_bounds,
                                          sed_type="e2dnde", alpha=0.2, facecolor=cmap(i))
             i+=1
 
         if fermi:
-            plotting.plot_sed(self.fermi.output, units="TeV", erg=True, show_flux_points=show_flux_points, 
+            plotting.plot_sed(self.fermi.output, units="TeV", erg=True, show_flux_points=show_flux_points,
                 show_model = not(fit)*show_model, color=cmap(i))
 
             plt.xlim(5e-5, 30)
@@ -343,11 +343,11 @@ class JointAnalysis:
         plt.xlabel("Energy [TeV]", fontsize=13)
         plt.ylabel(r"Energy flux [erg/cm$^2$/s]", fontsize=13)
 
-    
+
     def change_model(self, model, optimize=False, **kwargs):
         """
         To change a target model
-        
+
         Args:
             model (str or gammapy.modeling.models.SpectralModel): a new target model
             optimize (bool): perform optimization (JointAnalysis.optimize)
@@ -364,7 +364,7 @@ class JointAnalysis:
         elif hasattr(model, "tag"):
             spectral_model = model
             self._logging.info(f"A model, {model.tag[0]}, is imported")
-        
+
         if optimize:
             self.optimize(model=spectral_model, **kwargs)
             self._model_change_flag = False
@@ -403,4 +403,3 @@ class JointAnalysis:
                 if target_pos.separation(model.spatial_model.position).deg < th2cut:
                     models.append(model)
         return models
-    

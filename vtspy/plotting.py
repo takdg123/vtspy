@@ -18,8 +18,8 @@ def fermi_plotter(name, fermi, subplot = None, **kwargs):
 
     Args:
         name (str): a plot to show
-            Options: ["sqrt_ts", "npred", "ts_hist", 
-                      "data", "model", "sigma", 
+            Options: ["sqrt_ts", "npred", "ts_hist",
+                      "data", "model", "sigma",
                       "excess", "resid", "sed"]
             Default: config.yaml
         fermi (class): vtspy.analysis.FermiAnalysis
@@ -31,11 +31,11 @@ def fermi_plotter(name, fermi, subplot = None, **kwargs):
         AxesSubplot
     """
     from fermipy.plotting import ROIPlotter, SEDPlotter
-    
+
     output = fermi.output
     roi = fermi.gta.roi
     config = fermi.gta.config
-    
+
     if subplot is None:
         fig = plt.figure(figsize=(14,6))
         subplot = "111"
@@ -49,8 +49,8 @@ def fermi_plotter(name, fermi, subplot = None, **kwargs):
         sigma_levels = [3, 5, 7] + list(np.logspace(1, 3, 17))
         plotter = ROIPlotter(output['ts']['sqrt_ts'], roi=roi, **kwargs)
         plotter.plot(
-            vmin=0, vmax=5, levels=sigma_levels, 
-            cb_label='Sqrt(TS) [$\sigma$]', 
+            vmin=0, vmax=5, levels=sigma_levels,
+            cb_label='Sqrt(TS) [$\sigma$]',
             interpolation='bicubic', subplot=subplot)
         ax = plt.gca()
         ax.set_title('Sqrt(TS)')
@@ -98,8 +98,8 @@ def fermi_plotter(name, fermi, subplot = None, **kwargs):
         kwargs.pop('cmap')
         plot_sed(output, **kwargs)
         ax = plt.gca()
-    
-    return ax 
+
+    return ax
 
 def plot_ts_hist(output, subplot=None):
     if subplot is None:
@@ -143,7 +143,7 @@ def plot_sigma_hist(output, subplot=None):
 
     # find best fit parameters
     mu, sigma = norm.fit(data.flatten())
-    
+
     # make and draw the histogram
     data[data > 6.0] = 6.0
     data[data < -6.0] = -6.0
@@ -173,12 +173,12 @@ def plot_sigma_hist(output, subplot=None):
 
 def plot_ROI(veritas=None, fermi=None):
     plt.figure(figsize=(7, 7))
-        
+
     if veritas is not None:
         ax = veritas._exclusion_mask.plot()
         veritas._on_region.to_pixel(ax.wcs).plot(ax=ax, edgecolor="red")
         plot_spectrum_datasets_off_regions(ax=ax, datasets=veritas.datasets)
-    
+
     if fermi is not None:
         if veritas is not None:
             geom = Map.create(npix=(150, 150), binsz=0.05, skydir=fermi.target.skydir, proj="CAR", frame="icrs")
@@ -193,14 +193,14 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
     sed = output["sed"]
     fermi_model = output["sed"]['model_flux']
     m_engs = 10**fermi_model['log_energies']
-    
+
     if units == "MeV":
         conv_u = 1
     elif units == "GeV":
         conv_u = 1e-3
     elif units == "TeV":
         conv_u = 1e-6
-    
+
     if erg:
         e2 = m_engs**2.*utils.MeV2Erg
         conv_f = utils.MeV2Erg
@@ -209,7 +209,7 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
         e2 = m_engs**2.*conv_u**2.
         conv_f = conv_u**2.
         f_units = f"{units}/cm$^2$/s"
-    
+
     ul_ts_threshold = kwargs.pop('ul_ts_threshold', 4)
     m = sed['ts'] < ul_ts_threshold
     x = sed['e_ctr']*conv_u
@@ -223,7 +223,7 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
     dehi = sed['e_max'] - sed['e_ctr']
     xerr0 = np.vstack((delo[m], dehi[m]))*conv_u
     xerr1 = np.vstack((delo[~m], dehi[~m]))*conv_u
-    
+
     if show_flux_points:
         plt.errorbar(x[~m], y[~m], xerr=xerr1, label="Fermi-LAT",
                      yerr=(yerr_lo[~m], yerr_hi[~m]), ls="", color=color)
@@ -245,3 +245,5 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
     plt.xlabel(f"Energy [{units}]", fontsize=13)
     plt.ylabel(f"Energy flux [{f_units}]", fontsize=13)
 
+    fig = plt.gcf()
+    return fig
