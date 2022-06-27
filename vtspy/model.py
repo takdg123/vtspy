@@ -141,8 +141,7 @@ def default_model(model, **kwargs):
             raise
         d_L = Distance(z=z).to("cm")
 
-        norm_e = kwargs.pop("norm_e", 4e-6)
-        norm_e = norm_e/u.cm**3
+        log10_norm_e = kwargs.pop("log10_norm_e", -5)
         p1 = kwargs.pop("p1", -1)
         p2 = kwargs.pop("p2", 3)
 
@@ -163,8 +162,8 @@ def default_model(model, **kwargs):
         spectral_model.t_var.quantity = t_var
         spectral_model.t_var.frozen = True
 
-        spectral_model.norm_e.quantity = norm_e
-        spectral_model.norm_e._is_norm = True
+        spectral_model.log10_norm_e.quantity = log10_norm_e
+        spectral_model.log10_norm_e._is_norm = True
         spectral_model.p1.quantity = p1
         spectral_model.p2.quantity = p2
         spectral_model.log10_gamma_b.quantity = log10_gamma_b

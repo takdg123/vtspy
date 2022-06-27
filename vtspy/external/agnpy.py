@@ -25,7 +25,7 @@ class agnpy_spectral_model(SpectralModel):
     tag = ["agnpy(SYN+SSC)", "agnpy"]
 
     # electron spectrum parameters
-    norm_e = Parameter("norm_e", "1e-5 cm^-3", min=1e-10, max=1e10)
+    log10_norm_e = Parameter("log10_norm_e", "-5", min=-20, max=10)
     p1 = Parameter("p1", 2.1, min=-2.0, max=5.0)
     p2 = Parameter("p2", 3.1, min=-2.0, max=5.0)
 
@@ -46,7 +46,7 @@ class agnpy_spectral_model(SpectralModel):
     @staticmethod
     def evaluate(
         energy,
-        norm_e,
+        log10_norm_e,
         p1,
         p2,
         log10_gamma_b,
@@ -59,6 +59,7 @@ class agnpy_spectral_model(SpectralModel):
         d_L,
     ):
         # conversions
+        norm_e = 10 ** log10_norm_e * u.Unit("cm-3")
         gamma_b = 10 ** log10_gamma_b
         gamma_min = 10 ** log10_gamma_min
         gamma_max = 10 ** log10_gamma_max

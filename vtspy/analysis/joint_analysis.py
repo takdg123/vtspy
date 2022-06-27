@@ -187,15 +187,17 @@ class JointAnalysis:
 
             datasets = Datasets([fermi_dataset, veritas_dataset])
             datasets.models = test_model
-
-            optimize_opts = {
+            
+            optimize_opts_default = {
                 "method": "L-BFGS-B",
-                "options": {"ftol": 1e-4, "gtol": 1e-05},
+                "options": {"ftol": 1e-4, "gtol": 1e-05, "maxls": 40},
                 "backend": "scipy",
             }
+            optimize_opts = kwargs.pop("optimize_opts", optimize_opts_default)
 
             fit_ = Fit(optimize_opts =  optimize_opts)
-            fit_.run(datasets)
+            result_optimize = fit_.run(datasets)
+            self._logging.info(result_optimize)
             self.datasets.models[self.target_name].spectral_model = test_model.spectral_model
         elif method == "inst":
             self.datasets.models[self.target_name].spectral_model = model
