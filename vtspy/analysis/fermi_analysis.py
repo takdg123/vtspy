@@ -256,6 +256,7 @@ class FermiAnalysis():
                 os.sytem(f"mv {file} ./{self._outdir}/_orig/")
 
         self.gta.write_roi(state_file, save_model_map=True)
+        self._fermi_state = state_file
 
     def load_state(self, state_file):
         """
@@ -265,7 +266,9 @@ class FermiAnalysis():
             state_file (str): passed to fermipy.write_roi
         """
         try:
+
             self.gta.load_roi(state_file)
+            self._fermi_state = state_file
         except:
             self._logging.error("The state file does not exist. Check the name again")
             return -1

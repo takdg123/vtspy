@@ -63,7 +63,7 @@ class JointAnalysis:
 
         if hasattr(self, "fermi") and hasattr(self, "veritas"):
             self._logging.info("Constructing a joint datasets")
-            self._construct_joint_datasets(init=True)
+            self._construct_joint_datasets()
         self._logging.info("Completed.")
 
     @property
@@ -147,6 +147,16 @@ class JointAnalysis:
             filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
             with open(filename, 'rb') as file:
                 self.__dict__.update(pickle.load(file).__dict__)
+
+            if not(hasattr(self, "fermi")):
+                self.fermi = FermiAnalysis(self._fermi_state, construct_dataset=True)
+
+            if not(hasattr(self, "veritas")):
+                self.veritas = VeritasAnalysis(self._veritas_state)
+
+            self._construct_joint_datasets()
+
+
         except:
             self._logging.error("The state file does not exist. Check the name again")
             return -1
@@ -378,7 +388,7 @@ class JointAnalysis:
         self._logging.info(f"The spectral model for the target is chaged:")
         self._logging.info(f"{prevmodel}->{newmodel}")
 
-    def _construct_joint_datasets(self, inst="VERITAS", init=False):
+    def _construct_joint_datasets(self, inst="VERITAS"):
         vts_model = self.veritas.stacked_dataset.models[0]
         fermi_model = self.fermi.datasets.models[self.fermi.target_name]
 

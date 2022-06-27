@@ -193,7 +193,7 @@ class VeritasAnalysis:
 			del(self._logging)
 			pickle.dump(self, file)
 			self._logging = logger(self.verbosity)
-			
+			self._veritas_state = state_file
 
 	def load_state(self, state_file):
 		"""
@@ -206,6 +206,7 @@ class VeritasAnalysis:
 			filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
 			with open(filename, 'rb') as file:
 				self.__dict__.update(pickle.load(file).__dict__)
+			self._veritas_state = state_file
 		except:
 			self._logging.error("The state file does not exist. Check the name again")
 			return -1
