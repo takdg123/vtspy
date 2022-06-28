@@ -4,6 +4,7 @@ import astropy.units as u
 import os
 import pickle
 import copy
+import glob
 
 from . import FermiAnalysis, VeritasAnalysis
 from ..utils import logger
@@ -32,7 +33,7 @@ class JointAnalysis:
     """
 
 
-    def __init__(self, veritas = "initial", fermi = "initial", verbosity=1, **kwargs):
+    def __init__(self, veritas = None, fermi = None, verbosity=1, **kwargs):
         self._verbosity = verbosity
         self._logging = logger(self.verbosity)
         self._logging.info("Initialize the joint-fit analysis...")
@@ -160,6 +161,10 @@ class JointAnalysis:
         except:
             self._logging.error("The state file does not exist. Check the name again")
             return -1
+
+    def list_of_state(self):
+        files = glob.glob(f"{self._outdir}/*.pickle")
+        return print([n.split("/")[-1].split(".")[0] for n in files])
 
     def optimize(self, method="flux", model=None, instrument="VERITAS", **kwargs):
         """
@@ -403,6 +408,7 @@ class JointAnalysis:
             self.datasets.models[self.veritas.target_name].spectral_model = fermi_model.spectral_model
 
         self.datasets.models[self.fermi.target_name]._name = self.target_name
+
 
     def _find_target_model(self):
         target_pos = self.fermi.datasets.models[self.fermi.target_name].spatial_model.position
