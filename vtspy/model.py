@@ -53,6 +53,7 @@ def fermipy2gammapy(like, src, fix_pars=False):
         gpar = getattr(spectral, gpar_setup[0])
         val = (fpar.getValue()*fpar.getScale()*gpar_setup[1]*gpar_setup[3]).to(gpar_setup[2])
         gpar.value = val.value
+        
         if fix_pars:
             gpar.frozen = True
         else:
@@ -89,20 +90,23 @@ def gammapy2fermipy(spectral, src=None):
 
     return params
 
-def fermi_galactic_diffuse_bkg(config, fmodel):
+def fermi_galactic_diffuse_bkg(config, fmodel, fix_pars = False):
     diffuse_galactic_fermi = Map.read(config['model']['galdiff'][0])
     spatial_model = gammapy_model.TemplateSpatialModel(diffuse_galactic_fermi, normalize=False)
     spectral_model = gammapy_model.PowerLawNormSpectralModel()
     spectral_model.norm.value = fmodel.params["Prefactor"]["value"]
+    spectral_model.norm.frozen = fix_pars
     diffuse_gald = SkyModel(spectral_model=spectral_model, spatial_model=spatial_model,  name="galdiff")
     return diffuse_gald
 
-def fermi_isotropic_diffuse_bkg(config, fmodel):
+def fermi_isotropic_diffuse_bkg(config, fmodel, fix_pars = False):
     diffuse_iso = gammapy_model.create_fermi_isotropic_diffuse_model(
         filename=config['model']['isodiff'][0],
         interp_kwargs={"fill_value": None})
     diffuse_iso.spectral_model.model2.value = fmodel.params["Normalization"]["value"]
+    diffuse_iso.spectral_model.model2.norm.frozen = fix_pars
     diffuse_iso._name = "isodiff"
+
     return diffuse_iso
 
 def default_model(model, **kwargs):

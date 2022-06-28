@@ -177,9 +177,11 @@ class JointAnalysis:
         To find good initial parameters for a given model.
 
         Args:
-            method (str): either "flux" or "inst". The "flux" method will fit flux points
-            from VeritasAnalysis.analysis("sed") and FermiAnalysis.analysis("sed"). The
-            "inst" method will fit the model with one of datasets (defined by instrument)
+            method (str): either "flux", "rough" or "inst". The "flux" method will fit flux points
+                from VeritasAnalysis.analysis("sed") and FermiAnalysis.analysis("sed"). The "rough"
+                method will fit the dataset with tol of 1 and strategy of 1 (fast). The
+                "inst" method will fit the model with one of datasets (defined by instrument)
+                Default: flux
             model (gammapy.modeling.models.SpectralModel): a model to fit
                 Default: None (fit with the current target model)
             instrument(str): instrument used for the "inst" method
@@ -190,7 +192,19 @@ class JointAnalysis:
         if model is None:
             model = self.datasets.models[self.target_name].spectral_model
 
-        if method == "flux":
+        if method == "rough":
+            
+            optimize_opts_default = {
+                "method": "L-BFGS-B",
+                "options": {"ftol": 1e-4, "gtol": 1e-05, "maxls": 40},
+                "backend": "scipy",
+            }
+            optimize_opts = kwargs.pop("optimize_opts", optimize_opts_default)
+
+            fit_ = Fit(optimize_opts = optimize_opts)
+            fit_ = fit_.run(self.datasets)
+
+        elif method == "flux":
             test_model = SkyModel(spectral_model=model, name="test")
             fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/{self._fermi_state}_sed.fits")
 
@@ -201,10 +215,12 @@ class JointAnalysis:
 
             fermi_dataset = FluxPointsDataset(data=data, models=test_model)
             fermi_dataset.mask_safe = ~fermi_dataset.data.to_table()["is_ul"]
+            fermi_dataset.mask_fit = ~fermi_dataset.data.to_table()["is_ul"]
 
             veritas_dataset = FluxPointsDataset(data=self.veritas.flux_points, models=test_model)
             nan_norm = ~np.isnan(veritas_dataset.data.to_table()["norm"])
             veritas_dataset.mask_safe = veritas_dataset.mask_safe*nan_norm
+            veritas_dataset.mask_fit = veritas_dataset.mask_safe*nan_norm
 
             datasets = Datasets([fermi_dataset, veritas_dataset])
             datasets.models = test_model
@@ -218,7 +234,7 @@ class JointAnalysis:
 
             fit_ = Fit(optimize_opts =  optimize_opts)
             result_optimize = fit_.run(datasets)
-            self._logging.info(result_optimize)
+            self._optimize_flux_datasets = datasets
             self.datasets.models[self.target_name].spectral_model = test_model.spectral_model
         elif method == "inst":
             self.datasets.models[self.target_name].spectral_model = model
@@ -243,7 +259,7 @@ class JointAnalysis:
             self._logging.info("Completed. Move to the next step.")
 
         self._logging.info("Start fitting...")
-
+        
         joint_fit = Fit()
         self.fit_results = joint_fit.run(self.datasets)
 

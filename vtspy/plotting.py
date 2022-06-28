@@ -247,3 +247,4 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
 
     fig = plt.gcf()
     return fig
+

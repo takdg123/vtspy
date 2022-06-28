@@ -2,6 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
+from astropy.io import fits
 from ..config import JointConfig
 from ..utils import logger
 from ..plotting import fermi_plotter
@@ -12,7 +13,7 @@ from astropy.coordinates import SkyCoord
 from gammapy.data import EventList
 from gammapy.datasets import MapDataset, Datasets
 
-from gammapy.irf import PSFMap, EDispMap
+from gammapy.irf import PSFMap, EDispKernelMap
 from gammapy.maps import Map, MapAxis, WcsGeom
 
 from ..model import *
@@ -29,20 +30,7 @@ import fermipy.utils as fermi_utils
 from regions import CircleSkyRegion
 from pathlib import Path
 
-def generatePSF(config):
-    from GtApp import GtApp
-    gtpsf = GtApp('gtpsf')
-    workdir = config['fileio']['workdir']
-    gtpsf["expcube"] = '{}/ltcube_00.fits'.format(workdir)
-    gtpsf["outfile"] = '{}/gtpsf_00.fits'.format(workdir)
-    gtpsf["irfs"] = config['gtlike']['irfs']
-    gtpsf['evtype'] = config['selection']['evtype']
-    gtpsf['ra'] = config['selection']['ra']
-    gtpsf['dec'] = config['selection']['dec']
-    gtpsf['emin'] = config['selection']['emin']
-    gtpsf['emax'] = config['selection']['emax']
-    gtpsf['chatter'] = 0
-    gtpsf.run()
+from ..utils import generatePHA, generatePSF, generateRSP
 
 class FermiAnalysis():
     """
@@ -109,6 +97,10 @@ class FermiAnalysis():
 
             self._logging.debug("Generate PSF.")
             generatePSF(self.gta.config)
+            self._logging.debug("Generate PHA.")
+            generatePHA(self.gta.config)
+            self._logging.debug("Generate RSP.")
+            generateRSP(self.gta.config)
 
             if construct_dataset:
                 self.construct_dataset()
@@ -215,16 +207,7 @@ class FermiAnalysis():
             self._logging.error("Run FermiAnalysis.construct_dataset first.")
             return
 
-        e_true = self.datasets.edisp.edisp_map.geom.axes[1]
-        e_reco = MapAxis.from_energy_bounds(
-            e_true.edges.min(),
-            e_true.edges.max(),
-            nbin=len(e_true.center),
-            name="energy",
-        )
-
-        edisp_kernel = self.datasets.edisp.get_edisp_kernel(energy_axis=e_reco)
-
+        edisp_kernel = self.datasets.edisp.get_edisp_kernel()
 
         f, ax = plt.subplots(2,2, figsize=(10, 6))
         edisp_kernel.plot_bias(ax = ax[0][0])
@@ -396,8 +379,6 @@ class FermiAnalysis():
             output = {}
 
         model = kwargs.get("model", self._test_model)
-        energy_bins = kwargs.get("energy_bins", np.log10(self._energy_bins.edges.value))
-
         free = self.gta.get_free_param_vector()
 
         if type(jobs) == str:
@@ -618,9 +599,17 @@ class FermiAnalysis():
         glon = self.gta.config['selection']['glon']
         glat = self.gta.config['selection']['glat']
         src_pos = SkyCoord(glon, glat, unit="deg", frame="galactic")
+        emin = self.gta.config["selection"]["emin"]
+        emax = self.gta.config["selection"]["emax"]
+        nbin = int((np.log10(emax)-np.log10(emin))*self.gta.config["binning"]["binsperdec"])
+        energy_bins = MapAxis.from_bounds(emin,emax,
+                nbin=nbin,
+                name="energy",
+                interp="log", unit="MeV")
+
         counts = Map.create(skydir=src_pos, width=self.gta.config['binning']['roiwidth'],
             proj=self.gta.config['binning']['proj'], binsz=self.gta.config['binning']['binsz'],
-            frame='galactic', axes=[self._energy_bins], dtype=float)
+            frame='galactic', axes=[energy_bins], dtype=float)
         counts.fill_by_coord({"skycoord": self._gammapy_events.radec, "energy": self._gammapy_events.energy})
 
         return counts
@@ -645,10 +634,21 @@ class FermiAnalysis():
         irf['psf'] = psf
 
         # Energy dispersion
-        e_true = exposure.geom.axes["energy_true"]
-        edisp = EDispMap.from_diagonal_response(energy_axis_true=e_true)
-        irf['edisp'] = edisp
+        rsp_file = fits.open(f"{self._outdir}/gtrsp_00.rsp")
+        disp = rsp_file[1].data
+        e_obs = rsp_file[2].data
 
+        e_true = disp["ENERG_LO"].tolist()+[disp["ENERG_HI"][-1]]
+        e_true = MapAxis.from_edges(e_true, name="energy_true", interp="log", unit="keV")
+
+        e_obs = e_obs["E_MIN"].tolist()+[e_obs["E_MAX"][-1]]
+        e_obs = MapAxis.from_edges(e_obs, name="energy", interp="log", unit="keV")
+
+        data = np.asarray(disp["MATRIX"].tolist())
+        edisp = EDispKernelMap.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
+        edisp.data = data
+
+        irf['edisp'] = edisp
         return irf
 
     def _convert_model(self, fix_other_srcs=False):
@@ -656,9 +656,9 @@ class FermiAnalysis():
         for src in self.gta.roi.sources:
 
             if src.name == "isodiff":
-                gammapy_models.append(fermi_isotropic_diffuse_bkg(self.gta.config, src))
+                gammapy_models.append(fermi_isotropic_diffuse_bkg(self.gta.config, src, fix_pars = fix_other_srcs))
             elif src.name == "galdiff":
-                gammapy_models.append(fermi_galactic_diffuse_bkg(self.gta.config, src))
+                gammapy_models.append(fermi_galactic_diffuse_bkg(self.gta.config, src, fix_pars = fix_other_srcs))
             elif src.name == self.target_name:
                 gammapy_models.append(fermipy2gammapy(self.gta.like, src))
             else:

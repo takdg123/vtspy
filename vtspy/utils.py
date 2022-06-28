@@ -264,3 +264,52 @@ def define_time_intervals(tmin, tmax, binsz=None, nbins=None):
         time_intervals = [Time([tstart, tstop]) for tstart, tstop in zip(times[:-1], times[1:])]
 
     return time_intervals
+
+def generatePSF(config):
+    from GtApp import GtApp
+    gtpsf = GtApp('gtpsf')
+    workdir = config['fileio']['workdir']
+    gtpsf["expcube"] = '{}/ltcube_00.fits'.format(workdir)
+    gtpsf["outfile"] = '{}/gtpsf_00.fits'.format(workdir)
+    gtpsf["irfs"] = config['gtlike']['irfs']
+    gtpsf['evtype'] = config['selection']['evtype']
+    gtpsf['ra'] = config['selection']['ra']
+    gtpsf['dec'] = config['selection']['dec']
+    gtpsf['emin'] = config['selection']['emin']
+    gtpsf['emax'] = config['selection']['emax']
+    gtpsf['chatter'] = 0
+    gtpsf.run()
+
+def generateRSP(config):
+    from gt_apps import rspgen
+    workdir = config['fileio']['workdir']
+    rspgen['respalg'] = 'PS'
+    rspgen['specfile'] = '{}/gtpha_00.pha'.format(workdir)
+    rspgen['scfile'] = config['data']['scfile']
+    rspgen['outfile'] = '{}/gtrsp_00.rsp'.format(workdir)
+    rspgen['thetacut'] = 90
+    rspgen['irfs'] = config['gtlike']['irfs']
+    rspgen['emin'] = config['selection']['emin']
+    rspgen['emax'] = config['selection']['emax']
+    rspgen['enumbins'] = 30
+    rspgen.run() 
+
+def generatePHA(config):
+    from gt_apps import evtbin
+    workdir = config['fileio']['workdir']
+    evtbin['evfile'] = '{}/ft1_00.fits'.format(workdir)
+    evtbin['scfile'] = config['data']['scfile']
+    evtbin['outfile'] = '{}/gtpha_00.pha'.format(workdir)
+    evtbin['algorithm'] = 'PHA1'
+    evtbin['ebinalg'] = 'LOG'
+    evtbin['emin'] = config['selection']['emin']
+    evtbin['emax'] = config['selection']['emax']
+    evtbin['enumbins'] = 30
+    evtbin['tbinalg'] = 'LIN'
+    evtbin['tstart'] = config['selection']['tmin']
+    evtbin['tstop'] = config['selection']['tmax']
+    evtbin['dtime'] = config['selection']['tmax']-config['selection']['tmin']
+    evtbin['coordsys'] = 'CEL'
+    evtbin['xref'] = config['selection']['ra']
+    evtbin['yref'] = config['selection']['dec']
+    evtbin.run()
