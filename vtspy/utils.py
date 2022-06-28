@@ -283,6 +283,11 @@ def generatePSF(config):
 def generateRSP(config):
     from gt_apps import rspgen
     workdir = config['fileio']['workdir']
+    emin = config['selection']['emin']
+    emax = config['selection']['emax']
+    binsperdec = config['binning']['binsperdec']
+    enumbins = int((np.log10(emax)-np.log10(emin))*binsperdec)
+    
     rspgen['respalg'] = 'PS'
     rspgen['specfile'] = '{}/gtpha_00.pha'.format(workdir)
     rspgen['scfile'] = config['data']['scfile']
@@ -291,12 +296,17 @@ def generateRSP(config):
     rspgen['irfs'] = config['gtlike']['irfs']
     rspgen['emin'] = config['selection']['emin']
     rspgen['emax'] = config['selection']['emax']
-    rspgen['enumbins'] = 30
+    rspgen['enumbins'] = enumbins
     rspgen.run() 
 
 def generatePHA(config):
     from gt_apps import evtbin
     workdir = config['fileio']['workdir']
+    emin = config['selection']['emin']
+    emax = config['selection']['emax']
+    binsperdec = config['binning']['binsperdec']
+    enumbins = int((np.log10(emax)-np.log10(emin))*binsperdec)
+    
     evtbin['evfile'] = '{}/ft1_00.fits'.format(workdir)
     evtbin['scfile'] = config['data']['scfile']
     evtbin['outfile'] = '{}/gtpha_00.pha'.format(workdir)
@@ -304,7 +314,7 @@ def generatePHA(config):
     evtbin['ebinalg'] = 'LOG'
     evtbin['emin'] = config['selection']['emin']
     evtbin['emax'] = config['selection']['emax']
-    evtbin['enumbins'] = 30
+    evtbin['enumbins'] = enumbins
     evtbin['tbinalg'] = 'LIN'
     evtbin['tstart'] = config['selection']['tmin']
     evtbin['tstop'] = config['selection']['tmax']
