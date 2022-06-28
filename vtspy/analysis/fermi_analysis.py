@@ -87,7 +87,7 @@ class FermiAnalysis():
                 nbin=8,
                 interp="log", unit="MeV").edges
 
-        if overwrite or not(os.path.isfile("./{}/{}.fits".format(self._outdir,state_file))):
+        if overwrite or not(os.path.isfile(f"{self._outdir}/{state_file}.fits")):
 
             if overwrite:
                 self._logging.info("Overwrite the Fermi-LAT setup.")
@@ -121,11 +121,6 @@ class FermiAnalysis():
 
             if flag == -1:
                 return
-
-        try:
-            self.output = np.load(f"./{self._outdir}/output.npy", allow_pickle=True).item()
-        except:
-            self.output = {}
 
         self._test_model = {'Index' : 2.0, 'SpatialModel' : 'PointSource' }
         self._find_target()
@@ -252,8 +247,8 @@ class FermiAnalysis():
             self._logging.warning("The 'inital' state is overwritten. This is not recommended.")
             self._logging.warning("The original 'inital' state is archived in the '_orig' folder.")
             os.system(f"mkdir ./{self._outdir}/_orig")
-            for file in glob.glob(f"./{self._outdir}/*initial*"):
-                os.sytem(f"mv {file} ./{self._outdir}/_orig/")
+            for file in glob.glob(f"{self._outdir}/*initial*"):
+                os.sytem(f"mv {file} {self._outdir}/_orig/")
 
         self.gta.write_roi(state_file, save_model_map=True)
         self._fermi_state = state_file
@@ -266,9 +261,10 @@ class FermiAnalysis():
             state_file (str): passed to fermipy.write_roi
         """
         try:
-
             self.gta.load_roi(state_file)
             self._fermi_state = state_file
+            if os.path.exists(f"{self._outdir}/{state_file}_output.npy"):
+                self.output = np.load(f"{self._outdir}/{state_file}_output.npy", allow_pickle=True).item()
         except:
             self._logging.error("The state file does not exist. Check the name again")
             return -1
@@ -381,29 +377,25 @@ class FermiAnalysis():
         if return_output:
             return o
 
-    def analysis(self, jobs = ["ts", "resid", "sed"],
-        filename = "output", state_file="analyzed", **kwargs):
+    def analysis(self, jobs = ["ts", "resid", "sed"], state_file="analyzed", **kwargs):
         """
         Perform various analyses: TS map, Residual map, and SED.
 
         Args:
             jobs (str or list): list of jobs, 'ts', 'resid', and/or 'sed'.
                 Default: ['ts', 'resid', 'sed']
-            filename (str): read and write the output
-                Default: output
             state_file (str): output state filename (npy)
                 Default: analyzed
             **kwargs: passed to GTanalysis.sed
         """
 
         try:
-            output = np.load(f"./{self._outdir}/{filename}.npy", allow_pickle=True).item()
+            output = np.load(f"{self._outdir}/{state_file}_output.npy", allow_pickle=True).item()
         except:
             output = {}
 
         model = kwargs.get("model", self._test_model)
         energy_bins = kwargs.get("energy_bins", np.log10(self._energy_bins.value))
-        outfile=state_file+"_sed.fits"
 
         free = self.gta.get_free_param_vector()
 
@@ -419,18 +411,19 @@ class FermiAnalysis():
             output['resid'] = o
 
         if "sed" in jobs:
+            outfile=state_file+"_sed.fits"
             o = self._calc_sed(outfile=outfile, **kwargs)
             output['sed'] = o
 
         self.gta.set_free_param_vector(free)
 
         self.output = output
-        np.save(f"./{self._outdir}/"+filename, output)
+        np.save(f"{self._outdir}/{state_file}_output", output)
 
         self.save_state(state_file)
         self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.FermiAnalysis('{state_file}').")
 
-    def plot(self, output, filename="output", **kwargs):
+    def plot(self, output, state_file="analyzed", **kwargs):
         """
         Show various plots: TS map, Residual map, and SED.
 
@@ -438,12 +431,12 @@ class FermiAnalysis():
             output (str or list): list of plots to show
                 Options: ["sqrt_ts", "npred", "ts_hist", "data",
                 "model", "sigma", "excess", "resid", "sed"]
-            filename (str): read the output (from FermiAnalysis.analysis)
+            state_file (str): read the output (from FermiAnalysis.analysis)
         """
 
         try:
             self._logging.info("Loading the output file...")
-            self.output = np.load(f"./{self._outdir}/{filename}.npy", allow_pickle=True).item()
+            self.output = np.load(f"{self._outdir}/{filename}_output.npy", allow_pickle=True).item()
         except:
             self._logging.error("Run FermiAnalysis.analysis first.")
             return
