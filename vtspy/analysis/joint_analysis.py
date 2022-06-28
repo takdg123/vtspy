@@ -190,7 +190,7 @@ class JointAnalysis:
 
         if method == "flux":
             test_model = SkyModel(spectral_model=model, name="test")
-            fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/sed.fits")
+            fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/{self._fermi_state}_sed.fits")
 
             if not(os.path.isfile(fermi_sed)):
                 self.fermi.analysis("sed")
