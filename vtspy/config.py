@@ -25,10 +25,16 @@ class JointConfig:
 	    config_file (str): Fermi config filename (yaml)
 	    	Default: config.yaml
 	    info (dict, optional): manual inputs
+	    fermi_outdir (str): path to the Fermi-LAT output directory
+	        Default: ./fermi/
+        veritas_outdir (str): path to the VERITAS output directory
+        	Default: ./veritas/
+        joint_outdir (str): path to the joint-fit output directory
+        	Default: ./joint/
 	    verbosity (int)
 	"""
 
-	def __init__(self, files=None, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
+	def __init__(self, files=None, config_file="config.yaml", info = {}, fermi_outdir="./fermi/", veritas_outdir="./veritas/", joint_outdir="./joint/", verbosity=1, **kwargs):
 		self._logging = logger(verbosity=verbosity)
 
 		self._filename = config_file
@@ -40,23 +46,11 @@ class JointConfig:
 			self.print_info()
 			self._logging.info(f'a configuration file ({config_file}) is loaded.')
 		else:
-			self.init(files=files, config_file=config_file, info=info, **kwargs)
+			self.init(**kwargs)
 			self.print_info(config_file=config_file)
 			self._logging.info(f'a configuration file ({config_file}) is created.')
 
-	def init(self, files=None, config_file="config.yaml", info = {}, verbosity=1, **kwargs):
-
-		"""
-	    Initiate to generate a config file
-
-	    Args:
-	        file (str): name of the input file (.root or .fits)
-	        directory (str): name of a directory containing root or fits files
-	        config_file (str): Fermi config filename (yaml)
-	        	Default: config.yaml
-	        info (dict, optional): manual inputs
-	        verbosity (int)
-		"""
+	def init(self, files=None, config_file="config.yaml", info = {}, fermi_outdir="./fermi/", veritas_outdir="./veritas/", joint_outdir="./joint/", verbosity=1, **kwargs):
 
 		gald = kwargs.pop("gald", "gll_iem_v07.fits")
 		iso = kwargs.pop("iso", "iso_P8R3_SOURCE_V3_v1.txt")
@@ -70,8 +64,8 @@ class JointConfig:
 			if ".gz" in file:
 				filelist.remove(file)
 
-		self.fermi_config = self._empty4fermi(gald=gald, iso=iso)
-		self.veritas_config = self._empty4veritas()
+		self.fermi_config = self._empty4fermi(outdir = fermi_outdir, gald=gald, iso=iso)
+		self.veritas_config = self._empty4veritas(outdir = veritas_outdir, )
 
 		self.veritas_config["data"]["anasum"] = os.path.dirname(filelist[0])
 
@@ -206,8 +200,10 @@ class JointConfig:
 
 		self.fermi_config = self._update(self.fermi_config, info['fermi'])
 		self.veritas_config = self._update(self.veritas_config, info['veritas'])
-
-		info = {"fermi": self.fermi_config, "veritas": self.veritas_config}
+		self.joint_config = {'fileio':{
+								'outdir': joint_outdir,
+							}}
+		info = {"fermi": self.fermi_config, "veritas": self.veritas_config, "joint": self.joint_config}
 
 		self.set_config(info, config_file)
 
@@ -311,9 +307,6 @@ class JointConfig:
 		                                  utils.MET2UTC(self.fermi_config["selection"]["tmax"])))
 		self._logging.info("-"*45)
 
-
-
-
 	@staticmethod
 	def set_config(info, config_file="config.yaml"):
 		"""
@@ -379,17 +372,17 @@ class JointConfig:
 		return pre_info
 
 	@staticmethod
-	def _empty4fermi(gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt"):
-		if not(os.path.isdir("./fermi")):
-			os.system("mkdir fermi")
-		if not(os.path.isdir("./fermi/log")):
-			os.system("mkdir ./fermi/log")
-			os.system(": > ./fermi/log/fermipy.log")
+	def _empty4fermi(outdir = "./fermi/", gald = "gll_iem_v07.fits", iso = "iso_P8R3_SOURCE_V3_v1.txt"):
+		if not(os.path.isdir(outdir)):
+			os.system(f"mkdir {outdir}")
+		if not(os.path.isdir(f"{outdir}/log")):
+			os.system(f"mkdir {outdir}/log")
+			os.system(f": > {outdir}/log/fermipy.log")
 
 		info = {
  				'data': {
- 					'evfile': "./fermi/EV00.lst",
- 					'scfile': "./fermi/SC00.fits",
+ 					'evfile': f"{outdir}/EV00.lst",
+ 					'scfile': f"{outdir}/SC00.fits",
  					'ltcube': None
  					},
  				'binning': {
@@ -425,17 +418,17 @@ class JointConfig:
 					'catalogs': SCRIPT_DIR+'/refdata/gll_psc_v22.fit'
 					},
 				'fileio': {
-					'outdir' : "./fermi/",
-   					'logfile' : "./fermi/log/fermipy.log",
+					'outdir' : outdir,
+   					'logfile' : f"{outdir}/log/fermipy.log",
 					'usescratch': False
 					},
 				}
 		return info
 
 	@staticmethod
-	def _empty4veritas():
-		if not(os.path.isdir("./veritas")):
-			os.system("mkdir veritas")
+	def _empty4veritas(outdir = "./veritas/"):
+		if not(os.path.isdir(outdir)):
+			os.system(f"mkdir {outdir}")
 
 		info = {
 			'background':
@@ -446,10 +439,10 @@ class JointConfig:
 				'simbad': True,
 			},
 			'data': {
-				'anasum': "./veritas/"
+				'anasum': outdir
 			},
 			'fileio':{
-				'outdir': "./veritas/",
+				'outdir': outdir,
 			},
 			'cuts':{
 				'th2cut': 0.008,
