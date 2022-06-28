@@ -56,6 +56,7 @@ class JointAnalysis:
         elif hasattr(veritas, "datasets"):
             self._logging.info("VERITAS datasets is imported.")
             self.veritas = veritas
+            self._veritas_state = self.veritas._veritas_state
             self._target_name = self.veritas.target_name
 
         if type(fermi) == str:
@@ -63,6 +64,7 @@ class JointAnalysis:
             self._fermi_state = fermi
         elif hasattr(fermi, "gta"):
             self.fermi = fermi
+            self._fermi_state = self.fermi._fermi_state
             self.fermi.construct_dataset()
             self._logging.info("Fermi-LAT datasets is imported.")
 

@@ -202,8 +202,8 @@ class JointConfig:
 						'ra': ra,
 						'dec': dec,
 						'tmin': tmin,
-						'tmax': tmax,}
-						#'target': target},
+						'tmax': tmax,
+						'target': target},
 						},
 					'veritas':{
 					'selection':{
