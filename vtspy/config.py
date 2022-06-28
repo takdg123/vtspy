@@ -46,17 +46,17 @@ class JointConfig:
 			self.print_info()
 			self._logging.info(f'a configuration file ({config_file}) is loaded.')
 		else:
-			self.init(**kwargs)
+			self.init(files=files, config_file=config_file, info=info, fermi_outdir=fermi_outdir, veritas_outdir=veritas_outdir, joint_outdir=joint_outdir,   **kwargs)
 			self.print_info(config_file=config_file)
 			self._logging.info(f'a configuration file ({config_file}) is created.')
 
-	def init(self, files=None, config_file="config.yaml", info = {}, fermi_outdir="./fermi/", veritas_outdir="./veritas/", joint_outdir="./joint/", verbosity=1, **kwargs):
+	def init(self, files=None, config_file="config.yaml", info = {}, fermi_outdir="./fermi/", veritas_outdir="./veritas/", joint_outdir="./joint/", **kwargs):
 
 		gald = kwargs.pop("gald", "gll_iem_v07.fits")
 		iso = kwargs.pop("iso", "iso_P8R3_SOURCE_V3_v1.txt")
 
 		if files is None:
-			filelist = glob.glob("./veritas/")
+			filelist = glob.glob(veritas_outdir+"/*")
 		else:
 			filelist = glob.glob(files+"/*")
 

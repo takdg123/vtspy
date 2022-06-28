@@ -37,7 +37,8 @@ class JointAnalysis:
         self._verbosity = verbosity
         self._logging = logger(self.verbosity)
         self._logging.info("Initialize the joint-fit analysis...")
-        self._outdir = kwargs.pop("outdir", "./joint/")
+        self.config = JointConfig.get_config(config_file).pop("joint")
+        self._outdir = kwargs.pop("outdir", self.config["fileio"]["outdir"])
 
         if not(os.path.isdir(self._outdir)):
             os.system(f"mkdir {self._outdir}")
