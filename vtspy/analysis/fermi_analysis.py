@@ -436,7 +436,7 @@ class FermiAnalysis():
 
         try:
             self._logging.info("Loading the output file...")
-            self.output = np.load(f"{self._outdir}/{filename}_output.npy", allow_pickle=True).item()
+            self.output = np.load(f"{self._outdir}/{state_file}_output.npy", allow_pickle=True).item()
         except:
             self._logging.error("Run FermiAnalysis.analysis first.")
             return

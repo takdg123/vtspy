@@ -245,9 +245,6 @@ class JointConfig:
 
 
 		"""
-
-
-
 		if scale.lower() == "utc":
 			tmin_mjd = utils.UTC2MJD(tmin)
 			tmax_mjd = utils.UTC2MJD(tmax)
