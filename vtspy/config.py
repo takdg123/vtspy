@@ -246,12 +246,16 @@ class JointConfig:
 
 		"""
 
+
+
 		if scale.lower() == "utc":
 			tmin_mjd = utils.UTC2MJD(tmin)
 			tmax_mjd = utils.UTC2MJD(tmax)
 			tmin_met= utils.UTC2MET(tmin[:10])
 			tmax_met = utils.UTC2MET(tmax[:10])+60*60*24
 		elif scale.lower() == "mjd":
+			tmin = float(tmin)
+			tmax = float(tmax)
 			tmin_mjd = tmin
 			tmax_mjd = tmax
 			tmin_utc = utils.MJD2UTC(tmin)
@@ -259,6 +263,8 @@ class JointConfig:
 			tmin_met = utils.UTC2MET(tmin_utc[:10])
 			tmax_met = utils.UTC2MET(tmax_utc[:10])+60*60*24
 		elif scale.lower() == "met":
+			tmin = float(tmin)
+			tmax = float(tmax)
 			tmin_met = tmin
 			tmax_met = tmax
 			tmin_utc = utils.MET2UTC(tmin)
