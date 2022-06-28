@@ -11,6 +11,7 @@ from ..utils import logger
 from .. import utils
 from ..model import default_model
 from .. import plotting
+from ..config import JointConfig
 
 from gammapy.datasets import Datasets, FluxPointsDataset
 from gammapy.modeling import Fit
@@ -29,11 +30,13 @@ class JointAnalysis:
             Default: initial
         fermi (str or vtspy.FermiAnalysis): state filename or class for Fermi-LAT
             Default: initial
+        config_file (str): config filename (yaml)
+            Default: config.yaml
         verbosity (int)
     """
 
 
-    def __init__(self, veritas = None, fermi = None, verbosity=1, **kwargs):
+    def __init__(self, veritas = None, fermi = None, config_file='config.yaml', verbosity=1, **kwargs):
         self._verbosity = verbosity
         self._logging = logger(self.verbosity)
         self._logging.info("Initialize the joint-fit analysis...")

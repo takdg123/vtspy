@@ -141,6 +141,8 @@ class JointConfig:
 					tmax_utc = utils.MJD2UTC(tmax_mjd)
 					tmax = utils.UTC2MET(tmax_utc[:10])+60*60*24
 
+					target = tRun["TargetName"].arrays(library="np")['TargetName'][0]
+
 				elif 'anasum.fits' in file:
 
 					header = fits.open(file)[1].header
@@ -200,8 +202,8 @@ class JointConfig:
 						'ra': ra,
 						'dec': dec,
 						'tmin': tmin,
-						'tmax': tmax,
-						'target': target},
+						'tmax': tmax,}
+						#'target': target},
 						},
 					'veritas':{
 					'selection':{
