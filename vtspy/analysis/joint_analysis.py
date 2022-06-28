@@ -50,7 +50,7 @@ class JointAnalysis:
         self._fit_flag = False
 
         if type(veritas) == str:
-            self.veritas = VeritasAnalysis(veritas)
+            self.veritas = VeritasAnalysis(veritas, config_file=config_file)
             self._veritas_state = veritas
             self._target_name = self.veritas.target_name
         elif hasattr(veritas, "datasets"):
@@ -59,8 +59,8 @@ class JointAnalysis:
             self._target_name = self.veritas.target_name
 
         if type(fermi) == str:
-            self.fermi = FermiAnalysis(fermi, construct_dataset=True)
-            self._fermi_state = veritas
+            self.fermi = FermiAnalysis(fermi, construct_dataset=True, config_file=config_file)
+            self._fermi_state = fermi
         elif hasattr(fermi, "gta"):
             self.fermi = fermi
             self.fermi.construct_dataset()
