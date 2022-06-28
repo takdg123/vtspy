@@ -403,6 +403,7 @@ class FermiAnalysis():
 
         model = kwargs.get("model", self._test_model)
         energy_bins = kwargs.get("energy_bins", np.log10(self._energy_bins.value))
+        outfile=state_file+"_sed.fits"
 
         free = self.gta.get_free_param_vector()
 
@@ -418,7 +419,7 @@ class FermiAnalysis():
             output['resid'] = o
 
         if "sed" in jobs:
-            o = self._calc_sed(**kwargs)
+            o = self._calc_sed(outfile=outfile, **kwargs)
             output['sed'] = o
 
         self.gta.set_free_param_vector(free)
@@ -585,10 +586,12 @@ class FermiAnalysis():
         distance = kwargs.pop("distance", 3.0)
 
         loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.value))
+        
+        outfile = kwargs.pop("outfile", 'sed.fits')
 
         self.gta.free_sources(free=False)
         self.gta.free_sources(skydir=self.gta.roi[target].skydir, distance=[distance], free=True)
-        o = self.gta.sed(self.target.name, outfile='sed.fits', bin_index=2.2, loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
+        o = self.gta.sed(self.target.name, outfile=outfile, bin_index=2.2, loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
         self._logging.info("Generating the SED is completed.")
         return o
 
