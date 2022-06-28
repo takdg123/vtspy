@@ -283,8 +283,7 @@ class FermiAnalysis():
             return
         elif type(target)==str:
             self._find_target(name=target)
-            self._logging.info(f"The target is set to {src.name}")
-        self._logging.warning("The entered target is not found. Check sources by using print_association.")
+            self._logging.info(f"The target is set to {target}")
 
     def remove_weak_srcs(self, ts_cut=1, npred_cut=0):
 
@@ -536,12 +535,15 @@ class FermiAnalysis():
                 continue
 
             for n in src.associations:
-                if n.replace(" ", "") == name:
+                if (n.replace(" ", "") == name) or (n == name):
                     self._target = self.gta.roi.sources[i]
                     self._target_name = self.gta.roi.sources[i].name
                     self._target_id = i
                     list_of_association = src.associations
                     flag = True
+                    self.gta.config["selection"]["target"] = self.target_name
+
+
             if flag:
                 break
 
