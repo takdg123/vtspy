@@ -82,10 +82,12 @@ class FermiAnalysis():
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
 
+        nbin = kwargs.pop("nbin", 6)
         self._energy_bins = MapAxis.from_bounds(self.gta.config["selection"]["emin"],
                 self.gta.config["selection"]["emax"],
-                nbin=6,
-                interp="log", unit="MeV").edges
+                nbin=nbin,
+                name="energy",
+                interp="log", unit="MeV")
 
         if overwrite or not(os.path.isfile(f"{self._outdir}/{state_file}.fits")):
 
@@ -394,7 +396,7 @@ class FermiAnalysis():
             output = {}
 
         model = kwargs.get("model", self._test_model)
-        energy_bins = kwargs.get("energy_bins", np.log10(self._energy_bins.value))
+        energy_bins = kwargs.get("energy_bins", np.log10(self._energy_bins.edges.value))
 
         free = self.gta.get_free_param_vector()
 
@@ -580,7 +582,7 @@ class FermiAnalysis():
 
         distance = kwargs.pop("distance", 3.0)
 
-        loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.value))
+        loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.edges.value))
         
         outfile = kwargs.pop("outfile", 'sed.fits')
 
@@ -614,15 +616,10 @@ class FermiAnalysis():
 
         glon = self.gta.config['selection']['glon']
         glat = self.gta.config['selection']['glat']
-        emin = np.log10(self.gta.config["selection"]["emin"])
-        emax = np.log10(self.gta.config["selection"]["emax"])
-        nbins = int(self.gta.config["binning"]["binsperdec"])
-        energy_bins = np.logspace(emin,emax,nbins)* u.MeV
         src_pos = SkyCoord(glon, glat, unit="deg", frame="galactic")
-        energy_axis = MapAxis.from_edges(energy_bins, name="energy", unit="MeV", interp="log")
         counts = Map.create(skydir=src_pos, width=self.gta.config['binning']['roiwidth'],
             proj=self.gta.config['binning']['proj'], binsz=self.gta.config['binning']['binsz'],
-            frame='galactic', axes=[energy_axis], dtype=float)
+            frame='galactic', axes=[self._energy_bins], dtype=float)
         counts.fill_by_coord({"skycoord": self._gammapy_events.radec, "energy": self._gammapy_events.energy})
 
         return counts
