@@ -82,10 +82,9 @@ class FermiAnalysis():
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
 
-        nbin = kwargs.pop("nbin", 6)
         self._energy_bins = MapAxis.from_bounds(self.gta.config["selection"]["emin"],
                 self.gta.config["selection"]["emax"],
-                nbin=nbin,
+                nbin=6,
                 interp="log", unit="MeV").edges
 
         if overwrite or not(os.path.isfile(f"{self._outdir}/{state_file}.fits")):
@@ -436,7 +435,7 @@ class FermiAnalysis():
 
         try:
             self._logging.info("Loading the output file...")
-            self.output = np.load(f"{self._outdir}/{state_file}_output.npy", allow_pickle=True).item()
+            self.output = np.load(f"{self._outdir}/{filename}_output.npy", allow_pickle=True).item()
         except:
             self._logging.error("Run FermiAnalysis.analysis first.")
             return
@@ -615,10 +614,15 @@ class FermiAnalysis():
 
         glon = self.gta.config['selection']['glon']
         glat = self.gta.config['selection']['glat']
+        emin = np.log10(self.gta.config["selection"]["emin"])
+        emax = np.log10(self.gta.config["selection"]["emax"])
+        nbins = int(self.gta.config["binning"]["binsperdec"])
+        energy_bins = np.logspace(emin,emax,nbins)* u.MeV
         src_pos = SkyCoord(glon, glat, unit="deg", frame="galactic")
+        energy_axis = MapAxis.from_edges(energy_bins, name="energy", unit="MeV", interp="log")
         counts = Map.create(skydir=src_pos, width=self.gta.config['binning']['roiwidth'],
             proj=self.gta.config['binning']['proj'], binsz=self.gta.config['binning']['binsz'],
-            frame='galactic', axes=self._energy_bins, dtype=float)
+            frame='galactic', axes=[energy_axis], dtype=float)
         counts.fill_by_coord({"skycoord": self._gammapy_events.radec, "energy": self._gammapy_events.energy})
 
         return counts
