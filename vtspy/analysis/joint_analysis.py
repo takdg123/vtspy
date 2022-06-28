@@ -193,7 +193,7 @@ class JointAnalysis:
             fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/{self._fermi_state}_sed.fits")
 
             if not(os.path.isfile(fermi_sed)):
-                self.fermi.analysis("sed")
+                self.fermi.analysis("sed", state_file = self._fermi_state)
 
             data = FluxPoints.read(fermi_sed, reference_model=self.target_model, hdu=1)
 
@@ -399,17 +399,17 @@ class JointAnalysis:
         self._logging.info(f"The spectral model for the target is chaged:")
         self._logging.info(f"{prevmodel}->{newmodel}")
 
-    def add_dataset(self, data, sync = True):
+    def add_dataset(self, data, sync = True, **kwargs):
         if type(data) == FluxPoints:
             if sync:
                 model = self.target_model
             else:
                 self._logging.warning(f"The model is assumed to be a power law.")
                 model = SkyModel(spectral_model=gammapy_model.PowerLawSpectralModel(), name="test")
-            new_dataset = FluxPointsDataset(data=data, models=model)
+            new_dataset = FluxPointsDataset(data=data, models=model, **kwargs)
             self.datasets.append(new_dataset)
         else:
-            self._logging.error(f"This type is not supported yet.")
+            self._logging.error(f"This data type is not supported yet.")
             
     def _construct_joint_datasets(self, inst="VERITAS"):
         vts_model = self.veritas.stacked_dataset.models[0]
