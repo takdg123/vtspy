@@ -297,16 +297,20 @@ def convertROOT2fits(files, eff, **kwargs):
         datasource.set_irfs_to_store(irfs_to_store)
         
         datasource.fill_data(evt_filter=evt_filter, **kwargs)
-    hdulist = genHDUlist(
-        datasource,
-        save_multiplicity=save_multiplicity,
-        instrument_epoch=instrument_epoch,
-    )
-    output = file.replace(".root", ".fits")
-    fname_base = os.path.splitext(os.path.basename(output))[0]
-    if filename_to_obsid:
-        hdulist[1].header["OBS_ID"] = fname_base
-    hdulist.writeto(output, overwrite=True)
+    
+        hdulist = genHDUlist(
+            datasource,
+            save_multiplicity=save_multiplicity,
+            instrument_epoch=instrument_epoch,
+        )
+        output = file.replace(".root", ".fits")
+        fname_base = os.path.splitext(os.path.basename(output))[0]
+        obs_id = int(fname_base.split(".")[0])
+
+        if filename_to_obsid:
+            hdulist[1].header["OBS_ID"] = obs_id
+
+        hdulist.writeto(output, overwrite=True)
 
     datadir = str(Path(file).absolute().parent)
     filelist = glob.glob(f"{datadir}/*anasum.fit*")
