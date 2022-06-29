@@ -207,11 +207,11 @@ class FermiAnalysis():
             self._logging.error("Run FermiAnalysis.construct_dataset first.")
             return
 
-        edisp_kernel = self.datasets.edisp.get_edisp_kernel()
+        edisp_kernel = self.datasets.edisp
 
         f, ax = plt.subplots(2,2, figsize=(10, 6))
         edisp_kernel.plot_bias(ax = ax[0][0])
-        ax[0][0].set_xlabel(f"$E_\\mathrm{{True}}$ [MeV]")
+        ax[0][0].set_xlabel(f"$E_\\mathrm{{True}}$ [keV]")
 
         edisp_kernel.plot_matrix(ax = ax[0][1])
         self.datasets.psf.plot_containment_radius_vs_energy(ax = ax[1][0])
@@ -642,11 +642,21 @@ class FermiAnalysis():
         e_obs = e_obs["E_MIN"].tolist()+[e_obs["E_MAX"][-1]]
         e_obs = MapAxis.from_edges(e_obs, name="energy", interp="log", unit="keV")
 
-        data = np.asarray(disp["MATRIX"].tolist())
-        edisp = EDispKernelMap.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
-        edisp.data = data
+        data = disp["MATRIX"]
+        re_shape_data = []
+        for d in data:
+            d = d.tolist()
+            while len(d)!=len(data):
+                d.append(0)
+                
+            re_shape_data.append(d)
+        re_shape_data = np.asarray(re_shape_data)
+
+        edisp = EDispKernel.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
+        edisp.data =re_shape_data
 
         irf['edisp'] = edisp
+        
         return irf
 
     def _convert_model(self, fix_other_srcs=False):

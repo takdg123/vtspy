@@ -349,6 +349,7 @@ def generateRSP(config):
     rspgen['emin'] = config['selection']['emin']
     rspgen['emax'] = config['selection']['emax']
     rspgen['enumbins'] = enumbins
+    rspgen['chatter'] = 0
     rspgen.run() 
 
 def generatePHA(config):
@@ -374,4 +375,5 @@ def generatePHA(config):
     evtbin['coordsys'] = 'CEL'
     evtbin['xref'] = config['selection']['ra']
     evtbin['yref'] = config['selection']['dec']
+    evtbin['chatter'] = 0
     evtbin.run()

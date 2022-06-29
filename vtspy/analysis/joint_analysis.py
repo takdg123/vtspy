@@ -411,7 +411,7 @@ class JointAnalysis:
 
         newmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
         self._fit_flag = False
-        self._logging.info(f"The spectral model for the target is chaged:")
+        self._logging.info(f"The spectral model for the target is changed:")
         self._logging.info(f"{prevmodel}->{newmodel}")
 
     def add_dataset(self, data, sync = True, **kwargs):
@@ -420,8 +420,10 @@ class JointAnalysis:
                 model = self.target_model
             else:
                 self._logging.warning(f"The model is assumed to be a power law.")
-                model = SkyModel(spectral_model=gammapy_model.PowerLawSpectralModel(), name="test")
-            new_dataset = FluxPointsDataset(data=data, models=model, **kwargs)
+                target_name = kwargs.pop("target_name", self.target_name)
+                model = SkyModel(spectral_model=gammapy_model.PowerLawSpectralModel(), name=target_name)
+            name = kwargs.pop("name", "new")
+            new_dataset = FluxPointsDataset(data=data, models=model, name=name, **kwargs)
             self.datasets.append(new_dataset)
         else:
             self._logging.error(f"This data type is not supported yet.")
