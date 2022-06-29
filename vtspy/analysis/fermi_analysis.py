@@ -13,7 +13,7 @@ from astropy.coordinates import SkyCoord
 from gammapy.data import EventList
 from gammapy.datasets import MapDataset, Datasets
 
-from gammapy.irf import PSFMap, EDispKernelMap
+from gammapy.irf import PSFMap, EDispKernel, EDispKernelMap
 from gammapy.maps import Map, MapAxis, WcsGeom
 
 from ..model import *
@@ -207,7 +207,7 @@ class FermiAnalysis():
             self._logging.error("Run FermiAnalysis.construct_dataset first.")
             return
 
-        edisp_kernel = self.datasets.edisp
+        edisp_kernel = self.datasets.edisp.get_edisp_kernel()
 
         f, ax = plt.subplots(2,2, figsize=(10, 6))
         edisp_kernel.plot_bias(ax = ax[0][0])
@@ -654,9 +654,8 @@ class FermiAnalysis():
 
         edisp = EDispKernel.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
         edisp.data =re_shape_data
+        irf['edisp'] = EDispKernelMap.from_edisp_kernel(edisp)
 
-        irf['edisp'] = edisp
-        
         return irf
 
     def _convert_model(self, fix_other_srcs=False):
