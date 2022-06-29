@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import copy
+import glob
+from pathlib import Path
 
 from astropy.time import Time, TimeDelta
 from astropy import units as u
@@ -10,7 +12,6 @@ from astropy.io import fits
 import logging
 logging.basicConfig(format=('%(asctime)s %(levelname)-8s: %(message)s'), datefmt='%Y-%m-%d %H:%M:%S', level=20)
 
-from pathlib import Path
 SCRIPT_DIR = str(Path(__file__).parent.absolute())
 
 MeV2Erg = 1.60218e-6
@@ -264,6 +265,53 @@ def define_time_intervals(tmin, tmax, binsz=None, nbins=None):
         time_intervals = [Time([tstart, tstop]) for tstart, tstop in zip(times[:-1], times[1:])]
 
     return time_intervals
+
+def convertROOT2fits(files, eff, **kwargs):
+    from pyV2DL3.genHDUList import genHDUlist, loadROOTFiles
+    from pyV2DL3 import generateObsHduIndex
+
+    if ".root" in files:
+        files = [files]
+    else:
+        files = glob.glob(files+"/*anasum.root")
+
+    full_enclosure = kwargs.pop("full_enclosure", True)
+    point_like = kwargs.pop("point_like", True)
+    instrument_epoch = kwargs.pop("instrument_epoch", None)
+    save_multiplicity = kwargs.pop("save_multiplicity", False)
+    filename_to_obsid = kwargs.pop("filename_to_obsid", True)
+    evt_filter = kwargs.pop("evt_filter", None)
+    if evt_filter is not None:
+        evt_filter=Path(evt_filter)
+    force_extrapolation = kwargs.get("force_extrapolation", False)
+    fuzzy_boundary = kwargs.get("fuzzy_boundary", 0.0)
+    
+    if not(full_enclosure) and not(point_like):
+        point_like=True
+        full_enclosure=False
+
+    irfs_to_store = {"full-enclosure": full_enclosure, "point-like": point_like}
+
+    for file in files:
+        datasource = loadROOTFiles(Path(file), Path(eff), "ED")
+        datasource.set_irfs_to_store(irfs_to_store)
+        
+        datasource.fill_data(evt_filter=evt_filter, **kwargs)
+    hdulist = genHDUlist(
+        datasource,
+        save_multiplicity=save_multiplicity,
+        instrument_epoch=instrument_epoch,
+    )
+    output = file.replace(".root", ".fits")
+    fname_base = os.path.splitext(os.path.basename(output))[0]
+    if filename_to_obsid:
+        hdulist[1].header["OBS_ID"] = fname_base
+    hdulist.writeto(output, overwrite=True)
+
+    datadir = str(Path(file).absolute().parent)
+    filelist = glob.glob(f"{datadir}/*anasum.fit*")
+            
+    generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=datadir)
 
 def generatePSF(config):
     from GtApp import GtApp

@@ -161,9 +161,6 @@ class JointAnalysis:
             if not(hasattr(self, "veritas")):
                 self.veritas = VeritasAnalysis(self._veritas_state)
 
-            self._construct_joint_datasets()
-
-
         except:
             self._logging.error("The state file does not exist. Check the name again")
             return -1

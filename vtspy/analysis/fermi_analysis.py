@@ -526,8 +526,6 @@ class FermiAnalysis():
                     list_of_association = src.associations
                     flag = True
                     self.gta.config["selection"]["target"] = self.target_name
-
-
             if flag:
                 break
 

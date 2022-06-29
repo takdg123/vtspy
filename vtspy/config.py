@@ -108,12 +108,14 @@ class JointConfig:
 
 		ra = info['fermi']['selection']['ra']
 		dec = info['fermi']['selection']['dec']
+		
+		fits_flag=False
 
 		for file in filelist:
 
 			if file!=None:
 
-				if '.root' in file:
+				if 'anasum.root' in file:
 
 					anasum = uproot.open(file)
 
@@ -133,11 +135,11 @@ class JointConfig:
 						if temp != dec:
 							self._logging.error("[Error] DEC values in input files are different.")
 
-					tmin_mjd = tRun['MJDOn'].arrays(library="np")['MJDOn'][0]
+					tmin_mjd = float(tRun['MJDOn'].arrays(library="np")['MJDOn'][0])
 					tmin_utc = utils.MJD2UTC(tmin_mjd)
 					tmin = utils.UTC2MET(tmin_utc[:10])
 
-					tmax_mjd = tRun['MJDOff'].arrays(library="np")['MJDOff'][0]
+					tmax_mjd = float(tRun['MJDOff'].arrays(library="np")['MJDOff'][0])
 					tmax_utc = utils.MJD2UTC(tmax_mjd)
 					tmax = utils.UTC2MET(tmax_utc[:10])+60*60*24
 
@@ -169,6 +171,8 @@ class JointConfig:
 					tmax_mjd = utils.UTC2MJD(tmax_utc)
 
 					target = header['OBJECT']
+
+					fits_flag = True
 				else:
 					continue
 
@@ -230,6 +234,9 @@ class JointConfig:
 		self.set_config(info, config_file)
 
 		self.config = info
+
+		if not(fits_flag):
+			self._logging.warning("Any 'fits' file cannot be found. Please use utils.convertROOT2fits to convert an anasum root file to a fits file.")
 
 	def change_time_interval(self, tmin, tmax, scale = "utc", instrument="all"):
 		"""
