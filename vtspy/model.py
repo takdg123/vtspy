@@ -111,26 +111,26 @@ def fermi_isotropic_diffuse_bkg(config, fmodel, fix_pars = False):
 
 def default_model(model, **kwargs):
     if (model.lower() == "powerlaw") or (model.lower() == "pl"):
-        amplitude = kwargs.pop("amplitude", 1e-12)
+        amplitude = kwargs.pop("amplitude", 1e-12* u.Unit("cm-2 s-1 TeV-1"),)
         index = kwargs.pop("index", 2.5)
-        reference = kwargs.pop("reference", 1)
+        reference = kwargs.pop("reference", 1 * u.TeV)
 
         spectral_model = gammapy_model.PowerLawSpectralModel(
-            amplitude=amplitude * u.Unit("cm-2 s-1 TeV-1"),
+            amplitude=amplitude,
             index=index,
-            reference=reference * u.TeV,
+            reference=reference,
         )
     elif model.lower() == "logparabola":
-        amplitude = kwargs.pop("amplitude", 1e-12)
+        amplitude = kwargs.pop("amplitude", 1e-12 * u.Unit("cm-2 s-1 TeV-1"))
         alpha = kwargs.pop("alpha", 3)
         beta = kwargs.pop("beta", 2)
-        reference = kwargs.pop("reference", 1)
+        reference = kwargs.pop("reference", 1 * u.TeV)
 
         spectral_model = gammapy_model.LogParabolaSpectralModel(
-             amplitude=1e-12 * u.Unit("cm-2 s-1 TeV-1"),
-             alpha=3,
-             beta=2,
-             reference=1 * u.TeV,
+             amplitude=amplitude,
+             alpha=alpha,
+             beta=beta,
+             reference=reference,
         )
     elif model.lower() == "agnpy":
         from .external.agnpy import agnpy_spectral_model

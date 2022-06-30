@@ -9,6 +9,9 @@ from . import utils
 from .config import JointConfig
 from .download import DownloadFermiData
 from .analysis import *
+from .model import default_model
+from gammapy.modeling import Fit
+gammapy_default_fit = Fit()
 
 from astropy.visualization import astropy_mpl_style, quantity_support
 

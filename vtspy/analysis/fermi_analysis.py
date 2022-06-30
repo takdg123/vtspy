@@ -252,17 +252,20 @@ class FermiAnalysis():
         Args:
             state_file (str): passed to fermipy.write_roi
         """
-        try:
+        filename = f"{self._outdir}/{state_file}.fits"
+        if os.path.exists(filename):
             self.gta.load_roi(state_file)
             self._fermi_state = state_file
-            if os.path.exists(f"{self._outdir}/{state_file}_output.npy"):
-                self.output = np.load(f"{self._outdir}/{state_file}_output.npy", allow_pickle=True).item()
-            if os.path.exists(f"{self._outdir}/gtrsp_00.rsp"):
+            filename = f"{self._outdir}/{state_file}_output.npy"
+            if os.path.exists(filename):
+                self.output = np.load(filename, allow_pickle=True).item()
+            filename = f"{self._outdir}/gtrsp_00.rsp"
+            if os.path.exists(filename):
                 self._exist_rsp = True
             else:
                 self._exist_rsp = False
 
-        except:
+        else:
             self._logging.error("The state file does not exist. Check the name again")
             return -1
 
@@ -384,10 +387,12 @@ class FermiAnalysis():
                 Default: analyzed
             **kwargs: passed to GTanalysis.sed
         """
+        filename = f"{self._outdir}/{state_file}_output.npy"
 
-        try:
-            output = np.load(f"{self._outdir}/{state_file}_output.npy", allow_pickle=True).item()
-        except:
+        if os.path.exists(filename):
+        
+            output = np.load(filename, allow_pickle=True).item()
+        else:
             output = {}
 
         model = kwargs.get("model", self._test_model)
@@ -429,10 +434,11 @@ class FermiAnalysis():
         """
 
         if not(hasattr(self, "output")):
-            try:
+            filename = f"{self._outdir}/{state_file}_output.npy"
+            if os.path.exists(filename):
                 self._logging.info("Loading the output file...")
-                self.output = np.load(f"{self._outdir}/{state_file}_output.npy", allow_pickle=True).item()
-            except:
+                self.output = np.load(filename, allow_pickle=True).item()
+            else:
                 self._logging.error("Run FermiAnalysis.analysis first.")
                 return
 
@@ -566,7 +572,7 @@ class FermiAnalysis():
         self._logging.info("Generating the residual distribution is completed.")
         return o
 
-    def _calc_sed(self, target=None, **kwargs):
+    def _calc_sed(self, target=None, outfile = 'sed.fits', **kwargs):
         self._logging.info("Generating a SED... ")
 
         if target is None:
@@ -574,8 +580,6 @@ class FermiAnalysis():
 
         loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.edges.value))
         
-        outfile = kwargs.pop("outfile", 'sed.fits')
-
         o = self.gta.sed(self.target.name, outfile=outfile, use_local_index=True, loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
         self._logging.info("Generating the SED is completed.")
         return o

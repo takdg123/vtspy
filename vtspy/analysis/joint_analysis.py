@@ -14,7 +14,6 @@ from ..model import default_model
 from .. import plotting
 from ..config import JointConfig
 
-
 from gammapy.datasets import Datasets, FluxPointsDataset
 from gammapy.modeling import Fit
 import gammapy.modeling.models as gammapy_model
@@ -152,8 +151,9 @@ class JointAnalysis:
         Args:
         state_file (str): the name of state
         """
-        try:
-            filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+        filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+        
+        if os.path.exists(filename):
             with open(filename, 'rb') as file:
                 self.__dict__.update(pickle.load(file).__dict__)
 
@@ -163,7 +163,7 @@ class JointAnalysis:
             if not(hasattr(self, "veritas")):
                 self.veritas = VeritasAnalysis(self._veritas_state)
 
-        except:
+        else:
             self._logging.error("The state file does not exist. Check the name again")
             return -1
 
@@ -193,11 +193,7 @@ class JointAnalysis:
 
         if method == "rough":
             
-            optimize_opts_default = {
-                "method": "L-BFGS-B",
-                "options": {"ftol": 1e-4, "gtol": 1e-05, "maxls": 40},
-                "backend": "scipy",
-            }
+            
             optimize_opts = kwargs.pop("optimize_opts", optimize_opts_default)
 
             fit_ = Fit(optimize_opts = optimize_opts)
@@ -225,7 +221,12 @@ class JointAnalysis:
             self._optimize_flux_datasets = Datasets([fermi_dataset, veritas_dataset])
             
             self._optimize_flux_datasets.models = test_model
-            
+
+            for dataset in self.datasets:
+                if (dataset.name != "fermi") and (dataset.name != "veritas"):
+                    if type(dataset) == FluxPointsDataset:
+                        self._optimize_flux_datasets.append(dataset)
+
             optimize_opts_default = {
                 "method": "L-BFGS-B",
                 "backend": "scipy",
@@ -244,6 +245,9 @@ class JointAnalysis:
                 else:
                     prev_stats = current_stats
                     num_run+=1
+
+            if kwargs.get("debug", False):
+                self._logging.info(result_optimize)
             self.datasets.models[self.target_name].spectral_model = test_model.spectral_model
             self._logging.info(f"Optimize {num_run} times to get an inital parameters.")
 
@@ -315,6 +319,9 @@ class JointAnalysis:
 
         if output == "sed":
             self.plot_sed(**kwargs)
+        elif hasattr(output, "plot"):
+            energy_bounds = kwargs.pop("energy_bounds", self._energy_bounds)
+            output.plot(sed_type="e2dnde", energy_bounds=energy_bounds, **kwargs)
 
 
     def plot_sed(self, fermi=True, veritas=True, joint=True, show_model = True, show_flux_points=True, **kwargs):
@@ -370,10 +377,6 @@ class JointAnalysis:
         emin = 1*u.TeV
         emax = 1*u.TeV
         for dataset in self.datasets:
-            if (dataset.name != "fermi") and (dataset.name != "veritas"):
-                self.plot_flux(dataset, color=cmap(i))
-                i+=1
-
             if type(dataset) == FluxPointsDataset:
                 emin_d = dataset.data.energy_min[0]
                 emax_d = dataset.data.energy_max[-1]
@@ -383,22 +386,28 @@ class JointAnalysis:
             
             emin = min(emin, emin_d/2.)
             emax = max(emax, emax_d*2.)
+
+            if (dataset.name != "fermi") and (dataset.name != "veritas"):
+                self.plot_flux(dataset, color=cmap(i))
+                dataset.models[0].spectral_model.plot(sed_type="e2dnde", energy_bounds=[emin, emax], color=cmap(i))
+                i+=1
             
-        energy_bounds = [emin, emax]
+        self._energy_bounds = [emin, emax]
         if joint and show_model:
             jf_model = self.datasets.models[self.target_name].spectral_model
                 
             if fit:
-                jf_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i), label=self.target_name)
-                jf_model.plot_error(energy_bounds=energy_bounds,
+                jf_model.plot(energy_bounds=self._energy_bounds , sed_type="e2dnde", color=cmap(i), label=self.target_name)
+                jf_model.plot_error(energy_bounds=self._energy_bounds ,
                                          sed_type="e2dnde", alpha=0.2, color="k")
             else:
-                jf_model.plot(energy_bounds=energy_bounds, sed_type="e2dnde", color=cmap(i), label="Before fit", ls="--")
+                jf_model.plot(energy_bounds=self._energy_bounds , sed_type="e2dnde", color=cmap(i), label="Before fit", ls="--")
             i+=1
 
         plt.xlim(emin, emax)
         plt.xscale("log")
         plt.yscale("log")
+        plt.ylim(kwargs.get("ylim_l", 1e-15),)
         plt.legend(fontsize=13)
         plt.grid(which="major", ls="-")
         plt.grid(which="minor", ls=":")
@@ -459,16 +468,38 @@ class JointAnalysis:
                 model = self.target_model
             else:
                 if model is None:
-                    model = gammapy_model.PowerLawSpectralModel()
+                    spectral_model = gammapy_model.PowerLawSpectralModel()
                     self._logging.warning(f"The model is assumed to be a power law.")
+                elif type(model) == str:
+                    spectral_model = default_model(model)
+                elif hasattr(model, "tag"):
+                    spectral_model = model
+
                 target_name = kwargs.pop("target_name", "new component")
-                model = SkyModel(spectral_model=model, name=target_name)
+                model = SkyModel(spectral_model=spectral_model, name=target_name)
             name = kwargs.pop("name", f"dataset_{len(self.datasets)}")
             new_dataset = FluxPointsDataset(data=data, models=model, name=name, **kwargs)
-            self.datasets.append(new_dataset)
+            
         else:
             self._logging.error(f"This data type is not supported yet.")
+
+        if not(sync):
+            fit_ = Fit()
+            fit_results = fit_.run(new_dataset)
             
+            if fit_results.success:
+                self.datasets.append(new_dataset)
+                self._logging.info("A new dataset is successfully added.")
+            else:
+                self._logging.error("A new dataset is NOT added.")
+                self._logging.error("Initial parameters for the new dataset model may not be proper.")
+                emin_d = new_dataset.data.energy_min[0]
+                emax_d = new_dataset.data.energy_max[-1]
+                self.plot(spectral_model, energy_bounds = [emin_d, emax_d])
+                self.plot_flux(new_dataset)
+                
+                
+
     def _construct_joint_datasets(self, inst="VERITAS"):
         vts_model = self.veritas.stacked_dataset.models[0]
         fermi_model = self.fermi.datasets.models[self.fermi.target_name]

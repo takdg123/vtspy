@@ -202,12 +202,12 @@ class VeritasAnalysis:
 		Args:
 		state_file (str): the name of state
 		"""
-		try:
-			filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+		filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+		if os.path.exists(filename):
 			with open(filename, 'rb') as file:
 				self.__dict__.update(pickle.load(file).__dict__)
 			self._veritas_state = state_file
-		except:
+		else:
 			self._logging.error("The state file does not exist. Check the name again")
 			return -1
 
@@ -231,8 +231,6 @@ class VeritasAnalysis:
 		)
 
 		self._logging.info("Load the data files.")
-
-		
 
 		if not(os.path.exists(f"{self._datadir}/hdu-index.fits.gz")):
 			self._logging.warning("The 'hdu-/obs-index' files is not found.")
