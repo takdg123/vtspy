@@ -462,7 +462,7 @@ class JointAnalysis:
                     model = gammapy_model.PowerLawSpectralModel()
                     self._logging.warning(f"The model is assumed to be a power law.")
                 target_name = kwargs.pop("target_name", "new component")
-                model = SkyModel(spectral_model=, name=target_name)
+                model = SkyModel(spectral_model=model, name=target_name)
             name = kwargs.pop("name", f"dataset_{len(self.datasets)}")
             new_dataset = FluxPointsDataset(data=data, models=model, name=name, **kwargs)
             self.datasets.append(new_dataset)
