@@ -302,7 +302,7 @@ class JointAnalysis:
         if output == "sed":
             self.plot_sed(**kwargs)
 
-    def plot_sed(self, fermi=True, veritas=True, joint=True, show_model = True, show_flux_points=True):
+    def plot_sed(self, fermi=True, veritas=True, joint=True, show_model = True, show_flux_points=True, **kwargs):
         """
         Plot a spectral energy distribution (SED) with a model and flux points.
 
@@ -317,6 +317,7 @@ class JointAnalysis:
                 Default: True
             show_model (bool) show model
                 Default: True
+            **kwargs: passed to plotting.plot_sed
         """
 
         if fermi and not(hasattr(self.fermi, "output")):
@@ -367,7 +368,7 @@ class JointAnalysis:
 
         if fermi:
             plotting.plot_sed(self.fermi.output, units="TeV", erg=True, show_flux_points=show_flux_points,
-                show_model = not(fit)*show_model, color=cmap(i))
+                show_model = not(fit)*show_model, color=cmap(i), **kwargs)
 
             plt.xlim(5e-5, 30)
             i+=1

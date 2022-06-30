@@ -344,12 +344,14 @@ def generateRSP(config):
     rspgen['specfile'] = '{}/gtpha_00.pha'.format(workdir)
     rspgen['scfile'] = config['data']['scfile']
     rspgen['outfile'] = '{}/gtrsp_00.rsp'.format(workdir)
-    rspgen['thetacut'] = 90
+    rspgen['thetacut'] = config['selection']['zmax']
     rspgen['irfs'] = config['gtlike']['irfs']
     rspgen['emin'] = config['selection']['emin']
     rspgen['emax'] = config['selection']['emax']
+    rspgen['ebinalg'] = "LOG"
     rspgen['enumbins'] = enumbins
-    rspgen['chatter'] = 0
+    rspgen['chatter'] = 4
+    repgen["debug"] = "yes"
     rspgen.run() 
 
 def generatePHA(config):
@@ -368,10 +370,6 @@ def generatePHA(config):
     evtbin['emin'] = config['selection']['emin']
     evtbin['emax'] = config['selection']['emax']
     evtbin['enumbins'] = enumbins
-    evtbin['tbinalg'] = 'LIN'
-    evtbin['tstart'] = config['selection']['tmin']
-    evtbin['tstop'] = config['selection']['tmax']
-    evtbin['dtime'] = config['selection']['tmax']-config['selection']['tmin']
     evtbin['coordsys'] = 'CEL'
     evtbin['xref'] = config['selection']['ra']
     evtbin['yref'] = config['selection']['dec']

@@ -70,12 +70,14 @@ class FermiAnalysis():
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
         self._outdir = self.gta.config['fileio']['outdir']
 
-        nbin = kwargs.pop("nbin", 6)
+        nbin = kwargs.pop("nbin", 10)
         self._energy_bins = MapAxis.from_bounds(self.gta.config["selection"]["emin"],
                 self.gta.config["selection"]["emax"],
                 nbin=nbin,
                 name="energy",
                 interp="log", unit="MeV")
+
+        self._exist_rsp = False
 
         if overwrite or not(os.path.isfile(f"{self._outdir}/{state_file}.fits")):
 
@@ -100,7 +102,12 @@ class FermiAnalysis():
             self._logging.debug("Generate PHA.")
             generatePHA(self.gta.config)
             self._logging.debug("Generate RSP.")
-            generateRSP(self.gta.config)
+            try:
+                generateRSP(self.gta.config)
+                self._exist_rsp = True
+            except:
+                self._logging.debug("Fail to generate RSP. It will assume a Gaussian dispersion.")
+                self._exist_rsp = False
 
             if construct_dataset:
                 self.construct_dataset()
@@ -250,6 +257,11 @@ class FermiAnalysis():
             self._fermi_state = state_file
             if os.path.exists(f"{self._outdir}/{state_file}_output.npy"):
                 self.output = np.load(f"{self._outdir}/{state_file}_output.npy", allow_pickle=True).item()
+            if os.path.exists(f"{self._outdir}/gtrsp_00.rsp"):
+                self._exist_rsp = True
+            else:
+                self._exist_rsp = False
+
         except:
             self._logging.error("The state file does not exist. Check the name again")
             return -1
@@ -560,15 +572,11 @@ class FermiAnalysis():
         if target is None:
             target = self.target_name
 
-        distance = kwargs.pop("distance", 3.0)
-
         loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.edges.value))
         
         outfile = kwargs.pop("outfile", 'sed.fits')
 
-        self.gta.free_sources(free=False)
-        self.gta.free_sources(skydir=self.gta.roi[target].skydir, distance=[distance], free=True)
-        o = self.gta.sed(self.target.name, outfile=outfile, bin_index=2.2, loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
+        o = self.gta.sed(self.target.name, outfile=outfile, use_local_index=True, loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
         self._logging.info("Generating the SED is completed.")
         return o
 
@@ -632,29 +640,41 @@ class FermiAnalysis():
         irf['psf'] = psf
 
         # Energy dispersion
-        rsp_file = fits.open(f"{self._outdir}/gtrsp_00.rsp")
-        disp = rsp_file[1].data
-        e_obs = rsp_file[2].data
+        if self._exist_rsp:
+            rsp_file = fits.open(f"{self._outdir}/gtrsp_00.rsp")
+            disp = rsp_file[1].data
+            e_obs = rsp_file[2].data
 
-        e_true = disp["ENERG_LO"].tolist()+[disp["ENERG_HI"][-1]]
-        e_true = MapAxis.from_edges(e_true, name="energy_true", interp="log", unit="keV")
+            e_obs = e_obs["E_MIN"].tolist()+[e_obs["E_MAX"][-1]]
+            e_true = disp["ENERG_LO"].tolist()+[disp["ENERG_HI"][-1]]
+            
+            e_obs = MapAxis.from_edges(e_obs, name="energy", interp="log", unit="keV")
+            e_true = MapAxis.from_edges(e_true, name="energy_true", interp="log", unit="keV")
 
-        e_obs = e_obs["E_MIN"].tolist()+[e_obs["E_MAX"][-1]]
-        e_obs = MapAxis.from_edges(e_obs, name="energy", interp="log", unit="keV")
+            data = disp["MATRIX"]
+            re_shape_data = []
+            for d in data:
+                d = d.tolist()
+                while len(d)!=len(data):
+                    d.append(0)
+                    
+                re_shape_data.append(d)
+            re_shape_data = np.asarray(re_shape_data)
 
-        data = disp["MATRIX"]
-        re_shape_data = []
-        for d in data:
-            d = d.tolist()
-            while len(d)!=len(data):
-                d.append(0)
-                
-            re_shape_data.append(d)
-        re_shape_data = np.asarray(re_shape_data)
+            edisp = EDispKernel.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
+            edisp.data =re_shape_data
+            irf['edisp'] = EDispKernelMap.from_edisp_kernel(edisp)
+        else:
+            e_obs = fits.open(f"{self._outdir}/gtpha_00.pha")[2].data
 
-        edisp = EDispKernel.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
-        edisp.data =re_shape_data
-        irf['edisp'] = EDispKernelMap.from_edisp_kernel(edisp)
+            e_obs = e_obs["E_MIN"].tolist()+[e_obs["E_MAX"][-1]]
+            e_true = e_obs
+            
+            e_obs = MapAxis.from_edges(e_obs, name="energy", interp="log", unit="keV")
+            e_true = MapAxis.from_edges(e_true, name="energy_true", interp="log", unit="keV")
+
+            edisp = EDispKernel.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
+            irf['edisp'] = EDispKernelMap.from_edisp_kernel(edisp)
 
         return irf
 

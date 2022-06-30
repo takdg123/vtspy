@@ -189,7 +189,7 @@ class DownloadFermiData:
         try:
             os.remove(fakeName)
         except:
-            self._logging.error("[Error] The files (SC and EV files) are not ready to be downloaded. Check the link and then use 'DownloadFermiData.manualDownload()' when the data is ready.")
+            self._logging.error("[Error] The files (SC and EV files) are not ready to be downloaded. Check the link and then use 'DownloadFermiData.manual_download()' when the data is ready.")
             return
         
         np.save(f"{self.outdir}/fermi_dwn_link", links)
@@ -206,7 +206,7 @@ class DownloadFermiData:
 
             if "SC" in lk:
                 self.config['data']['scfile'] = f"{datadir}/{fileName}.fits"
-            else:
+            elif "EV" in lk:
                 with open(f"{datadir}/EV00.lst", "a") as f:
                     f.write(fileName+".fits\n")
 

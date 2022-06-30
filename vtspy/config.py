@@ -111,6 +111,8 @@ class JointConfig:
 		
 		fits_flag=False
 
+		obs_ids = []
+
 		for file in filelist:
 
 			if file!=None:
@@ -146,8 +148,10 @@ class JointConfig:
 					target = tRun["TargetName"].arrays(library="np")['TargetName'][0]
 
 				elif 'anasum.fits' in file:
-
 					header = fits.open(file)[1].header
+
+					obs_id = header["OBS_ID"]
+
 					if ra == None:
 						ra = header['RA_OBJ']
 					else:
@@ -171,7 +175,8 @@ class JointConfig:
 					tmax_mjd = utils.UTC2MJD(tmax_utc)
 
 					target = header['OBJECT']
-
+					
+					obs_ids.append(obs_id)
 					fits_flag = True
 				else:
 					continue
@@ -220,6 +225,9 @@ class JointConfig:
 					}
 
 
+		obs_ids.sort()
+		
+		self.obs_ids = obs_ids
 
 		info['fermi'] = self._filter(self.fermi_config, info['fermi'])
 		info['veritas'] = self._filter(self.veritas_config, info['veritas'])

@@ -244,7 +244,6 @@ class VeritasAnalysis:
 
 			import glob
 			filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
-			print(filelist)
 			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
 			self._logging.info("The hdu-index and obs-index files are created.")	
 		else:
