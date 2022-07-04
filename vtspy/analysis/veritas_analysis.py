@@ -38,7 +38,6 @@ from regions import CircleSkyRegion
 from gammapy.estimators import FluxPointsEstimator, ExcessMapEstimator, FluxPoints, LightCurveEstimator
 
 
-
 class VeritasAnalysis:
 
 	def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, verbosity=1, **kwargs):
@@ -557,8 +556,11 @@ class VeritasAnalysis:
 
 		run_list = run_list[1].data["OBS_ID"]
 
-		run_exist = []
+		flag = True
 		for file in glob.glob(self._datadir+"/*.anasum.fits"):
-		    run_exist.append(re.findall("([0-9]+)", file)[0])
+			file_name = re.findall("([0-9]+)", file)[0]
+			if file_name not in run_list:
+				flag = False
+				break
 
-		return (len(run_exist) == len(run_list))
+		return flag
