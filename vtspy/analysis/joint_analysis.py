@@ -242,6 +242,7 @@ class JointAnalysis:
                 if prev_stats == -1:
                     self._logging.info(f"Initial -> {current_stats}")
                     prev_stats = current_stats
+                    num_run+=1
                 elif (abs((current_stats-prev_stats)/current_stats) < 0.1) and (_optimize_result.success):
                     break
                 else:
@@ -323,10 +324,6 @@ class JointAnalysis:
 
         if output == "sed":
             self.plot_sed(**kwargs)
-        elif hasattr(output, "plot"):
-            energy_bounds = kwargs.pop("energy_bounds", self._energy_bounds)
-            output.plot(sed_type="e2dnde", energy_bounds=energy_bounds, **kwargs)
-
 
     def plot_sed(self, fermi=True, veritas=True, joint=True, show_model = True, show_flux_points=True, **kwargs):
         """
@@ -364,13 +361,11 @@ class JointAnalysis:
             vts = self.veritas._flux_points_dataset
 
             if show_flux_points:
-                vts.data.plot(sed_type="e2dnde", color = cmap(i), label="VERITAS")
+                self.plot_flux(vts, color = cmap(i), label="VERITAS")
 
             if not(fit) and show_model:
                 veritas_model = vts.models[0].spectral_model
-                veritas_model.plot(energy_bounds=vts._energy_bounds, sed_type="e2dnde", color=cmap(i))
-                veritas_model.plot_error(energy_bounds=vts._energy_bounds,
-                                         sed_type="e2dnde", alpha=0.2, facecolor=cmap(i))
+                self.plot_model(veritas_model, band=True, energy_bounds=vts._energy_bounds, color=cmap(i))
             i+=1
 
         if fermi:
@@ -393,7 +388,8 @@ class JointAnalysis:
 
             if (dataset.name != "fermi") and (dataset.name != "veritas"):
                 self.plot_flux(dataset, color=cmap(i))
-                dataset.models[0].spectral_model.plot(sed_type="e2dnde", energy_bounds=[emin, emax], color=cmap(i))
+                other_model = dataset.models[0].spectral_model
+                self.plot_model(other_model, energy_bounds=[emin, emax], color=cmap(i))
                 i+=1
             
         self._energy_bounds = [emin, emax]
@@ -401,11 +397,9 @@ class JointAnalysis:
             jf_model = self.datasets.models[self.target_name].spectral_model
                 
             if fit:
-                jf_model.plot(energy_bounds=self._energy_bounds , sed_type="e2dnde", color=cmap(i), label=self.target_name)
-                jf_model.plot_error(energy_bounds=self._energy_bounds ,
-                                         sed_type="e2dnde", alpha=0.2, color="k")
+                self.plot_model(jf_model, band=True, energy_bounds=self._energy_bounds, color=cmap(i), label=self.target_name)
             else:
-                jf_model.plot(energy_bounds=self._energy_bounds , sed_type="e2dnde", color=cmap(i), label="Before fit", ls="--")
+                self.plot_model(jf_model, band=False, energy_bounds=self._energy_bounds, color=cmap(i), label="Before fit", ls="--")
             i+=1
 
         plt.xlim(emin, emax)
@@ -533,6 +527,18 @@ class JointAnalysis:
                     models.append(model)
         return models
 
-    def plot_flux(self, dataset, **kwargs):
+    @staticmethod
+    def plot_flux(dataset, **kwargs):
         if type(dataset) == FluxPointsDataset:
-            dataset.data.plot(label=dataset.name, energy_power=0, **kwargs)
+            label = kwargs.pop("label", dataset.name)
+            dataset.data.plot(label=label, energy_power=0, sed_type="e2dnde", **kwargs)
+
+    @staticmethod
+    def plot_model(output, band=False, **kwargs):
+        if hasattr(output, "plot"):
+            energy_bounds = kwargs.pop("energy_bounds", [0.1*u.GeV, 50*u.TeV])
+            output.plot(sed_type="e2dnde", energy_bounds=energy_bounds, **kwargs)
+            if band:
+                face_color = kwargs.get("color", "k")
+                output.plot_error(energy_bounds=energy_bounds,
+                                         sed_type="e2dnde", alpha=0.2, facecolor=face_color)
