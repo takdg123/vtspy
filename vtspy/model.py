@@ -11,6 +11,7 @@ from astropy.coordinates import Distance
 import numpy as np
 
 
+
 model_dict = {
     # fermipy to gammapy
     "PowerLaw": gammapy_model.PowerLawSpectralModel,
@@ -141,7 +142,6 @@ def default_model(model, **kwargs):
         t_var = kwargs.pop("t_var", 0)
 
         if (z == 0) or (t_var == 0):
-            self._logging.error("The source redshfit and variability are required.")
             raise
         d_L = Distance(z=z).to("cm")
 

@@ -192,12 +192,11 @@ class JointAnalysis:
             model = self.datasets.models[self.target_name].spectral_model
 
         if method == "rough":
-            
-            
             optimize_opts = kwargs.pop("optimize_opts", optimize_opts_default)
 
             fit_ = Fit(optimize_opts = optimize_opts)
             fit_ = fit_.run(self.datasets)
+            self._model_change_flag=False
 
         elif method == "flux":
             test_model = SkyModel(spectral_model=model, name="test")
@@ -235,26 +234,31 @@ class JointAnalysis:
             optimize_opts = optimize_opts_default
 
             fit_ = Fit(optimize_opts =  optimize_opts)
-            prev_stats = 1e10
+            prev_stats = -1
             num_run = 0
             while True:
-                result_optimize = fit_.run(self._optimize_flux_datasets)
-                current_stats = result_optimize.total_stat
-                if abs((current_stats-prev_stats)/current_stats) < 0.1 :
+                _optimize_result = fit_.run(self._optimize_flux_datasets)
+                current_stats = _optimize_result.total_stat
+                if prev_stats == -1:
+                    self._logging.info(f"Initial -> {current_stats}")
+                    prev_stats = current_stats
+                elif (abs((current_stats-prev_stats)/current_stats) < 0.1) and (_optimize_result.success):
                     break
                 else:
+                    self._logging.info(f"{prev_stats} -> {current_stats}")
                     prev_stats = current_stats
                     num_run+=1
 
-            if kwargs.get("debug", False):
-                self._logging.info(result_optimize)
+            self._logging.debug(_optimize_result)
+            self._optimize_result = _optimize_result
             self.datasets.models[self.target_name].spectral_model = test_model.spectral_model
             self._logging.info(f"Optimize {num_run} times to get an inital parameters.")
-
+            self._model_change_flag=False
         elif method == "inst":
             self.datasets.models[self.target_name].spectral_model = model
             joint_fit = Fit()
             fit_results = joint_fit.run(self.datasets[instrument.lower()])
+            self._model_change_flag=False
         else:
             return
 
@@ -497,6 +501,9 @@ class JointAnalysis:
                 emax_d = new_dataset.data.energy_max[-1]
                 self.plot(spectral_model, energy_bounds = [emin_d, emax_d])
                 self.plot_flux(new_dataset)
+        else:
+            self.datasets.append(new_dataset)
+            self._logging.info("A new dataset is successfully added.")
                 
                 
 
