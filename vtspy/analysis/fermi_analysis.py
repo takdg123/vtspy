@@ -514,7 +514,7 @@ class FermiAnalysis():
 
 
     def construct_dataset(self,
-                        fix_other_srcs = False,
+                        fix_other_srcs = True,
                         eventlist = "ft1_00.fits",
                         exposure = "bexpmap_00.fits",
                         psf = "gtpsf_00.fits"):
@@ -706,14 +706,14 @@ class FermiAnalysis():
 
         return irf
 
-    def _convert_model(self, fix_other_srcs=False):
+    def _convert_model(self, fix_other_srcs=True):
         gammapy_models = []
         for src in self.gta.roi.sources:
 
             if src.name == "isodiff":
-                gammapy_models.append(fermi_isotropic_diffuse_bkg(self.gta.config, src, fix_pars = fix_other_srcs))
+                gammapy_models.append(fermi_isotropic_diffuse_bkg(self.gta.config, src))
             elif src.name == "galdiff":
-                gammapy_models.append(fermi_galactic_diffuse_bkg(self.gta.config, src, fix_pars = fix_other_srcs))
+                gammapy_models.append(fermi_galactic_diffuse_bkg(self.gta.config, src))
             elif src.name == self.target_name:
                 gammapy_models.append(fermipy2gammapy(self.gta.like, src))
             else:

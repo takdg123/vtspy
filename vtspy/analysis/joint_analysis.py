@@ -52,7 +52,7 @@ class JointAnalysis:
         self._model_change_flag = False
         self._fit_flag = False
         self._num_of_models = 1
-        self._target_name = []
+        self._target_name = ['','']
         if type(veritas) == str:
             self.veritas = VeritasAnalysis(veritas, config_file=config_file)
             self._veritas_state = veritas
@@ -156,12 +156,14 @@ class JointAnalysis:
             self._logging = logger(self.verbosity)
             self.veritas, self.fermi = temp
 
-    def load_state(self, state_file):
+    def load_state(self, state_file, reconstruct=False):
         """
         Load the state
 
         Args:
         state_file (str): the name of state
+        reconstruct (bool): re-construct the datasets
+            Default: False
         """
         filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
         
@@ -169,6 +171,7 @@ class JointAnalysis:
             with open(filename, 'rb') as file:
                 self.__dict__.update(pickle.load(file).__dict__)
             self._target_name = ['', '']
+            
             if not(hasattr(self, "fermi")):
                 self.fermi = FermiAnalysis(self._fermi_state, construct_dataset=True)
                 self._target_name[1] = self.fermi.target_name
@@ -176,6 +179,9 @@ class JointAnalysis:
             if not(hasattr(self, "veritas")):
                 self.veritas = VeritasAnalysis(self._veritas_state)
                 self._target_name[0] = self.veritas.target_name
+
+            if reconstruct:
+                self.construct_dataset()
         else:
             self._logging.error("The state file does not exist. Check the name again")
             return -1
@@ -283,7 +289,7 @@ class JointAnalysis:
 
         self._logging.info("Start fitting...")
         
-        joint_fit = Fit()
+        joint_fit = Fit(store_trace=True)
         self.fit_results = joint_fit.run(self.datasets)
 
         if self.fit_results.success:

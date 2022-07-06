@@ -54,7 +54,12 @@ def fermipy2gammapy(like, src, fix_pars=False):
         gpar = getattr(spectral, gpar_setup[0])
         val = (fpar.getValue()*fpar.getScale()*gpar_setup[1]*gpar_setup[3]).to(gpar_setup[2])
         gpar.value = val.value
-        
+        if gpar_setup[0] == "amplitude":
+            gpar.min = ((1e-5*fpar.getScale()*gpar_setup[1]*gpar_setup[3]).to(gpar_setup[2])).value
+            gpar.max = ((1e3*fpar.getScale()*gpar_setup[1]*gpar_setup[3]).to(gpar_setup[2])).value
+        else:
+            gpar.min = src["spectral_pars"][par]["min"]
+            gpar.max = src["spectral_pars"][par]["max"]
         if fix_pars:
             gpar.frozen = True
         else:
@@ -67,6 +72,7 @@ def fermipy2gammapy(like, src, fix_pars=False):
         spectral_model=spectral,
         name=src.name,
         )
+
     return source
 
 def gammapy2fermipy(spectral, src=None):
@@ -96,6 +102,8 @@ def fermi_galactic_diffuse_bkg(config, fmodel, fix_pars = False):
     spatial_model = gammapy_model.TemplateSpatialModel(diffuse_galactic_fermi, normalize=False)
     spectral_model = gammapy_model.PowerLawNormSpectralModel()
     spectral_model.norm.value = fmodel.params["Prefactor"]["value"]
+    spectral_model.norm.min = 0
+    spectral_model.norm.max = 10
     spectral_model.norm.frozen = fix_pars
     diffuse_gald = SkyModel(spectral_model=spectral_model, spatial_model=spatial_model,  name="galdiff")
     return diffuse_gald
@@ -105,6 +113,8 @@ def fermi_isotropic_diffuse_bkg(config, fmodel, fix_pars = False):
         filename=config['model']['isodiff'][0],
         interp_kwargs={"fill_value": None})
     diffuse_iso.spectral_model.model2.value = fmodel.params["Normalization"]["value"]
+    diffuse_iso.spectral_model.model2.min = 0
+    diffuse_iso.spectral_model.model2.max = 10
     diffuse_iso.spectral_model.model2.norm.frozen = fix_pars
     diffuse_iso._name = "isodiff"
 
@@ -197,6 +207,11 @@ def spatial_model(src):
     else:
         self._logging.error(f"This type of the spatial model is not yet supported; {src['SpatialModel']}")
         raise
+
+    spatial_model.lon_0.min = -360
+    spatial_model.lon_0.max = 360
+    spatial_model.lat_0.min = -90
+    spatial_model.lat_0.max = 90
 
     spatial_model.parameters.freeze_all()
     return spatial_model
