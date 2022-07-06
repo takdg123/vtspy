@@ -22,4 +22,5 @@ pip install .
 
 Donggeun Tak (DESY), 	
 Pedro Ivo Silva Batista (DESY),
-Arkadipta Sarkar (DESY)
+Arkadipta Sarkar (DESY),
+Colin Adams (Columbia Univ.)
