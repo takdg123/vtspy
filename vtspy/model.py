@@ -10,7 +10,7 @@ from astropy.coordinates import Distance
 
 import numpy as np
 
-
+from gammapy.modeling.models import EBLAbsorptionNormSpectralModel
 
 model_dict = {
     # fermipy to gammapy
@@ -172,7 +172,7 @@ def default_model(model, **kwargs):
         spectral_model.p2.quantity = p2
         spectral_model.log10_gamma_b.quantity = log10_gamma_b
         spectral_model.log10_gamma_min.quantity = log10_gamma_min
-        spectral_model.log10_gamma_min.frozen = True
+        spectral_model.log10_gamma_min.frozen = False
         spectral_model.log10_gamma_max.quantity = log10_gamma_max
         spectral_model.log10_gamma_max.frozen = True
 

@@ -210,7 +210,7 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
         conv_f = conv_u**2.
         f_units = f"{units}/cm$^2$/s"
 
-    ul_ts_threshold = kwargs.pop('ul_ts_threshold', 4)
+    ul_ts_threshold = kwargs.pop('ul_ts_threshold', 9)
     m = sed['ts'] < ul_ts_threshold
     x = sed['e_ctr']*conv_u
     y = sed['e2dnde']*conv_f

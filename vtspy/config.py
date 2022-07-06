@@ -128,14 +128,14 @@ class JointConfig:
 					else:
 						temp = float(tRun['TargetRAJ2000'].arrays(library="np")['TargetRAJ2000'][0])
 						if temp != ra:
-							self._logging.error("[Error] RA values in input files are different.")
+							self._logging.error(f"RA values in input files are different ({temp} and {ra}).")
 
 					if dec == None:
 						dec = float(tRun['TargetDecJ2000'].arrays(library="np")['TargetDecJ2000'][0])
 					else:
 						temp = float(tRun['TargetDecJ2000'].arrays(library="np")['TargetDecJ2000'][0])
-						if temp != dec:
-							self._logging.error("[Error] DEC values in input files are different.")
+						if abs(temp - dec)>1e-6:
+							self._logging.error(f"DEC values in input files are different ({temp} and {dec}).")
 
 					tmin_mjd = float(tRun['MJDOn'].arrays(library="np")['MJDOn'][0])
 					tmin_utc = utils.MJD2UTC(tmin_mjd)
@@ -157,14 +157,14 @@ class JointConfig:
 					else:
 						temp = header['RA_OBJ']
 						if temp != ra:
-							self._logging.error("[Error] RA values in input files are different.")
+							self._logging.error(f"RA values in input files are different ({temp} and {ra}).")
 
 					if dec == None:
 						dec = header['DEC_OBJ']
 					else:
 						temp = header['DEC_OBJ']
-						if temp != dec:
-							self._logging.error("[Error] DEC values in input files are different.")
+						if abs(temp - dec)>1e-6:
+							self._logging.error(f"DEC values in input files are different ({temp} and {dec}).")
 
 					tmin_utc = header['DATE-OBS']
 					tmin = utils.UTC2MET(tmin_utc[:10])
@@ -446,7 +446,8 @@ class JointConfig:
 					'glat': None,
 					'ra': None,
 					'dec': None,
-					'target': None
+					'target': None,
+					'filter': "DATA_QUAL>0 && LAT_CONFIG==1"
 					},
 				'gtlike': {
 					'edisp': True,

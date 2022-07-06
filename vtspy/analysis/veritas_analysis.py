@@ -70,7 +70,10 @@ class VeritasAnalysis:
 		self._bias_cut = self.config['cuts']['bias_cut']
 		self._max_region_number = self.config['selection']['max_region_number']
 
-		self._energy_bins = MapAxis.from_bounds(self.config["selection"]["emin"], self.config["selection"]["emax"], nbin=self.config["selection"]["nbin"], interp="log", unit="TeV").edges
+		self._energy_bins = MapAxis.from_bounds(self.config["selection"]["emin"], 
+			self.config["selection"]["emax"], 
+			nbin=self.config["selection"]["nbin"], 
+			interp="log", unit="TeV").edges
 		self._energy_axis = MapAxis.from_energy_bounds(
 		    1e-2, 1e4, nbin=10, per_decade=True, unit="TeV", name="energy"
 		)

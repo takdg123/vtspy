@@ -22,6 +22,7 @@ from gammapy.modeling.models import Models
 
 from gammapy.modeling import Fit
 
+#from fermipy.gtanalysis import GTAnalysis
 try:
     from fermipy.gtanalysis import GTAnalysis
 except:
@@ -70,13 +71,16 @@ class FermiAnalysis():
         self._logging = logger(self.verbosity)
         self._logging.info("Initialize the Fermi-LAT analysis.")
 
+        target = config["selection"]["target"]
+        config["selection"]["target"] = None
         self.gta = GTAnalysis(config, logging={'verbosity' : self.verbosity+1}, **kwargs)
+        self.gta.config["selection"]["target"] = target
         self._outdir = self.gta.config['fileio']['outdir']
 
-        nbin = kwargs.pop("nbin", 10)
+        nbins = kwargs.pop("nbins", 10)
         self._energy_bins = MapAxis.from_bounds(self.gta.config["selection"]["emin"],
                 self.gta.config["selection"]["emax"],
-                nbin=nbin,
+                nbin=nbins,
                 name="energy",
                 interp="log", unit="MeV")
 
@@ -302,6 +306,10 @@ class FermiAnalysis():
         for src in self.gta.roi.sources:
             if (src.name == "isodiff") or (src.name=="galdiff") or (src.name == self.target_name):
                 continue
+
+            if src.skydir.separation(self.target.skydir)<0.01*u.deg:
+                continue
+
             if np.isnan(src['ts']) or src['ts'] < ts_cut or src['npred'] < npred_cut:
                 self.gta.delete_source(src.name)
                 N+=1
@@ -475,7 +483,7 @@ class FermiAnalysis():
         plt.tight_layout()
 
 
-    def find_sources(self, state_file = "wt_new_srcs", re_fit=True, **kwargs):
+    def find_sources(self, state_file = "wt_new_srcs", re_fit=True, return_srcs=False, **kwargs):
         """
         Find sources within the ROI (using GTanalysis.find_sources).
 
@@ -483,6 +491,9 @@ class FermiAnalysis():
             state_file (str): output state filename (npy)
                 Default: wt_new_srcs
             re_fit (bool): re fit the ROI with new sources
+                Default: True
+            return_srcs (bool): return source dictionaries
+                Default: False
             **kwargs: passed to fit.
 
         Return:
@@ -491,14 +502,15 @@ class FermiAnalysis():
         srcs = self.gta.find_sources(model=self._test_model, sqrt_ts_threshold=5.0,
                         min_separation=0.5)
 
-        self._logging.info("{} sources are found. They will be added into the model list.".format(len(srcs["sources"])))
+        self._logging.info("{} sources are found. They are added into the model list.".format(len(srcs["sources"])))
 
         if re_fit:
             self.fit(state_file=state_file, **kwargs)
         else:
             self.save_state(state_file)
 
-        return srcs
+        if return_srcs:
+            return srcs
 
 
     def construct_dataset(self,
@@ -581,9 +593,18 @@ class FermiAnalysis():
         if target is None:
             target = self.target_name
 
-        loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.edges.value))
+        energy_bounds = kwargs.pop("energy_bounds", [self.gta.config["selection"]["emin"], self.gta.config["selection"]["emax"]])
         
-        o = self.gta.sed(self.target.name, outfile=outfile, use_local_index=True, loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
+        if kwargs.get("nbins"):
+            self._energy_bins = MapAxis.from_bounds(energy_bounds[0].to(u.MeV).value, 
+                energy_bounds[1].to(u.MeV).value,
+                nbin=kwargs.pop("nbins"),
+                name="energy",
+                interp="log", unit="MeV")
+
+        loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.edges.value))
+
+        o = self.gta.sed(self.target.name, outfile=outfile, bin_index=kwargs.pop("bin_index", 2.0), loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
         self._logging.info("Generating the SED is completed.")
         return o
 

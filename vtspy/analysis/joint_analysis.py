@@ -18,7 +18,8 @@ from gammapy.datasets import Datasets, FluxPointsDataset
 from gammapy.modeling import Fit
 import gammapy.modeling.models as gammapy_model
 from gammapy.estimators import FluxPoints, FluxPointsEstimator
-from gammapy.modeling.models import SkyModel
+from gammapy.modeling.models import SkyModel, DatasetModels
+
 
 
 class JointAnalysis:
@@ -34,6 +35,7 @@ class JointAnalysis:
         config_file (str): config filename (yaml)
             Default: config.yaml
         verbosity (int)
+        **kwargs: passed to JointAnalysis.construct_dataset
     """
 
 
@@ -49,29 +51,33 @@ class JointAnalysis:
 
         self._model_change_flag = False
         self._fit_flag = False
-
+        self._num_of_models = 1
+        self._target_name = []
         if type(veritas) == str:
             self.veritas = VeritasAnalysis(veritas, config_file=config_file)
             self._veritas_state = veritas
-            self._target_name = self.veritas.target_name
+            self._target_name[0] = self.veritas.target_name
         elif hasattr(veritas, "datasets"):
             self._logging.info("VERITAS datasets is imported.")
             self.veritas = veritas
             self._veritas_state = self.veritas._veritas_state
-            self._target_name = self.veritas.target_name
+            self._target_name[0] = self.veritas.target_name
 
         if type(fermi) == str:
             self.fermi = FermiAnalysis(fermi, construct_dataset=True, config_file=config_file)
             self._fermi_state = fermi
+            self._target_name[1] = self.fermi.target_name
         elif hasattr(fermi, "gta"):
             self.fermi = fermi
             self._fermi_state = self.fermi._fermi_state
             self.fermi.construct_dataset()
             self._logging.info("Fermi-LAT datasets is imported.")
+            self._target_name[1] = self.fermi.target_name
 
         if hasattr(self, "fermi") and hasattr(self, "veritas"):
             self._logging.info("Constructing a joint datasets")
-            self._construct_joint_datasets()
+            self.construct_dataset(**kwargs)
+
         self._logging.info("Completed.")
 
     @property
@@ -80,7 +86,7 @@ class JointAnalysis:
         Return:
             gammapy.modeling.models.SkyModel
         """
-        return self.datasets.models[self.target_name]
+        return self.datasets["veritas"].models
 
     @property
     def verbosity(self):
@@ -94,9 +100,16 @@ class JointAnalysis:
     def target_name(self):
         """
         Return:
-            str: target name
+            tuple: target name (veritas and fermi)
         """
-        return self._target_name
+        return tuple(self._target_name)
+
+
+    @property
+    def _target_spatial_model(self):
+        return gammapy_model.PointSpatialModel(
+        lon_0="{:.5f} deg".format(self.fermi.target.radec[0]), lat_0="{:.3f} deg".format(self.fermi.target.radec[1]), frame="icrs"
+        )
 
     def print_datasets(self):
         """
@@ -122,9 +135,8 @@ class JointAnalysis:
         if full_output:
             return self._logging.info(self.datasets.models)
         else:
-            table = self.datasets.models.to_parameters_table()
-            table = table[table["model"]== self.target_name]
-            return table
+            table = self.datasets["veritas"].models.to_parameters_table()
+            return table[table["frozen"]==False]
 
     def save_state(self, state_file):
         """
@@ -156,13 +168,14 @@ class JointAnalysis:
         if os.path.exists(filename):
             with open(filename, 'rb') as file:
                 self.__dict__.update(pickle.load(file).__dict__)
-
+            self._target_name = ['', '']
             if not(hasattr(self, "fermi")):
                 self.fermi = FermiAnalysis(self._fermi_state, construct_dataset=True)
+                self._target_name[1] = self.fermi.target_name
 
             if not(hasattr(self, "veritas")):
                 self.veritas = VeritasAnalysis(self._veritas_state)
-
+                self._target_name[0] = self.veritas.target_name
         else:
             self._logging.error("The state file does not exist. Check the name again")
             return -1
@@ -171,7 +184,7 @@ class JointAnalysis:
         files = glob.glob(f"{self._outdir}/*.pickle")
         return print([n.split("/")[-1].split(".")[0] for n in files])
 
-    def optimize(self, method="flux", model=None, instrument="VERITAS", **kwargs):
+    def optimize(self, method="flux", instrument="VERITAS", **kwargs):
         """
         To find good initial parameters for a given model.
 
@@ -188,9 +201,6 @@ class JointAnalysis:
             **kwargs
         """
 
-        if model is None:
-            model = self.datasets.models[self.target_name].spectral_model
-
         if method == "rough":
             optimize_opts = kwargs.pop("optimize_opts", optimize_opts_default)
 
@@ -199,18 +209,9 @@ class JointAnalysis:
             self._model_change_flag=False
 
         elif method == "flux":
-            test_model = SkyModel(spectral_model=model, name="test")
-            fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/{self._fermi_state}_sed.fits")
-
-            if not(os.path.isfile(fermi_sed)):
-                self.fermi.analysis("sed", state_file = self._fermi_state)
-
-            table = Table.read(fermi_sed, format='fits', hdu=1)
-            data = FluxPoints.from_table(table, sed_type="likelihood")
-
-            fermi_dataset = FluxPointsDataset(data=data, models=test_model)
-            fermi_dataset.mask_safe = ~fermi_dataset.data.to_table()["is_ul"]
-            fermi_dataset.mask_fit = ~fermi_dataset.data.to_table()["is_ul"]
+            
+            test_model = copy.copy(self.target_model)
+            fermi_dataset = self._fermi_flux_dataset(models=test_model)
 
             veritas_dataset = FluxPointsDataset(data=self.veritas.flux_points, models=test_model)
             nan_norm = ~np.isnan(veritas_dataset.data.to_table()["norm"])
@@ -252,11 +253,13 @@ class JointAnalysis:
 
             self._logging.debug(_optimize_result)
             self._optimize_result = _optimize_result
-            self.datasets.models[self.target_name].spectral_model = test_model.spectral_model
+
+            for model in test_model:
+                self.datasets.models[model.name].spectral_model = model.spectral_model
+
             self._logging.info(f"Optimize {num_run} times to get an inital parameters.")
             self._model_change_flag=False
         elif method == "inst":
-            self.datasets.models[self.target_name].spectral_model = model
             joint_fit = Fit()
             fit_results = joint_fit.run(self.datasets[instrument.lower()])
             self._model_change_flag=False
@@ -302,7 +305,7 @@ class JointAnalysis:
 
         fpe = FluxPointsEstimator(
             energy_edges=energy_bins,
-            source=self.target_name, selection_optional="all"
+            source=self.target_name[1], selection_optional="all"
             )
 
         self.flux_points = fpe.run(self.datasets)
@@ -310,108 +313,6 @@ class JointAnalysis:
         self._flux_points_dataset = FluxPointsDataset(
             data=self.flux_points, models=self.datasets.models
         )
-
-
-    def plot(self, output, **kwargs):
-        """
-        Show various results: SED
-
-        Args:
-            output (str): a plot to show
-                Options: ["sed"]
-            **kwargs: passed to vtspy.JointAnalysis.plot_sed
-        """
-
-        if output == "sed":
-            self.plot_sed(**kwargs)
-
-    def plot_sed(self, fermi=True, veritas=True, joint=True, show_model = True, show_flux_points=True, **kwargs):
-        """
-        Plot a spectral energy distribution (SED) with a model and flux points.
-
-        Args:
-            fermi (bool): show Fermi-LAT results
-                Default: True
-            veritas (bool): show VERITAS results
-                Default: True
-            fermi (bool): show Joint-fit results
-                Default: True
-            show_flux_points (bool): slow flux points
-                Default: True
-            show_model (bool) show model
-                Default: True
-            **kwargs: passed to plotting.plot_sed
-        """
-
-        if fermi and not(hasattr(self.fermi, "output")):
-            self.fermi.simple_analysis("sed")
-
-        if veritas and not(hasattr(self.veritas, "_flux_points_dataset")):
-            self.veritas.simple_analysis()
-
-        if joint and not(self._fit_flag):
-            fit = False
-        else:
-            fit = True
-
-        cmap = plt.get_cmap("tab10")
-        i = 0
-
-        if veritas:
-            vts = self.veritas._flux_points_dataset
-
-            if show_flux_points:
-                self.plot_flux(vts, color = cmap(i), label="VERITAS")
-
-            if not(fit) and show_model:
-                veritas_model = vts.models[0].spectral_model
-                self.plot_model(veritas_model, band=True, energy_bounds=vts._energy_bounds, color=cmap(i))
-            i+=1
-
-        if fermi:
-            plotting.plot_sed(self.fermi.output, units="TeV", erg=True, show_flux_points=show_flux_points,
-                show_model = not(fit)*show_model, color=cmap(i), **kwargs)
-            i+=1
-
-        emin = 1*u.TeV
-        emax = 1*u.TeV
-        for dataset in self.datasets:
-            if type(dataset) == FluxPointsDataset:
-                emin_d = dataset.data.energy_min[0]
-                emax_d = dataset.data.energy_max[-1]
-            else:
-                emin_d = dataset.energy_range_total[0]
-                emax_d = dataset.energy_range_total[1]
-            
-            emin = min(emin, emin_d/2.)
-            emax = max(emax, emax_d*2.)
-
-            if (dataset.name != "fermi") and (dataset.name != "veritas"):
-                self.plot_flux(dataset, color=cmap(i))
-                other_model = dataset.models[0].spectral_model
-                self.plot_model(other_model, energy_bounds=[emin, emax], color=cmap(i))
-                i+=1
-            
-        self._energy_bounds = [emin, emax]
-        if joint and show_model:
-            jf_model = self.datasets.models[self.target_name].spectral_model
-                
-            if fit:
-                self.plot_model(jf_model, band=True, energy_bounds=self._energy_bounds, color=cmap(i), label=self.target_name)
-            else:
-                self.plot_model(jf_model, band=False, energy_bounds=self._energy_bounds, color=cmap(i), label="Before fit", ls="--")
-            i+=1
-
-        plt.xlim(emin, emax)
-        plt.xscale("log")
-        plt.yscale("log")
-        plt.ylim(kwargs.get("ylim_l", 1e-15),)
-        plt.legend(fontsize=13)
-        plt.grid(which="major", ls="-")
-        plt.grid(which="minor", ls=":")
-        plt.xlabel("Energy [TeV]", fontsize=13)
-        plt.ylabel(r"Energy flux [erg/cm$^2$/s]", fontsize=13)
-
 
     def change_model(self, model, optimize=False, **kwargs):
         """
@@ -424,24 +325,34 @@ class JointAnalysis:
             **kwargs: passed to JointAnalysis.optimize
         """
 
-        prevmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
+        if self._num_of_models == 1:
+            prevmodel = self.target_model[0].spectral_model.tag[0]
+        else:
+            prevmodel = "Composite model"
+
         if type(model) == str:
             spectral_model = default_model(model, **kwargs)
             if model is None:
                 self._logging.error("The input model is not supported yet.")
                 return
+        elif model == SkyModel:
+            spectral_model = model.spectral_model
+            self._logging.info(f"A model, {spectral_model.tag[0]}, is imported")
         elif hasattr(model, "tag"):
             spectral_model = model
-            self._logging.info(f"A model, {model.tag[0]}, is imported")
+            self._logging.info(f"A model, {spectral_model.tag[0]}, is imported")
+
+    
+        for model in self._find_target_model():
+            self.datasets.models[model.name].spectral_model = spectral_model
 
         if optimize:
-            self.optimize(model=spectral_model, **kwargs)
+            self.optimize(**kwargs)
             self._model_change_flag = False
         else:
             self._model_change_flag = True
-            self.datasets.models[self.target_name].spectral_model = spectral_model
 
-        newmodel = self.datasets.models[self.target_name].spectral_model.tag[0]
+        newmodel = spectral_model.tag[0]
         self._fit_flag = False
         self._logging.info(f"The spectral model for the target is changed:")
         self._logging.info(f"{prevmodel}->{newmodel}")
@@ -474,7 +385,7 @@ class JointAnalysis:
                     spectral_model = model
 
                 target_name = kwargs.pop("target_name", "new component")
-                model = SkyModel(spectral_model=spectral_model, name=target_name)
+                model = SkyModel(spectral_model=spectral_model, spatial_model = self._target_spatial_model, name=target_name)
             name = kwargs.pop("name", f"dataset_{len(self.datasets)}")
             new_dataset = FluxPointsDataset(data=data, models=model, name=name, **kwargs)
             
@@ -499,33 +410,112 @@ class JointAnalysis:
             self.datasets.append(new_dataset)
             self._logging.info("A new dataset is successfully added.")
                 
-                
+    def plot(self, output, **kwargs):
+        """
+        Show various results: SED
 
-    def _construct_joint_datasets(self, inst="VERITAS"):
-        vts_model = self.veritas.stacked_dataset.models[0]
-        fermi_model = self.fermi.datasets.models[self.fermi.target_name]
+        Args:
+            output (str): a plot to show
+                Options: ["sed"]
+            **kwargs: passed to vtspy.JointAnalysis.plot_sed
+        """
 
-        self.veritas.stacked_dataset.models = self._find_target_model()
-        self.datasets = Datasets([self.fermi.datasets, self.veritas.stacked_dataset])
+        if output == "sed":
+            self.plot_sed(**kwargs)
 
-        if inst.lower() == "veritas":
-            self.datasets.models[self.fermi.target_name].spectral_model = vts_model.spectral_model
-        elif inst.lower() == "fermi":
-            self.datasets.models[self.veritas.target_name].spectral_model = fermi_model.spectral_model
+    def plot_sed(self, fermi=True, veritas=True, joint=True, show_model = True, show_flux_points=True, **kwargs):
+        """
+        Plot a spectral energy distribution (SED) with a model and flux points.
 
-        self.datasets.models[self.fermi.target_name]._name = self.target_name
+        Args:
+            fermi (bool): show Fermi-LAT results
+                Default: True
+            veritas (bool): show VERITAS results
+                Default: True
+            fermi (bool): show Joint-fit results
+                Default: True
+            show_flux_points (bool): slow flux points
+                Default: True
+            show_model (bool) show model
+                Default: True
+            **kwargs: passed to plotting.plot_sed
+        """
 
+        if fermi and not(hasattr(self.fermi, "output")):
+            self.fermi.analysis("sed")
 
-    def _find_target_model(self):
-        target_pos = self.fermi.datasets.models[self.fermi.target_name].spatial_model.position
-        th2cut = self.veritas._on_region.radius.value
+        if veritas and not(hasattr(self.veritas, "_flux_points_dataset")):
+            self.veritas.analysis("sed")
 
-        models = []
-        for model in self.fermi.datasets.models:
-            if model.name != 'galdiff' and model.name != 'isodiff':
-                if target_pos.separation(model.spatial_model.position).deg < th2cut:
-                    models.append(model)
-        return models
+        if joint and not(self._fit_flag):
+            fit = False
+        else:
+            fit = True
+
+        cmap = plt.get_cmap("tab10")
+        i = 0
+
+        if veritas:
+            vts = self.veritas._flux_points_dataset
+
+            if show_flux_points:
+                self.plot_flux(vts, color = cmap(i), label="VERITAS")
+
+            if not(fit) and show_model:
+                veritas_model = vts.models[0].spectral_model
+                self.plot_model(veritas_model, band=False, energy_bounds=vts._energy_bounds, color=cmap(i))
+            i+=1
+
+        if fermi:
+            fermi = self._fermi_flux_dataset()
+            
+            if show_flux_points:
+                self.plot_flux(fermi, color = cmap(i), label="Fermi-LAT")
+
+            if not(fit) and show_model:
+                fermi_model = fermi.models[0].spectral_model
+                self.plot_model(fermi_model, band=False, energy_bounds=fermi._energy_bounds, color=cmap(i))
+            i+=1
+
+        emin = 1*u.TeV
+        emax = 1*u.TeV
+
+        for dataset in self.datasets:
+            if type(dataset) == FluxPointsDataset:
+                emin_d = dataset.data.energy_min[0]
+                emax_d = dataset.data.energy_max[-1]
+            else:
+                emin_d = dataset.energy_range_total[0]
+                emax_d = dataset.energy_range_total[1]
+            
+            emin = min(emin, emin_d/2.)
+            emax = max(emax, emax_d*2.)
+
+            if (dataset.name != "fermi") and (dataset.name != "veritas"):
+                self.plot_flux(dataset, color=cmap(i))
+                other_model = dataset.models[0].spectral_model
+                self.plot_model(other_model, energy_bounds=[emin, emax], color=cmap(i))
+                i+=1
+            
+        self._energy_bounds = [emin, emax]
+
+        if joint and show_model:
+            for model in np.atleast_1d(self.target_model):
+                if fit:
+                    self.plot_model(model.spectral_model, band=True, energy_bounds=self._energy_bounds, color=cmap(i))
+                else:
+                    self.plot_model(model.spectral_model, band=False, energy_bounds=self._energy_bounds, color=cmap(i), ls="--")
+            i+=1
+
+        plt.xlim(emin, emax)
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.ylim(kwargs.get("ylim_l", 1e-13),kwargs.get("ylim_h", 1e-8))
+        plt.legend(fontsize=13)
+        plt.grid(which="major", ls="-")
+        plt.grid(which="minor", ls=":")
+        plt.xlabel("Energy [TeV]", fontsize=13)
+        plt.ylabel(r"Energy flux [erg/cm$^2$/s]", fontsize=13)
 
     @staticmethod
     def plot_flux(dataset, **kwargs):
@@ -535,6 +525,9 @@ class JointAnalysis:
 
     @staticmethod
     def plot_model(output, band=False, **kwargs):
+        if type(output) == SkyModel:
+            output = output.spectral_model
+
         if hasattr(output, "plot"):
             energy_bounds = kwargs.pop("energy_bounds", [0.1*u.GeV, 50*u.TeV])
             output.plot(sed_type="e2dnde", energy_bounds=energy_bounds, **kwargs)
@@ -542,3 +535,46 @@ class JointAnalysis:
                 face_color = kwargs.get("color", "k")
                 output.plot_error(energy_bounds=energy_bounds,
                                          sed_type="e2dnde", alpha=0.2, facecolor=face_color)
+
+
+    def construct_dataset(self):
+        self.datasets = Datasets([self.fermi.datasets, self.veritas.stacked_dataset])
+        possible_models = self._find_target_model()
+        self._num_of_models = len(possible_models)
+        self.veritas.stacked_dataset.models = possible_models
+
+
+    def _find_target_model(self):
+        target_pos = self.fermi.datasets.models[self.target_name[1]].spatial_model.position
+        th2cut = self.veritas._on_region.radius.value
+
+        models = []
+        for model in self.fermi.datasets.models:
+            if model.name != 'galdiff' and model.name != 'isodiff':
+                if target_pos.separation(model.spatial_model.position).deg < th2cut:
+                    models.append(model)
+        return models
+
+    def _fermi_flux_dataset(self, models=None, ul_ts_threshold = 9, **kwargs):
+
+        if models is None:
+            if self.target_name[0] in self.fermi.datasets.models.names:
+                models = self.fermi.datasets.models[self.target_name[0]]
+            else:
+                models = self.fermi.datasets.models[self.target_name[1]]
+
+        fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/{self._fermi_state}_sed.fits")
+
+        if not(os.path.isfile(fermi_sed)):
+            self.fermi.analysis("sed", state_file = self._fermi_state)
+
+        table = Table.read(fermi_sed, format='fits', hdu=1)
+        table["is_ul"] = table["ts"]<ul_ts_threshold
+        data = FluxPoints.from_table(table, sed_type="likelihood")
+
+        fermi_dataset = FluxPointsDataset(data=data, models=models)
+
+        fermi_dataset.mask_safe = ~fermi_dataset.data.to_table()["is_ul"]
+        fermi_dataset.mask_fit = ~fermi_dataset.data.to_table()["is_ul"]
+
+        return fermi_dataset
