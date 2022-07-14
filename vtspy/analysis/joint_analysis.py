@@ -28,9 +28,9 @@ class JointAnalysis:
     exploits results from VeritasAnalysis and FermiAnalysis.
 
     Args:
-        veritas (str or vtspy.VeritasAnalysis): state filename or class for VERITAS
+        veritas (str or vtspy.VeritasAnalysis): status filename or class for VERITAS
             Default: initial
-        fermi (str or vtspy.FermiAnalysis): state filename or class for Fermi-LAT
+        fermi (str or vtspy.FermiAnalysis): status filename or class for Fermi-LAT
             Default: initial
         config_file (str): config filename (yaml)
             Default: config.yaml
@@ -53,23 +53,27 @@ class JointAnalysis:
         self._fit_flag = False
         self._num_of_models = 1
         self._target_name = ['','']
+
+        self._fit = Fit(store_trace=True)
+        self._default_optimize_opts = self._fit.optimize_opts
+
         if type(veritas) == str:
             self.veritas = VeritasAnalysis(veritas, config_file=config_file)
-            self._veritas_state = veritas
+            self._veritas_status = veritas
             self._target_name[0] = self.veritas.target_name
         elif hasattr(veritas, "datasets"):
             self._logging.info("VERITAS datasets is imported.")
             self.veritas = veritas
-            self._veritas_state = self.veritas._veritas_state
+            self._veritas_status = self.veritas._veritas_status
             self._target_name[0] = self.veritas.target_name
 
         if type(fermi) == str:
             self.fermi = FermiAnalysis(fermi, construct_dataset=True, config_file=config_file)
-            self._fermi_state = fermi
+            self._fermi_status = fermi
             self._target_name[1] = self.fermi.target_name
         elif hasattr(fermi, "gta"):
             self.fermi = fermi
-            self._fermi_state = self.fermi._fermi_state
+            self._fermi_status = self.fermi._fermi_status
             self.fermi.construct_dataset()
             self._logging.info("Fermi-LAT datasets is imported.")
             self._target_name[1] = self.fermi.target_name
@@ -138,15 +142,15 @@ class JointAnalysis:
             table = self.datasets["veritas"].models.to_parameters_table()
             return table[table["frozen"]==False]
 
-    def save_state(self, state_file):
+    def save_status(self, status_file):
         """
-        Save the state
+        Save the status
 
         Args:
-            state_file (str): the name of state
+            status_file (str): the name of status
         """
 
-        filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+        filename = f"./{self._outdir}/{status_file}.pickle".format(status_file)
         with open(filename, 'wb') as file:
             temp = [copy.copy(self.veritas), copy.copy(self.fermi)]
             del(self.veritas)
@@ -156,16 +160,16 @@ class JointAnalysis:
             self._logging = logger(self.verbosity)
             self.veritas, self.fermi = temp
 
-    def load_state(self, state_file, reconstruct=False):
+    def load_status(self, status_file, reconstruct=False):
         """
-        Load the state
+        Load the status
 
         Args:
-        state_file (str): the name of state
+        status_file (str): the name of status
         reconstruct (bool): re-construct the datasets
             Default: False
         """
-        filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+        filename = f"./{self._outdir}/{status_file}.pickle".format(status_file)
         
         if os.path.exists(filename):
             with open(filename, 'rb') as file:
@@ -173,20 +177,20 @@ class JointAnalysis:
             self._target_name = ['', '']
             
             if not(hasattr(self, "fermi")):
-                self.fermi = FermiAnalysis(self._fermi_state, construct_dataset=True)
+                self.fermi = FermiAnalysis(self._fermi_status, construct_dataset=True)
                 self._target_name[1] = self.fermi.target_name
 
             if not(hasattr(self, "veritas")):
-                self.veritas = VeritasAnalysis(self._veritas_state)
+                self.veritas = VeritasAnalysis(self._veritas_status)
                 self._target_name[0] = self.veritas.target_name
 
             if reconstruct:
                 self.construct_dataset()
         else:
-            self._logging.error("The state file does not exist. Check the name again")
+            self._logging.error("The status file does not exist. Check the name again")
             return -1
 
-    def list_of_state(self):
+    def list_of_status(self):
         files = glob.glob(f"{self._outdir}/*.pickle")
         return print([n.split("/")[-1].split(".")[0] for n in files])
 
@@ -197,7 +201,7 @@ class JointAnalysis:
         Args:
             method (str): either "flux", "rough" or "inst". The "flux" method will fit flux points
                 from VeritasAnalysis.analysis("sed") and FermiAnalysis.analysis("sed"). The "rough"
-                method will fit the dataset with tol of 1 and strategy of 1 (fast). The
+                method will fit the dataset with tol of 10 and strategy of 0 (fast). The
                 "inst" method will fit the model with one of datasets (defined by instrument)
                 Default: flux
             model (gammapy.modeling.models.SpectralModel): a model to fit
@@ -208,11 +212,14 @@ class JointAnalysis:
         """
 
         if method == "rough":
-            optimize_opts = kwargs.pop("optimize_opts", optimize_opts_default)
-
-            fit_ = Fit(optimize_opts = optimize_opts)
-            fit_ = fit_.run(self.datasets)
-            self._model_change_flag=False
+            
+            optimize_opts = copy.copy(self._default_optimize_opts)
+            optimize_opts["strategy"] = 0
+            optimize_opts["tol"] = 10
+            self._fit.optimize_opts = optimize_opts
+            self.fit_results = self._fit.run(self.datasets)
+            self._fit.optimize_opts = self._default_optimize_opts
+            self._model_change_flag = False
 
         elif method == "flux":
             
@@ -240,11 +247,14 @@ class JointAnalysis:
 
             optimize_opts = optimize_opts_default
 
-            fit_ = Fit(optimize_opts =  optimize_opts)
+            optimize_opts = copy.copy(self._default_optimize_opts)
+            optimize_opts["method"] = "L-BFGS-B"
+            optimize_opts["backend"] = "scipy"
+            self._fit.optimize_opts = optimize_opts
             prev_stats = -1
             num_run = 0
             while True:
-                _optimize_result = fit_.run(self._optimize_flux_datasets)
+                _optimize_result = self._fit.run(self._optimize_flux_datasets)
                 current_stats = _optimize_result.total_stat
                 if prev_stats == -1:
                     self._logging.info(f"Initial -> {current_stats}")
@@ -258,16 +268,17 @@ class JointAnalysis:
                     num_run+=1
 
             self._logging.debug(_optimize_result)
-            self._optimize_result = _optimize_result
+            self.fit_results = _optimize_result
 
             for model in test_model:
                 self.datasets.models[model.name].spectral_model = model.spectral_model
 
             self._logging.info(f"Optimize {num_run} times to get an inital parameters.")
+            
+            self._fit.optimize_opts = self._default_optimize_opts
             self._model_change_flag=False
         elif method == "inst":
-            joint_fit = Fit()
-            fit_results = joint_fit.run(self.datasets[instrument.lower()])
+            self.fit_results = self._fit.run(self.datasets[instrument.lower()])
             self._model_change_flag=False
         else:
             return
@@ -288,9 +299,9 @@ class JointAnalysis:
             self._logging.info("Completed. Move to the next step.")
 
         self._logging.info("Start fitting...")
-        
-        joint_fit = Fit(store_trace=True)
-        self.fit_results = joint_fit.run(self.datasets)
+
+        self._fit.optimize_opts = self._default_optimize_opts
+        self.fit_results = self._fit.run(self.datasets)
 
         if self.fit_results.success:
             self._logging.info("Fit successfully.")
@@ -542,7 +553,6 @@ class JointAnalysis:
                 output.plot_error(energy_bounds=energy_bounds,
                                          sed_type="e2dnde", alpha=0.2, facecolor=face_color)
 
-
     def construct_dataset(self):
         self.datasets = Datasets([self.fermi.datasets, self.veritas.stacked_dataset])
         possible_models = self._find_target_model()
@@ -569,10 +579,10 @@ class JointAnalysis:
             else:
                 models = self.fermi.datasets.models[self.target_name[1]]
 
-        fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/{self._fermi_state}_sed.fits")
+        fermi_sed = kwargs.pop("fermi_sed", f"{self.fermi._outdir}/{self._fermi_status}_sed.fits")
 
         if not(os.path.isfile(fermi_sed)):
-            self.fermi.analysis("sed", state_file = self._fermi_state)
+            self.fermi.analysis("sed", status_file = self._fermi_status)
 
         table = Table.read(fermi_sed, format='fits', hdu=1)
         table["is_ul"] = table["ts"]<ul_ts_threshold

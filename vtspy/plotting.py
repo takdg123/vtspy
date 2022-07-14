@@ -192,37 +192,38 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
 
     sed = output["sed"]
     fermi_model = output["sed"]['model_flux']
-    m_engs = 10**fermi_model['log_energies']
+    m_engs = 10**fermi_model['log_energies']*u.MeV
+    dnde = fermi_model['dnde']*(1/u.MeV/u.cm**2/u.second)
+    dnde_lo = fermi_model['dnde_lo']*(1/u.MeV/u.cm**2/u.second)
+    dnde_hi = fermi_model['dnde_hi']*(1/u.MeV/u.cm**2/u.second)
 
     if units == "MeV":
-        conv_u = 1
+        energy_units = u.MeV
     elif units == "GeV":
-        conv_u = 1e-3
+        energy_units = u.GeV
     elif units == "TeV":
-        conv_u = 1e-6
+        energy_units = u.TeV
 
     if erg:
-        e2 = m_engs**2.*utils.MeV2Erg
-        conv_f = utils.MeV2Erg
-        f_units = "erg/cm$^2$/s"
+        flux_units = u.erg/u.cm**2/u.second
+        flux_label = "erg/cm$^2$/s"
     else:
-        e2 = m_engs**2.*conv_u**2.
-        conv_f = conv_u**2.
-        f_units = f"{units}/cm$^2$/s"
+        flux_units = energy_units/u.cm**2/u.second
+        flux_label = f"{units}/cm$^2$/s"
 
     ul_ts_threshold = kwargs.pop('ul_ts_threshold', 9)
     m = sed['ts'] < ul_ts_threshold
-    x = sed['e_ctr']*conv_u
-    y = sed['e2dnde']*conv_f
+    x = (sed['e_ctr']*u.MeV).to(energy_units)
+    y = (sed['e2dnde']*u.MeV/u.cm**2/u.second).to(flux_units)
 
-    yerr = sed['e2dnde_err']*conv_f
-    yerr_lo = sed['e2dnde_err_lo']*conv_f
-    yerr_hi = sed['e2dnde_err_hi']*conv_f
-    yul = sed['e2dnde_ul95']*conv_f
-    delo = sed['e_ctr'] - sed['e_min']
-    dehi = sed['e_max'] - sed['e_ctr']
-    xerr0 = np.vstack((delo[m], dehi[m]))*conv_u
-    xerr1 = np.vstack((delo[~m], dehi[~m]))*conv_u
+    yerr = (sed['e2dnde_err']*u.MeV/u.cm**2/u.second).to(flux_units)
+    yerr_lo = (sed['e2dnde_err_lo']*u.MeV/u.cm**2/u.second).to(flux_units)
+    yerr_hi = (sed['e2dnde_err_hi']*u.MeV/u.cm**2/u.second).to(flux_units)
+    yul = (sed['e2dnde_ul95']*u.MeV/u.cm**2/u.second).to(flux_units)
+    delo = ((sed['e_ctr'] - sed['e_min'])*u.MeV).to(energy_units)
+    dehi = ((sed['e_max'] - sed['e_ctr'])*u.MeV).to(energy_units)
+    xerr0 = np.vstack((delo[m], dehi[m]))
+    xerr1 = np.vstack((delo[~m], dehi[~m]))
 
     if show_flux_points:
         plt.errorbar(x[~m], y[~m], xerr=xerr1, label="Fermi-LAT",
@@ -231,9 +232,11 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
                      yerr=yul[m] * 0.2, uplims=True, ls="", color=color)
 
     if show_model:
-        plt.plot(m_engs*conv_u, fermi_model['dnde'] * e2, color=color, **kwargs)
+        plt.plot(m_engs.to(energy_units), (dnde*m_engs**2).to(flux_units), color=color, **kwargs)
         if show_band:
-            plt.fill_between(m_engs*conv_u, fermi_model['dnde_lo'] * e2, fermi_model['dnde_hi'] * e2,
+            plt.fill_between(m_engs.to(energy_units), 
+                (dnde_lo * m_engs**2).to(flux_units), 
+                (dnde_hi * m_engs**2).to(flux_units),
             alpha=0.2, color=color)
 
     plt.xscale("log")
@@ -243,7 +246,7 @@ def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg
     plt.grid(which="minor", ls=":")
 
     plt.xlabel(f"Energy [{units}]", fontsize=13)
-    plt.ylabel(f"Energy flux [{f_units}]", fontsize=13)
+    plt.ylabel(f"Energy flux [{flux_label}]", fontsize=13)
 
     fig = plt.gcf()
     return fig

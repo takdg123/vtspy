@@ -40,17 +40,17 @@ from gammapy.estimators import FluxPointsEstimator, ExcessMapEstimator, FluxPoin
 
 class VeritasAnalysis:
 
-	def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, verbosity=1, **kwargs):
+	def __init__(self, status_file = "initial", config_file='config.yaml', overwrite=False, verbosity=1, **kwargs):
 		"""
 	    This is to perform a simple VERITAS analysis and to prepare the joint-fit
 	    analysis. All analysis is done with the gammapy package
 
 	    Args:
-	        state_file (str): state filename (pickle)
+	        status_file (str): status filename (pickle)
 	        	Default: initial
 	        config_file (str): config filename (yaml)
 	            Default: config.yaml
-	        overwrite (bool): overwrite the state
+	        overwrite (bool): overwrite the status
 	            Default: False
 	        verbosity (int)
 	        **kwargs: passed to VeritasAnalysis.setup
@@ -82,19 +82,19 @@ class VeritasAnalysis:
 		)
 		self._excluded_regions = []
 
-		if overwrite or not(os.path.isfile("./{}/{}.pickle".format(self._outdir, state_file))):
+		if overwrite or not(os.path.isfile("./{}/{}.pickle".format(self._outdir, status_file))):
 
 			self.setup(**kwargs)
 
-			self._logging.debug("Save the initial state.")
+			self._logging.debug("Save the initial status.")
 
-			self.save_state(state_file, init=True)
+			self.save_status(status_file, init=True)
 
-			self._logging.info("The initial setup is saved [state_file = {}].".format(state_file))
+			self._logging.info("The initial setup is saved [status_file = {}].".format(status_file))
 
 		else:
-			self._logging.info("The setup is found [state_file = {}]. Read the state.".format(state_file))
-			flag = self.load_state(state_file)
+			self._logging.info("The setup is found [status_file = {}]. Read the status.".format(status_file))
+			flag = self.load_status(status_file)
 
 			if flag == -1:
 				return
@@ -173,44 +173,44 @@ class VeritasAnalysis:
         """
 		self.stacked_dataset.peek()
 
-	def save_state(self, state_file, init=False):
+	def save_status(self, status_file, init=False):
 		"""
-		Save the state
+		Save the status
 
 		Args:
-		    state_file (str): the name of state
+		    status_file (str): the name of status
 		    init (bool): check whether this is the initial analysis.
 		        Default: False
 		"""
 
-		if (init==False) and (state_file == "initial"):
-		    self._logging.warning("The 'inital' state is overwritten. This is not recommended.")
-		    self._logging.warning("The original 'inital' state is archived in the '_orig' folder.")
+		if (init==False) and (status_file == "initial"):
+		    self._logging.warning("The 'inital' status is overwritten. This is not recommended.")
+		    self._logging.warning("The original 'inital' status is archived in the '_orig' folder.")
 		    os.system(f"mkdir ./{self._outdir}/_orig")
 		    for file in glob.glob(f"./{self._outdir}/*initial*"):
 		        os.sytem(f"mv {file} ./{self._outdir}/_orig/")
 
-		filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+		filename = f"./{self._outdir}/{status_file}.pickle".format(status_file)
 		with open(filename, 'wb') as file:
 			del(self._logging)
 			pickle.dump(self, file)
 			self._logging = logger(self.verbosity)
-			self._veritas_state = state_file
+			self._veritas_status = status_file
 
-	def load_state(self, state_file):
+	def load_status(self, status_file):
 		"""
-		Load the state
+		Load the status
 
 		Args:
-		state_file (str): the name of state
+		status_file (str): the name of status
 		"""
-		filename = f"./{self._outdir}/{state_file}.pickle".format(state_file)
+		filename = f"./{self._outdir}/{status_file}.pickle".format(status_file)
 		if os.path.exists(filename):
 			with open(filename, 'rb') as file:
 				self.__dict__.update(pickle.load(file).__dict__)
-			self._veritas_state = state_file
+			self._veritas_status = status_file
 		else:
-			self._logging.error("The state file does not exist. Check the name again")
+			self._logging.error("The status file does not exist. Check the name again")
 			return -1
 
 	def setup(self, **kwargs):
@@ -283,7 +283,7 @@ class VeritasAnalysis:
 		self._logging.info("Define ON- and OFF-regions.")
 		self.construct_dataset(**kwargs)
 
-	def fit(self, model = "PowerLaw", state_file="simple", save_state=True, **kwargs):
+	def fit(self, model = "PowerLaw", status_file="simple", save_status=True, **kwargs):
 		"""
         Perform a simple fitting with a given model:
         PowerLaw, LogParabola, ...
@@ -291,9 +291,9 @@ class VeritasAnalysis:
         Args:
             model (str or gammapy.models): model name or function
                 Default: "PowerLaw"
-            state_file (str): state filename (pickle)
+            status_file (str): status filename (pickle)
 	        	Default: simple
-	        save_state(bool)
+	        save_status(bool)
 	        	Default: True
 	        **kwargs: passed to vtspy.model.default_model
         """
@@ -312,20 +312,20 @@ class VeritasAnalysis:
 
 		if self.fit_results.success:
 			self._logging.info("Fit successfully.")
-			if save_state:
-				self.save_state(state_file)
-				self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.VeritasAnalysis('{state_file}').")
+			if save_status:
+				self.save_status(status_file)
+				self._logging.info(f"The status is saved as '{status_file}'. You can load the status by vtspy.VeritasAnalysis('{status_file}').")
 		else:
 			self._logging.error("Fit failed.")
 
-	def analysis(self, jobs=["sed"], state_file="analyzed", **kwargs):
+	def analysis(self, jobs=["sed"], status_file="analyzed", **kwargs):
 		"""
 		Perform a simple analysis, e.g., SED, lightcurve
 
 		Args:
 			jobs (list): list of jobs, 'sed', and/or 'lc'.
 				Default: ['sed']
-			state_file (str): state filename (pickle)
+			status_file (str): status filename (pickle)
 				Default: analyzed
 			**kwargs: passed to vtspy.utils.define_time_intervals
 		"""
@@ -373,8 +373,8 @@ class VeritasAnalysis:
 			self._lightcurve.sqrt_ts_threshold_ul = ul
 			self._logging.info("Generating lightcurve is completed.")
 
-		self.save_state(state_file)
-		self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.VeritasAnalysis('{state_file}').")
+		self.save_status(status_file)
+		self._logging.info(f"The status is saved as '{status_file}'. You can load the status by vtspy.VeritasAnalysis('{status_file}').")
 
 	def plot(self, output, **kwargs):
 		"""

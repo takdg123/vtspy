@@ -16,12 +16,13 @@ model_dict = {
     # fermipy to gammapy
     "PowerLaw": gammapy_model.PowerLawSpectralModel,
     "LogParabola": gammapy_model.LogParabolaSpectralModel,
-    "PLSuperExpCutoff2":gammapy_model.ExpCutoffPowerLawSpectralModel,
+    "PLSuperExpCutoff4":gammapy_model.SuperExpCutoffPowerLaw4FGLDR3SpectralModel,
 
     # gammapy to fermipy
     "PowerLawSpectralModel": "Powerlaw",
     "LogParabolaSpectralModel": "LogParabola",
-    "ExpCutoffPowerLawSpectralModel": "PLSuperExpCutoff2"
+    "SuperExpCutoffPowerLaw4FGLDR3SpectralModel": "PLSuperExpCutoff4",
+
 }
 
 params = {
@@ -32,9 +33,9 @@ params = {
                     "beta": ["beta", u.dimensionless_unscaled, u.dimensionless_unscaled, 1],
                     "norm": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1],
                     "Eb": ["reference", u.MeV, u.TeV, 1]},
-    "PLSuperExpCutoff2": {"Index1": ["index", u.dimensionless_unscaled, u.dimensionless_unscaled, -1],
-                    "Index2": ["alpha", u.dimensionless_unscaled, u.dimensionless_unscaled, 1],
-                    "Expfactor": ["lambda_", 1/u.MeV, 1/u.TeV, 1],
+    "PLSuperExpCutoff4": {"IndexS": ["index_1", u.dimensionless_unscaled, u.dimensionless_unscaled, -1],
+                    "Index2": ["index_2", u.dimensionless_unscaled, u.dimensionless_unscaled, 1],
+                    "ExpfactorS": ["expfactor", u.dimensionless_unscaled, u.dimensionless_unscaled, 1],
                     "Prefactor": ["amplitude", 1/u.cm**2/u.s/u.MeV,  1/u.cm**2/u.s/u.TeV, 1],
                     "Scale": ["reference", u.MeV, u.TeV, 1]},
 }
@@ -60,6 +61,7 @@ def fermipy2gammapy(like, src, fix_pars=False):
         else:
             gpar.min = src["spectral_pars"][par]["min"]
             gpar.max = src["spectral_pars"][par]["max"]
+
         if fix_pars:
             gpar.frozen = True
         else:
@@ -75,34 +77,34 @@ def fermipy2gammapy(like, src, fix_pars=False):
 
     return source
 
-def gammapy2fermipy(spectral, src=None):
-    from fermipy.roi_model import Source
+# def gammapy2fermipy(spectral, src=None):
+#     from fermipy.roi_model import Source
 
-    if src is None:
-        new_model = Source("new",
-                {"SpectrumType": model_dict[spectral.tag[0]]})
-    else:
-        new_model = Source(src.name,
-                {"ra": src.radec[0],
-                 "dec": src.radec[0],
-                 "SpectrumType": model_dict[spectral.tag[0]]})
+#     if src is None:
+#         new_model = Source("new",
+#                 {"SpectrumType": model_dict[spectral.tag[0]]})
+#     else:
+#         new_model = Source(src.name,
+#                 {"ra": src.radec[0],
+#                  "dec": src.radec[0],
+#                  "SpectrumType": model_dict[spectral.tag[0]]})
 
-    params = {}
-    for par in new_model.params.keys():
-        fpar = new_model.params[par]
-        gpar_setup = params[new_model['SpectrumType']][par]
-        gpar = getattr(spectral, gpar_setup[0])
-        val = (gpar.value*gpar_setup[2]).to(gpar_setup[1])
-        params[par] = {"value":val.value, "free": not(val.frozen)}
+#     params = {}
+#     for par in new_model.params.keys():
+#         fpar = new_model.params[par]
+#         gpar_setup = params[new_model['SpectrumType']][par]
+#         gpar = getattr(spectral, gpar_setup[0])
+#         val = (gpar.value*gpar_setup[2]).to(gpar_setup[1])
+#         params[par] = {"value":val.value, "free": not(val.frozen)}
 
-    return params
+#     return params
 
 def fermi_galactic_diffuse_bkg(config, fmodel, fix_pars = False):
     diffuse_galactic_fermi = Map.read(config['model']['galdiff'][0])
     spatial_model = gammapy_model.TemplateSpatialModel(diffuse_galactic_fermi, normalize=False)
     spectral_model = gammapy_model.PowerLawNormSpectralModel()
     spectral_model.norm.value = fmodel.params["Prefactor"]["value"]
-    spectral_model.norm.min = 0
+    spectral_model.norm.min = 0.1
     spectral_model.norm.max = 10
     spectral_model.norm.frozen = fix_pars
     diffuse_gald = SkyModel(spectral_model=spectral_model, spatial_model=spatial_model,  name="galdiff")
@@ -112,9 +114,9 @@ def fermi_isotropic_diffuse_bkg(config, fmodel, fix_pars = False):
     diffuse_iso = gammapy_model.create_fermi_isotropic_diffuse_model(
         filename=config['model']['isodiff'][0],
         interp_kwargs={"fill_value": None})
-    diffuse_iso.spectral_model.model2.value = fmodel.params["Normalization"]["value"]
-    diffuse_iso.spectral_model.model2.min = 0
-    diffuse_iso.spectral_model.model2.max = 10
+    diffuse_iso.spectral_model.model2.norm.value = fmodel.params["Normalization"]["value"]
+    diffuse_iso.spectral_model.model2.norm.min = 0.1
+    diffuse_iso.spectral_model.model2.norm.max = 10
     diffuse_iso.spectral_model.model2.norm.frozen = fix_pars
     diffuse_iso._name = "isodiff"
 

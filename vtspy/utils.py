@@ -328,18 +328,29 @@ def convertROOT2fits(files, eff, **kwargs):
 
     generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=datadir)
 
-def generatePSF(config):
+def generatePSF(config, **kwargs):
+
+    emin = kwargs.pop("emin", config['selection']['emin'])
+    emax = kwargs.pop("emax", config['selection']['emax'])
+    binsperdec = config['binning']['binsperdec']
+    enumbins = kwargs.pop("enumbins", int((np.log10(emax)-np.log10(emin))*binsperdec))
+    ntheta = int(30/config['binning']['binsz'])
+    thetamax = config['binning']['binsz']*ntheta
+    
     from GtApp import GtApp
     gtpsf = GtApp('gtpsf')
     workdir = config['fileio']['workdir']
     gtpsf["expcube"] = '{}/ltcube_00.fits'.format(workdir)
-    gtpsf["outfile"] = '{}/gtpsf_00.fits'.format(workdir)
+    gtpsf["outfile"] = kwargs.pop("outfile", '{}/gtpsf_00.fits'.format(workdir))
     gtpsf["irfs"] = config['gtlike']['irfs']
     gtpsf['evtype'] = config['selection']['evtype']
     gtpsf['ra'] = config['selection']['ra']
     gtpsf['dec'] = config['selection']['dec']
-    gtpsf['emin'] = config['selection']['emin']
-    gtpsf['emax'] = config['selection']['emax']
+    gtpsf['emin'] = emin
+    gtpsf['emax'] = emax
+    gtpsf['thetamax'] = thetamax
+    gtpsf['ntheta'] = ntheta
+    gtpsf['nenergies'] = enumbins
     gtpsf['chatter'] = 0
     gtpsf.run()
 
@@ -361,8 +372,7 @@ def generateRSP(config):
     rspgen['emax'] = config['selection']['emax']
     rspgen['ebinalg'] = "LOG"
     rspgen['enumbins'] = enumbins
-    rspgen['chatter'] = 4
-    repgen["debug"] = "yes"
+    rspgen['chatter'] = 0
     rspgen.run() 
 
 def generatePHA(config):

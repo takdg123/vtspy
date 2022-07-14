@@ -458,7 +458,7 @@ class JointConfig:
 					'src_roiwidth': 15,
 					'galdiff': f'$FERMI_DIFFUSE_DIR/{gald}',
 					'isodiff': f'$FERMI_DIFFUSE_DIR/{iso}',
-					'catalogs': SCRIPT_DIR+'/refdata/gll_psc_v22.fit'
+					'catalogs': ['4FGL-DR3']
 					},
 				'fileio': {
 					'outdir' : outdir,

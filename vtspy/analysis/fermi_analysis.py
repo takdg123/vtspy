@@ -45,15 +45,15 @@ class FermiAnalysis():
         fermi = FermiAnalysis()
         fermi.gta.optimize()
 
-    All information about the state of the analysis (See fermipy documentation
+    All information about the status of the analysis (See fermipy documentation
     for details) will be saved in the numpy array format (npy).
 
     Args:
-        state_file (str): state filename (npy)
+        status_file (str): status filename (npy)
             Default: initial
         config_file (str): config filename (yaml)
             Default: config.yaml
-        overwrite (bool): overwrite the state
+        overwrite (bool): overwrite the status
             Default: False
         remove_weak_srcs (bool): remove sources with TS of nan or 0
             Default: False
@@ -63,7 +63,7 @@ class FermiAnalysis():
         **kwargs: passed to fermipy.GTAnalysis module
     """
 
-    def __init__(self, state_file = "initial", config_file='config.yaml', overwrite=False, remove_weak_srcs = False, construct_dataset = False, verbosity=True, **kwargs):
+    def __init__(self, status_file = "initial", config_file='config.yaml', overwrite=False, remove_weak_srcs = False, construct_dataset = False, verbosity=True, **kwargs):
 
         self._verbosity = verbosity
         config = JointConfig.get_config(config_file=config_file).pop("fermi")
@@ -86,7 +86,7 @@ class FermiAnalysis():
 
         self._exist_rsp = False
 
-        if overwrite or not(os.path.isfile(f"{self._outdir}/{state_file}.fits")):
+        if overwrite or not(os.path.isfile(f"{self._outdir}/{status_file}.fits")):
 
             if overwrite:
                 self._logging.info("Overwrite the Fermi-LAT setup.")
@@ -119,13 +119,13 @@ class FermiAnalysis():
             if construct_dataset:
                 self.construct_dataset()
 
-            self.save_state(state_file, init=True, **kwargs)
+            self.save_status(status_file, init=True, **kwargs)
 
-            self._logging.info("The initial setup and configuration is saved [state_file = {}].".format(state_file))
+            self._logging.info("The initial setup and configuration is saved [status_file = {}].".format(status_file))
         else:
-            self._logging.info("The setup and configuration is found [state_file = {}]. Loading the configuration...".format(state_file))
+            self._logging.info("The setup and configuration is found [status_file = {}]. Loading the configuration...".format(status_file))
 
-            flag = self.load_state(state_file)
+            flag = self.load_status(status_file)
 
             if flag == -1:
                 return
@@ -232,38 +232,38 @@ class FermiAnalysis():
         self.datasets.psf.plot_psf_vs_rad(ax = ax[1][1])
         plt.tight_layout()
 
-    def save_state(self, state_file, init=False):
+    def save_status(self, status_file, init=False):
         """
-        Save the state
+        Save the status
 
         Args:
-            state_file (str): passed to fermipy.write_roi
+            status_file (str): passed to fermipy.write_roi
             init (bool): check whether this is the initial analysis.
                 Default: False
         """
 
-        if (init==False) and (state_file == "initial"):
-            self._logging.warning("The 'inital' state is overwritten. This is not recommended.")
-            self._logging.warning("The original 'inital' state is archived in the '_orig' folder.")
+        if (init==False) and (status_file == "initial"):
+            self._logging.warning("The 'inital' status is overwritten. This is not recommended.")
+            self._logging.warning("The original 'inital' status is archived in the '_orig' folder.")
             os.system(f"mkdir ./{self._outdir}/_orig")
             for file in glob.glob(f"{self._outdir}/*initial*"):
                 os.sytem(f"mv {file} {self._outdir}/_orig/")
 
-        self.gta.write_roi(state_file, save_model_map=True)
-        self._fermi_state = state_file
+        self.gta.write_roi(status_file, save_model_map=True)
+        self._fermi_status = status_file
 
-    def load_state(self, state_file):
+    def load_status(self, status_file):
         """
-        Load the state
+        Load the status
 
         Args:
-            state_file (str): passed to fermipy.write_roi
+            status_file (str): passed to fermipy.write_roi
         """
-        filename = f"{self._outdir}/{state_file}.fits"
+        filename = f"{self._outdir}/{status_file}.fits"
         if os.path.exists(filename):
-            self.gta.load_roi(state_file)
-            self._fermi_state = state_file
-            filename = f"{self._outdir}/{state_file}_output.npy"
+            self.gta.load_roi(status_file)
+            self._fermi_status = status_file
+            filename = f"{self._outdir}/{status_file}_output.npy"
             if os.path.exists(filename):
                 self.output = np.load(filename, allow_pickle=True).item()
             filename = f"{self._outdir}/gtrsp_00.rsp"
@@ -273,7 +273,7 @@ class FermiAnalysis():
                 self._exist_rsp = False
 
         else:
-            self._logging.error("The state file does not exist. Check the name again")
+            self._logging.error("The status file does not exist. Check the name again")
             return -1
 
     def set_target(self, target):
@@ -316,7 +316,7 @@ class FermiAnalysis():
         self._logging.info(f"{N} sources are deleted.")
 
 
-    def fit(self, state_file="simple", pre_state=None,
+    def fit(self, status_file="simple", pre_status=None,
         free_all=False, free_target=True,
         remove_weak_srcs=False, fix_index=False,
         min_ts=5, distance=3.0, optimizer = 'NEWMINUIT',
@@ -325,7 +325,7 @@ class FermiAnalysis():
         Perform a simple fitting with various cuts
 
         Args:
-            state_file (str): output state filename (npy)
+            status_file (str): output status filename (npy)
                 Default: simple
             free_all (bool): make the target's all parameters free
                 Default: True
@@ -345,16 +345,16 @@ class FermiAnalysis():
                 Default: NEWMINUIT
             return_output (bool): return the fitting result (dict)
                 Default: False
-            pre_state (str, optional): input state filename (npy). If not defined, starting from
-                the current state.
+            pre_status (str, optional): input status filename (npy). If not defined, starting from
+                the current status.
                 Default: None
             **kwargs: passed to fermipy.GTAnalysis.free_sources function
 
         Return
             dict: the output of the fitting when return_output is True
         """
-        if pre_state is not None:
-            self.load_state(pre_state)
+        if pre_status is not None:
+            self.load_status(pre_status)
 
         if free_all:
             self.gta.free_sources(free=True, **kwargs)
@@ -381,24 +381,24 @@ class FermiAnalysis():
         else:
             self._logging.error("Fit failed.")
 
-        self.save_state(state_file)
-        self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.FermiAnalysis('{state_file}').")
+        self.save_status(status_file)
+        self._logging.info(f"The status is saved as '{status_file}'. You can load the status by vtspy.FermiAnalysis('{status_file}').")
 
         if return_output:
             return o
 
-    def analysis(self, jobs = ["ts", "resid", "sed"], state_file="analyzed", **kwargs):
+    def analysis(self, jobs = ["ts", "resid", "sed"], status_file="analyzed", **kwargs):
         """
         Perform various analyses: TS map, Residual map, and SED.
 
         Args:
             jobs (str or list): list of jobs, 'ts', 'resid', and/or 'sed'.
                 Default: ['ts', 'resid', 'sed']
-            state_file (str): output state filename (npy)
+            status_file (str): output status filename (npy)
                 Default: analyzed
             **kwargs: passed to GTanalysis.sed
         """
-        filename = f"{self._outdir}/{state_file}_output.npy"
+        filename = f"{self._outdir}/{status_file}_output.npy"
 
         if os.path.exists(filename):
         
@@ -421,19 +421,19 @@ class FermiAnalysis():
             output['resid'] = o
 
         if "sed" in jobs:
-            outfile=state_file+"_sed.fits"
+            outfile=status_file+"_sed.fits"
             o = self._calc_sed(outfile=outfile, **kwargs)
             output['sed'] = o
 
         self.gta.set_free_param_vector(free)
 
         self.output = output
-        np.save(f"{self._outdir}/{state_file}_output", output)
+        np.save(f"{self._outdir}/{status_file}_output", output)
 
-        self.save_state(state_file)
-        self._logging.info(f"The state is saved as '{state_file}'. You can load the state by vtspy.FermiAnalysis('{state_file}').")
+        self.save_status(status_file)
+        self._logging.info(f"The status is saved as '{status_file}'. You can load the status by vtspy.FermiAnalysis('{status_file}').")
 
-    def plot(self, output, state_file="analyzed", **kwargs):
+    def plot(self, output, status_file="analyzed", **kwargs):
         """
         Show various plots: TS map, Residual map, and SED.
 
@@ -441,11 +441,11 @@ class FermiAnalysis():
             output (str or list): list of plots to show
                 Options: ["sqrt_ts", "npred", "ts_hist", "data",
                 "model", "sigma", "excess", "resid", "sed"]
-            state_file (str): read the output (from FermiAnalysis.analysis)
+            status_file (str): read the output (from FermiAnalysis.analysis)
         """
 
         if not(hasattr(self, "output")):
-            filename = f"{self._outdir}/{state_file}_output.npy"
+            filename = f"{self._outdir}/{status_file}_output.npy"
             if os.path.exists(filename):
                 self._logging.info("Loading the output file...")
                 self.output = np.load(filename, allow_pickle=True).item()
@@ -483,12 +483,12 @@ class FermiAnalysis():
         plt.tight_layout()
 
 
-    def find_sources(self, state_file = "wt_new_srcs", re_fit=True, return_srcs=False, **kwargs):
+    def find_sources(self, status_file = "wt_new_srcs", re_fit=True, return_srcs=False, **kwargs):
         """
         Find sources within the ROI (using GTanalysis.find_sources).
 
         Args:
-            state_file (str): output state filename (npy)
+            status_file (str): output status filename (npy)
                 Default: wt_new_srcs
             re_fit (bool): re fit the ROI with new sources
                 Default: True
@@ -505,42 +505,12 @@ class FermiAnalysis():
         self._logging.info("{} sources are found. They are added into the model list.".format(len(srcs["sources"])))
 
         if re_fit:
-            self.fit(state_file=state_file, **kwargs)
+            self.fit(status_file=status_file, **kwargs)
         else:
-            self.save_state(state_file)
+            self.save_status(status_file)
 
         if return_srcs:
             return srcs
-
-
-    def construct_dataset(self,
-                        fix_other_srcs = True,
-                        eventlist = "ft1_00.fits",
-                        exposure = "bexpmap_00.fits",
-                        psf = "gtpsf_00.fits"):
-
-        """
-        Construct a dataset for the gammapy analysis.
-
-        Args:
-            fix_other_srcs (bool): fix source parameters except for the target
-                Default: False
-            eventlist (str): event list file (gtapp.maketime)
-                Default: ft1_00.fits
-            exposure (str): exposure map file (gtapp.gtexpmap)
-            psf (str): psf file (gtapp.gtpsf)
-        """
-
-        self._logging.info("Loading the Fermi-LAT events...")
-        counts = self._load_fermi_events(eventlist=eventlist)
-        self._logging.info("Loading the Fermi-LAT IRFs...")
-        irf = self._load_fermi_irfs(counts, exposure=exposure, psf=psf)
-        self._logging.info("Loading the Fermi-LAT models...")
-        models =  self._convert_model(fix_other_srcs=fix_other_srcs)
-        self.datasets = MapDataset(
-            name="fermi", models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
-        )
-        self._logging.info("Ready to perform a gammapy analysis.")
 
     def _find_target(self, name=None):
         if name is None:
@@ -593,7 +563,7 @@ class FermiAnalysis():
         if target is None:
             target = self.target_name
 
-        energy_bounds = kwargs.pop("energy_bounds", [self.gta.config["selection"]["emin"], self.gta.config["selection"]["emax"]])
+        energy_bounds = kwargs.pop("energy_bounds", [self.gta.config["selection"]["emin"], self.gta.config["selection"]["emax"]] * u.MeV)
         
         if kwargs.get("nbins"):
             self._energy_bins = MapAxis.from_bounds(energy_bounds[0].to(u.MeV).value, 
@@ -626,82 +596,159 @@ class FermiAnalysis():
         self._logging.info("Generating the lightcurve is completed.")
         return o
 
-    def _load_fermi_events(self, eventlist = "ft1_00.fits"):
+    def construct_dataset(self,
+                        psf_cut = 10, 
+                        min_energy_cut = None,
+                        fix_other_srcs = True,
+                        eventlist = "ft1_00.fits",
+                        exposure = "bexpmap_00.fits",
+                        psf = "gtpsf_00.fits", **kwargs):
+
+        """
+        Construct a dataset for the gammapy analysis.
+
+        Args:
+            psf_cut (float): apply a psf cut. Ignore energy channels whose 
+            99.9% angular resolution is higher than an input number.
+                Default: 10
+            min_energy_cut (float): apply a minimum energy cut.
+                Default: None
+            fix_other_srcs (bool): fix source parameters except for the target
+                Default: False
+            eventlist (str): event list file (gtapp.maketime)
+                Default: ft1_00.fits
+            exposure (str): exposure map file (gtapp.gtexpmap)
+            psf (str): psf file (gtapp.gtpsf)
+        """
+
+        self._logging.info("Setting the safe masks...")
+
+        emin = self.gta.config["selection"]["emin"]
+        emax = self.gta.config["selection"]["emax"]
+        binsperdec = self.gta.config["binning"]["binsperdec"]
+        nbin = int((np.log10(emax)-np.log10(emin))*binsperdec)
+        energy_axis = MapAxis.from_bounds(emin,emax,
+                nbin=nbin,
+                name="energy",
+                interp="log", unit="MeV")
+
+        energy_axis = self._safe_mask(psf_cut=psf_cut, min_energy_cut=min_energy_cut, psf=psf, energy_axis=energy_axis)
+        self._logging.info(f"The minimum energy is set to {energy_axis.edges[0]}")
+
+        self._logging.info("Loading the Fermi-LAT events...")
+        counts = self._load_fermi_events(eventlist=eventlist, energy_axis=energy_axis)
+        
+        self._logging.info("Loading the Fermi-LAT IRFs...")
+        irf = self._load_fermi_irfs(counts, exposure=exposure, psf=psf, energy_axis=energy_axis)
+        
+        self._logging.info("Loading the Fermi-LAT models...")
+        models =  self._convert_model(fix_other_srcs=fix_other_srcs)
+        
+        self.datasets = MapDataset(
+            name="fermi", models=models, counts=counts, exposure=irf["exposure"], psf=irf["psf"], edisp=irf["edisp"]
+        )
+        self._logging.info("Ready to perform a gammapy analysis.")
+
+    def _safe_mask(self, psf, energy_axis, psf_cut=10, min_energy_cut=None):
+
+        if psf_cut is not None:
+            psf = PSFMap.read(Path(self._outdir) / f"{psf}", format="gtpsf")
+            radii = psf.containment_radius(
+                fraction=0.999, position=self.target.skydir, energy_true=energy_axis.edges
+            )
+            mask_safe_psf = radii<psf_cut*u.deg
+            energy_axis = energy_axis.edges[mask_safe_psf]
+            energy_axis = MapAxis.from_edges(energy_axis, name="energy", interp="log", unit="MeV")
+
+        if min_energy_cut is not None:
+            energy_axis = energy_axis.edges[energy_axis.edges>min_energy_cut*u.GeV]
+            energy_axis = MapAxis.from_edges(energy_axis, name="energy", interp="log", unit="MeV")
+
+        return energy_axis
+
+
+    def _load_fermi_events(self, eventlist = "ft1_00.fits", energy_axis = None):
+
+        if energy_axis is None:
+            energy_axis = self.energy_bins
 
         self._gammapy_events = EventList.read(Path(self._outdir)/ f"{eventlist}")
 
         glon = self.gta.config['selection']['glon']
         glat = self.gta.config['selection']['glat']
         src_pos = SkyCoord(glon, glat, unit="deg", frame="galactic")
-        emin = self.gta.config["selection"]["emin"]
-        emax = self.gta.config["selection"]["emax"]
-        nbin = int((np.log10(emax)-np.log10(emin))*self.gta.config["binning"]["binsperdec"])
-        energy_bins = MapAxis.from_bounds(emin,emax,
-                nbin=nbin,
-                name="energy",
-                interp="log", unit="MeV")
-
+        
         counts = Map.create(skydir=src_pos, width=self.gta.config['binning']['roiwidth'],
             proj=self.gta.config['binning']['proj'], binsz=self.gta.config['binning']['binsz'],
-            frame='galactic', axes=[energy_bins], dtype=float)
+            frame='galactic', axes=[energy_axis], dtype=float)
         counts.fill_by_coord({"skycoord": self._gammapy_events.radec, "energy": self._gammapy_events.energy})
 
         return counts
 
-    def _load_fermi_irfs(self, counts, exposure = "bexpmap_00.fits", psf = "gtpsf_00.fits"):
-        expmap = Map.read(Path(self._outdir) / f"{exposure}")
-        axis = MapAxis.from_nodes(
-            counts.geom.axes[0].center,
+    def _load_fermi_irfs(self, counts, exposure = "bexpmap_00.fits", psf = "gtpsf_00.fits", energy_axis=None, gauss_disp=False):
+        
+        if energy_axis is None:
+            energy_axis = self.energy_bins
+
+        axis = MapAxis.from_edges(
+            energy_axis.edges,
             name="energy_true",
             unit="MeV",
             interp="log"
         )
-
+        
         irf = {}
 
+        expmap = Map.read(Path(self._outdir) / f"{exposure}")
         geom = WcsGeom(wcs=counts.geom.wcs, npix=counts.geom.npix, axes=[axis])
         exposure = expmap.interp_to_geom(geom)
         irf['exposure'] = exposure
 
         # PSF
-        psf = PSFMap.read(Path(self._outdir) / f"{psf}", format="gtpsf")
+        generatePSF(self.gta.config, 
+            emin = axis.edges[0].value, 
+            emax = axis.edges[-1].value, 
+            enumbins = len(axis.edges), 
+            outfile = f"{self._outdir}/gtpsf_00.fits.temp")
+
+        psf = PSFMap.read(Path(self._outdir) / "gtpsf_00.fits.temp", format="gtpsf")
         irf['psf'] = psf
 
         # Energy dispersion
-        if self._exist_rsp:
+        #if self._exist_rsp or gauss_disp:
+        if False:
             rsp_file = fits.open(f"{self._outdir}/gtrsp_00.rsp")
             disp = rsp_file[1].data
             e_obs = rsp_file[2].data
-
-            e_obs = e_obs["E_MIN"].tolist()+[e_obs["E_MAX"][-1]]
-            e_true = disp["ENERG_LO"].tolist()+[disp["ENERG_HI"][-1]]
+            len_e_obs = len(e_obs)+1
             
-            e_obs = MapAxis.from_edges(e_obs, name="energy", interp="log", unit="keV")
-            e_true = MapAxis.from_edges(e_true, name="energy_true", interp="log", unit="keV")
-
             data = disp["MATRIX"]
             re_shape_data = []
             for d in data:
                 d = d.tolist()
-                while len(d)!=len(data):
+                while len(d)!=len_e_obs:
                     d.append(0)
-                    
                 re_shape_data.append(d)
             re_shape_data = np.asarray(re_shape_data)
 
+            e_true = MapAxis.from_edges(axis.edges.to(u.keV),name="energy_true",
+                unit="keV",interp="log")
+
+            e_obs = MapAxis.from_edges(energy_axis.edges.to(u.keV),name="energy_true",
+                unit="keV",interp="log")
+
+            len_e_obs = len(e_obs.edges)
+            len_e_true = len(e_true.edges)
+
+            re_shape_data = re_shape_data[-len_e_true+1:]
+            re_shape_data = (re_shape_data.T[-len_e_obs+1:]).T
+            
             edisp = EDispKernel.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
             edisp.data =re_shape_data
+            edisp.normalize("energy_true")
             irf['edisp'] = EDispKernelMap.from_edisp_kernel(edisp)
         else:
-            e_obs = fits.open(f"{self._outdir}/gtpha_00.pha")[2].data
-
-            e_obs = e_obs["E_MIN"].tolist()+[e_obs["E_MAX"][-1]]
-            e_true = e_obs
-            
-            e_obs = MapAxis.from_edges(e_obs, name="energy", interp="log", unit="keV")
-            e_true = MapAxis.from_edges(e_true, name="energy_true", interp="log", unit="keV")
-
-            edisp = EDispKernel.from_gauss(energy_axis_true=e_true, energy_axis=e_obs, sigma=0.1, bias=0)
+            edisp = EDispKernel.from_gauss(energy_axis_true=axis, energy_axis=axis, sigma=0.1, bias=0)
             irf['edisp'] = EDispKernelMap.from_edisp_kernel(edisp)
 
         return irf
