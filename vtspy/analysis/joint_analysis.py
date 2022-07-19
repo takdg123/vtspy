@@ -211,14 +211,14 @@ class JointAnalysis:
             **kwargs
         """
 
+        _fit = Fit()
         if method == "rough":
             
             optimize_opts = copy.copy(self._default_optimize_opts)
             optimize_opts["strategy"] = 0
             optimize_opts["tol"] = 10
-            self._fit.optimize_opts = optimize_opts
-            self.fit_results = self._fit.run(self.datasets)
-            self._fit.optimize_opts = self._default_optimize_opts
+            _fit.optimize_opts = optimize_opts
+            self._optimize_fit_results = _fit.run(self.datasets)
             self._model_change_flag = False
 
         elif method == "flux":
@@ -240,45 +240,41 @@ class JointAnalysis:
                     if type(dataset) == FluxPointsDataset:
                         self._optimize_flux_datasets.append(dataset)
 
-            optimize_opts_default = {
-                "method": "L-BFGS-B",
-                "backend": "scipy",
-            }
-
-            optimize_opts = optimize_opts_default
-
             optimize_opts = copy.copy(self._default_optimize_opts)
             optimize_opts["method"] = "L-BFGS-B"
             optimize_opts["backend"] = "scipy"
-            self._fit.optimize_opts = optimize_opts
+            _fit.optimize_opts = optimize_opts
             prev_stats = -1
             num_run = 0
+
             while True:
-                _optimize_result = self._fit.run(self._optimize_flux_datasets)
+                _optimize_result = _fit.run(self._optimize_flux_datasets)
                 current_stats = _optimize_result.total_stat
                 if prev_stats == -1:
-                    self._logging.info(f"Initial -> {current_stats}")
+                    self._logging.info(f"Initial -> {current_stats} ({_optimize_result.success})")
                     prev_stats = current_stats
                     num_run+=1
                 elif (abs((current_stats-prev_stats)/current_stats) < 0.1) and (_optimize_result.success):
                     break
+                elif num_run > 10:
+                    self._logging.info(f"The maximum number of iterations reached.")
+                    break
                 else:
-                    self._logging.info(f"{prev_stats} -> {current_stats}")
+                    self._logging.info(f"{prev_stats} -> {current_stats} ({_optimize_result.success})")
                     prev_stats = current_stats
                     num_run+=1
 
             self._logging.debug(_optimize_result)
-            self.fit_results = _optimize_result
+            self._optimize_fit_results = _optimize_result
 
             for model in test_model:
                 self.datasets.models[model.name].spectral_model = model.spectral_model
 
             self._logging.info(f"Optimize {num_run} times to get an inital parameters.")
             
-            self._fit.optimize_opts = self._default_optimize_opts
             self._model_change_flag=False
         elif method == "inst":
-            self.fit_results = self._fit.run(self.datasets[instrument.lower()])
+            self._optimize_fit_results = _fit.run(self.datasets[instrument.lower()])
             self._model_change_flag=False
         else:
             return

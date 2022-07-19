@@ -715,7 +715,7 @@ class FermiAnalysis():
         irf['psf'] = psf
 
         # Energy dispersion
-        #if self._exist_rsp or gauss_disp:
+        #if self._exist_rsp and not(gauss_disp):
         if False:
             rsp_file = fits.open(f"{self._outdir}/gtrsp_00.rsp")
             disp = rsp_file[1].data

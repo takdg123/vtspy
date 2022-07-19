@@ -26,8 +26,8 @@ class agnpy_spectral_model(SpectralModel):
 
     # electron spectrum parameters
     log10_norm_e = Parameter("log10_norm_e", "-5", min=-20, max=10)
-    p1 = Parameter("p1", 2.1, min=-2.0, max=5.0)
-    p2 = Parameter("p2", 3.1, min=-2.0, max=5.0)
+    p = Parameter("p", 2.1, min=0, max=4.0)
+    dp = Parameter("dp", 1, min=0, max=2.0)
 
     # Lorentz factor
     log10_gamma_b = Parameter("log10_gamma_b", 3, min=1, max=7)
@@ -35,7 +35,7 @@ class agnpy_spectral_model(SpectralModel):
     log10_gamma_max = Parameter("log10_gamma_max", 5, min=4, max=8)
 
     # emission region parameters
-    delta_D = Parameter("delta_D", 10, min=0, max=60)
+    delta_D = Parameter("delta_D", 10, min=0.1, max=60)
     log10_B = Parameter("log10_B", -1, min=-4, max=2)
     t_var = Parameter("t_var", "600 s", min=10, max=np.pi * 1e7)
 
@@ -47,8 +47,8 @@ class agnpy_spectral_model(SpectralModel):
     def evaluate(
         energy,
         log10_norm_e,
-        p1,
-        p2,
+        p,
+        dp,
         log10_gamma_b,
         log10_gamma_min,
         log10_gamma_max,
@@ -66,9 +66,7 @@ class agnpy_spectral_model(SpectralModel):
         B = 10 ** log10_B * u.G
         R_b = (c * t_var * delta_D / (1 + z)).to("cm")
         pars = (z, d_L, delta_D, B, R_b, BrokenPowerLaw, norm_e,
-                p1, p2, gamma_b, gamma_min, gamma_max)
-        pars = (z, d_L, delta_D, B, R_b, BrokenPowerLaw, norm_e,
-                p1, p2, gamma_b, gamma_min, gamma_max)
+                p, p+dp, gamma_b, gamma_min, gamma_max)
         nu = energy.to("Hz", equivalencies=u.spectral())
         dim = len(energy.shape)
 
