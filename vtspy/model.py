@@ -122,7 +122,7 @@ def fermi_isotropic_diffuse_bkg(config, fmodel, fix_pars = False):
 
     return diffuse_iso
 
-def default_model(model, **kwargs):
+def default_model(model, correct_ebl=False, ebl_model="dominguez", **kwargs):
     if (model.lower() == "powerlaw") or (model.lower() == "pl"):
         amplitude = kwargs.pop("amplitude", 1e-12* u.Unit("cm-2 s-1 TeV-1"),)
         index = kwargs.pop("index", 2.5)
@@ -190,6 +190,11 @@ def default_model(model, **kwargs):
 
     else:
         spectral_model = None
+        
+    if correct_ebl == True:
+        ebl_absorption = EBLAbsorptionNormSpectralModel.read_builtin(ebl_model, redshift=redshift)
+        spectral_model = spectral_model * ebl_absorption
+    
     return spectral_model
 
 def spatial_model(src):
