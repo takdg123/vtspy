@@ -192,7 +192,7 @@ def default_model(model, correct_ebl=False, ebl_model="dominguez", **kwargs):
         spectral_model = None
         
     if correct_ebl == True:
-        ebl_absorption = EBLAbsorptionNormSpectralModel.read_builtin(ebl_model, redshift=redshift)
+        ebl_absorption = EBLAbsorptionNormSpectralModel.read_builtin(ebl_model, redshift=z)
         spectral_model = spectral_model * ebl_absorption
     
     return spectral_model
