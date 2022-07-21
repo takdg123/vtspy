@@ -506,22 +506,27 @@ class VeritasAnalysis:
 		bright_sources = utils.bright_source_list(srcfile)
 
 		roi_cut = (abs(bright_sources[:,0]-self.target.ra.deg) < distance) \
-        		* (abs(bright_sources[:,1]-self.target.dec.deg) < distance) \
-        		* (bright_sources[:,2]+bright_sources[:,3] < magnitude)
+	        		* (abs(bright_sources[:,1]-self.target.dec.deg) < distance) \
+	        		* (bright_sources[:,2]+bright_sources[:,3] < magnitude)
 
 		bright_sources = bright_sources[roi_cut]
 
-		for src_pos in bright_sources:
-			self._excluded_regions.append(CircleSkyRegion(
-				center=SkyCoord(src_pos[0], src_pos[1], unit="deg", frame="icrs"),
-				radius=ex_radius * u.deg,))
+		if len(bright_sources) != 0:
+			
+			for src_pos in bright_sources:
+				self._excluded_regions.append(CircleSkyRegion(
+					center=SkyCoord(src_pos[0], src_pos[1], unit="deg", frame="icrs"),
+					radius=ex_radius * u.deg,))
 
-		geom = WcsGeom.create(
-			npix=(150, 150), binsz=0.05, skydir=self.target.galactic,
-			proj="TAN", frame="icrs"
-		)
+			geom = WcsGeom.create(
+				npix=(150, 150), binsz=0.05, skydir=self.target.galactic,
+				proj="TAN", frame="icrs"
+			)
 
-		return geom.region_mask(regions=self._excluded_regions, inside=False)
+			print(self._excluded_regions)
+			return geom.region_mask(regions=self._excluded_regions, inside=False)
+		else:
+			return None
 
 	def _exclusion_from_simbad(self):
 
@@ -548,15 +553,18 @@ class VeritasAnalysis:
 		srcs_tab = srcs_tab[srcs_tab["FLUX_V"]!=np.ma.masked]
 		self._logging.info(f"{len(srcs_tab)} sources have been found.")
 
-		srcs = SkyCoord(['{} {}'.format(src["RA"], src["DEC"]) for src in srcs_tab], unit=(u.hourangle, u.deg))
-		self._excluded_regions = [CircleSkyRegion(center=src, radius=ex_radius * u.deg,) for src in srcs]
+		if len(srcs_tab)!=0:
+			srcs = SkyCoord(['{} {}'.format(src["RA"], src["DEC"]) for src in srcs_tab], unit=(u.hourangle, u.deg))
+			self._excluded_regions = [CircleSkyRegion(center=src, radius=ex_radius * u.deg,) for src in srcs]
 
-		geom = WcsGeom.create(
-		    npix=(150, 150), binsz=0.05, skydir=self.target.galactic,
-		    proj="TAN", frame="icrs"
-		)
+			geom = WcsGeom.create(
+			    npix=(150, 150), binsz=0.05, skydir=self.target.galactic,
+			    proj="TAN", frame="icrs"
+			)
 
-		return geom.region_mask(regions=self._excluded_regions, inside=False)
+			return geom.region_mask(regions=self._excluded_regions, inside=False)
+		else:
+			return None
 
 	def _quick_check_runlist(self, directory = None):
 
