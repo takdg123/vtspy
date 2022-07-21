@@ -188,7 +188,7 @@ class VeritasAnalysis:
 		    self._logging.warning("The original 'inital' status is archived in the '_orig' folder.")
 		    os.system(f"mkdir ./{self._outdir}/_orig")
 		    for file in glob.glob(f"./{self._outdir}/*initial*"):
-		        os.sytem(f"mv {file} ./{self._outdir}/_orig/")
+		        os.system(f"mv {file} ./{self._outdir}/_orig/")
 
 		filename = f"./{self._outdir}/{status_file}.pickle".format(status_file)
 		with open(filename, 'wb') as file:
@@ -234,7 +234,7 @@ class VeritasAnalysis:
 
 		self._logging.info("Load the data files.")
 
-		if not(os.path.exists(f"{self._datadir}/hdu-index.fits.gz")):
+		if (not(os.path.exists(f"{self._datadir}/hdu-index.fits.gz"))) and (not(os.path.exists(f"{self._outdir}/hdu-index.fits.gz"))):
 			self._logging.warning("The 'hdu-/obs-index' files is not found.")
 			try:
 				from pyV2DL3 import generateObsHduIndex
@@ -244,7 +244,7 @@ class VeritasAnalysis:
 
 			import glob
 			filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
-			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
+			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._outdir)
 			self._logging.info("The hdu-index and obs-index files are created.")	
 		else:
 			rflag = self._quick_check_runlist()
@@ -261,7 +261,7 @@ class VeritasAnalysis:
 				generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
 				self._logging.info("The hdu-index and obs-index files are created.")
 
-		self._data_store = DataStore.from_dir(f"{self._datadir}")
+		self._data_store = DataStore.from_dir(f"{self._outdir}")
 
 		self._obs_ids = self._data_store.obs_table.select_observations(selection)["OBS_ID"]
 
@@ -555,7 +555,7 @@ class VeritasAnalysis:
 		return geom.region_mask(regions=self._excluded_regions, inside=False)
 
 	def _quick_check_runlist(self):
-		run_list = fits.open(self._datadir+"/obs-index.fits.gz")
+		run_list = fits.open(self._outdir+"/obs-index.fits.gz")
 
 		run_list = run_list[1].data["OBS_ID"]
 
