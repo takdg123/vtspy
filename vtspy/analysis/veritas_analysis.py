@@ -251,7 +251,7 @@ class VeritasAnalysis:
 			rflag = self._quick_check_runlist(self._datadir)
 		else:
 			rflag = self._quick_check_runlist()
-			
+
 		if not(rflag):
 			self._logging.warning("A mismatch in the obs-index file is found.")
 			try:
@@ -262,7 +262,7 @@ class VeritasAnalysis:
 
 			import glob
 			filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
-			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
+			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._outdir)
 			self._logging.info("The hdu-index and obs-index files are created.")
 
 		self._data_store = DataStore.from_dir(f"{self._outdir}")
@@ -574,4 +574,7 @@ class VeritasAnalysis:
 				flag = False
 				break
 
+		if flag:
+			os.system(f"mv {directory}/*.gz {self._outdir}/")
+			
 		return flag
