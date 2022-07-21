@@ -210,6 +210,7 @@ class JointAnalysis:
                 Default: VERITAS
             **kwargs
         """
+        self._logging.info(f"Starting optimization...")
 
         _fit = Fit()
         if method == "rough":

@@ -26,8 +26,8 @@ class agnpy_spectral_model(SpectralModel):
 
     # electron spectrum parameters
     log10_norm_e = Parameter("log10_norm_e", "-5", min=-20, max=10)
-    p = Parameter("p", 2.1, min=0, max=4.0)
-    dp = Parameter("dp", 1, min=0, max=2.0)
+    p = Parameter("p", 2.1, min=0, max=3.0)
+    dp = Parameter("dp", 1, min=0, max=3.0)
 
     # Lorentz factor
     log10_gamma_b = Parameter("log10_gamma_b", 3, min=1, max=7)

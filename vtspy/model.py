@@ -158,11 +158,11 @@ def default_model(model, correct_ebl=False, ebl_model="dominguez", **kwargs):
         d_L = Distance(z=z).to("cm")
 
         log10_norm_e = kwargs.pop("log10_norm_e", -5)
-        p = kwargs.pop("p1", 2)
-        dp = kwargs.pop("p2", 1)
+        p = kwargs.pop("p", 1)
+        dp = kwargs.pop("dp", 2)
 
         delta_D = kwargs.pop("delta_D", 10)
-        log10_B = kwargs.pop("log10_B", 1)
+        log10_B = kwargs.pop("log10_B", 0.1)
 
         log10_gamma_b = kwargs.pop("log10_gamma_b", 4)
         log10_gamma_min = kwargs.pop("log10_gamma_min", np.log10(500))
@@ -186,7 +186,7 @@ def default_model(model, correct_ebl=False, ebl_model="dominguez", **kwargs):
         spectral_model.log10_gamma_min.quantity = log10_gamma_min
         spectral_model.log10_gamma_min.frozen = False
         spectral_model.log10_gamma_max.quantity = log10_gamma_max
-        spectral_model.log10_gamma_max.frozen = True
+        spectral_model.log10_gamma_max.frozen = False
 
     else:
         spectral_model = None

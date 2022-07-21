@@ -12,6 +12,8 @@ from .utils import logger, SCRIPT_DIR
 
 from pathlib import Path
 
+import numpy as np
+
 class JointConfig:
 	"""
 	This is to generate the configuration file compatible to
@@ -77,6 +79,8 @@ class JointConfig:
 
 		if files is None:
 			filelist = glob.glob(veritas_data+"/*")
+		elif (".root" in files) or (".fits" in files):
+			filelist = np.atleast_1d(files)
 		else:
 			filelist = glob.glob(files+"/*")
 
