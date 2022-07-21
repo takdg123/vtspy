@@ -523,7 +523,6 @@ class VeritasAnalysis:
 				proj="TAN", frame="icrs"
 			)
 
-			print(self._excluded_regions)
 			return geom.region_mask(regions=self._excluded_regions, inside=False)
 		else:
 			return None
