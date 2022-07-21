@@ -245,21 +245,25 @@ class VeritasAnalysis:
 			import glob
 			filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
 			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._outdir)
+			rflag = True
 			self._logging.info("The hdu-index and obs-index files are created.")	
+		elif os.path.exists(f"{self._datadir}/hdu-index.fits.gz"):
+			rflag = self._quick_check_runlist(self._datadir)
 		else:
 			rflag = self._quick_check_runlist()
-			if not(rflag):
-				self._logging.warning("A mismatch in the obs-index file is found.")
-				try:
-					from pyV2DL3 import generateObsHduIndex
-				except:
-					self._logging.error("The pyV2DL3 package is required to proceed.")
-					return
+			
+		if not(rflag):
+			self._logging.warning("A mismatch in the obs-index file is found.")
+			try:
+				from pyV2DL3 import generateObsHduIndex
+			except:
+				self._logging.error("The pyV2DL3 package is required to proceed.")
+				return
 
-				import glob
-				filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
-				generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
-				self._logging.info("The hdu-index and obs-index files are created.")
+			import glob
+			filelist = glob.glob(f"{self._datadir}/*anasum.fit*")
+			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._datadir)
+			self._logging.info("The hdu-index and obs-index files are created.")
 
 		self._data_store = DataStore.from_dir(f"{self._outdir}")
 
@@ -554,8 +558,12 @@ class VeritasAnalysis:
 
 		return geom.region_mask(regions=self._excluded_regions, inside=False)
 
-	def _quick_check_runlist(self):
-		run_list = fits.open(self._outdir+"/obs-index.fits.gz")
+	def _quick_check_runlist(self, directory = None):
+
+		if directory is None:
+			directory = self._outdir
+
+		run_list = fits.open(directory+"/obs-index.fits.gz")
 
 		run_list = run_list[1].data["OBS_ID"]
 
