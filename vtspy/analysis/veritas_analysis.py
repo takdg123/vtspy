@@ -577,7 +577,7 @@ class VeritasAnalysis:
 		flag = True
 		for file in glob.glob(self._datadir+"/*.anasum.fits"):
 			file_name = re.findall("([0-9]+)", file)[0]
-			if file_name not in run_list:
+			if int(file_name) not in run_list:
 				flag = False
 				break
 
