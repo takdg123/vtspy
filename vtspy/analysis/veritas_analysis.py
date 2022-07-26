@@ -279,9 +279,9 @@ class VeritasAnalysis:
 
 		self._logging.info("Define exclusion regions.")
 		if kwargs.pop("simbad", self.config["background"]["simbad"]):
-			self._exclusion_mask = self._exclusion_from_simbad(**kwargs)
+			self._exclusion_mask = self._exclusion_from_simbad()
 		else:
-			self._exclusion_mask = self._exclusion_from_bright_src_list(**kwargs)
+			self._exclusion_mask = self._exclusion_from_bright_src_list()
 		self.add_exclusion_region(coord=[self.target.ra, self.target.dec], radius=self.config["selection"]["exc_on_region_radius"])
 
 		self._logging.info("Define ON- and OFF-regions.")
