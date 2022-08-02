@@ -123,6 +123,7 @@ def fermi_isotropic_diffuse_bkg(config, fmodel, fix_pars = False):
     return diffuse_iso
 
 def default_model(model, correct_ebl=False, ebl_model="dominguez", **kwargs):
+    z = kwargs.pop("z", 0)
     if (model.lower() == "powerlaw") or (model.lower() == "pl"):
         amplitude = kwargs.pop("amplitude", 1e-12* u.Unit("cm-2 s-1 TeV-1"),)
         index = kwargs.pop("index", 2.5)
@@ -150,7 +151,6 @@ def default_model(model, correct_ebl=False, ebl_model="dominguez", **kwargs):
 
         spectral_model = agnpy_spectral_model()
 
-        z = kwargs.pop("z", 0)
         t_var = kwargs.pop("t_var", 0)
 
         if (z == 0) or (t_var == 0):
