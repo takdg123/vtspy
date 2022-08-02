@@ -5,6 +5,8 @@ import glob
 import pickle
 import copy
 import re
+from pathlib import Path
+
 import astropy.units as u
 from astropy.coordinates import SkyCoord, Angle
 from astropy.time import Time
@@ -265,15 +267,17 @@ class VeritasAnalysis:
 			generateObsHduIndex.create_obs_hdu_index_file(filelist, index_file_dir=self._outdir)
 			self._logging.info("The hdu-index and obs-index files are created.")
 
-		self._data_store = DataStore.from_dir(f"{self._outdir}")
+		self._data_store = DataStore.from_dir(f"{self._datadir}")
 
-		self._obs_ids = self._data_store.obs_table.select_observations(selection)["OBS_ID"]
-
+		self._obs_ids = np.asarray(self._data_store.obs_table.select_observations(selection)["OBS_ID"]).astype("int")
+		
 		self.observations = self._data_store.get_observations(self._obs_ids, required_irf=["aeff", "edisp"])
-		time_intervals = [self.config["selection"]["tmin"], self.config["selection"]["tmax"]]
-		self.observations, self._obs_ids = utils.time_filter(self.observations, time_intervals, time_format="mjd")
-		self._logging.info(f"The number of observations is {len(self.observations)}")
 
+		if len(self.observations)> 1:
+			time_intervals = [self.config["selection"]["tmin"], self.config["selection"]["tmax"]]
+			self.observations, self._obs_ids = utils.time_filter(self.observations, time_intervals, time_format="mjd")
+			self._logging.info(f"The number of observations is {len(self.observations)}")
+		
 		self._th2cut = self.config["cuts"]['th2cut']
 		self._on_region = CircleSkyRegion(center=self.target, radius=Angle(np.sqrt(self._th2cut)*u.deg))
 
@@ -573,15 +577,16 @@ class VeritasAnalysis:
 		run_list = fits.open(directory+"/obs-index.fits.gz")
 
 		run_list = run_list[1].data["OBS_ID"]
+		file_list = glob.glob(self._datadir+"/*.anasum.fits")
 
 		flag = True
-		for file in glob.glob(self._datadir+"/*.anasum.fits"):
+		for file in file_list:
 			file_name = re.findall("([0-9]+)", file)[0]
 			if int(file_name) not in run_list:
 				flag = False
 				break
-
-		if flag:
+		
+		if flag and (Path(directory)!=Path(self._outdir)):
 			os.system(f"mv {directory}/*.gz {self._outdir}/")
 			
 		return flag

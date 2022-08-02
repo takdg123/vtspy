@@ -44,7 +44,8 @@ class JointConfig:
 		else:
 			self.init(files=files, config_file=config_file, **kwargs)
 			self.print_info(config_file=config_file)
-			self._logging.info(f'a configuration file ({config_file}) is created.')
+			path = Path(config_file)
+			self._logging.info(f'a configuration file ({str(path.absolute())}) is created.')
 
 	def init(self, files=None, config_file="config.yaml", **kwargs):
 		"""
