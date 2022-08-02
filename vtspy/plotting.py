@@ -186,7 +186,7 @@ def plot_ROI(veritas=None, fermi=None):
             ax.add_patch(Patches.Rectangle((0, 0), 150, 150,  color="w"))
         #fermi._src_in_roi(ax)
 
-    plt.show(block=False)
+    #plt.show(block=False)
 
 def plot_sed(output, show_model=True, show_band=True, show_flux_points=True, erg=False, units="MeV", color="k", **kwargs):
 

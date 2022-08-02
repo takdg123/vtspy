@@ -192,6 +192,7 @@ def time_filter(obs, time, time_format=None):
         else:
             time_interval= Time([str(tmin),str(tmax)], format=time_format, scale="utc")
     
+    print(time_interval)
     newobs = obs.select_time(time_interval)
     
     return newobs, newobs.ids
