@@ -343,7 +343,7 @@ class VeritasAnalysis:
 
 		if "sed" in jobs:
 			self._logging.info("Generating flux points and SED...")
-			self._energy_bins = kwargs.get("energy_bins", self._energy_bins)
+			self._energy_bins = kwargs.pop("energy_bins", self._energy_bins)
 
 			fpe = FluxPointsEstimator(
 			    energy_edges=self.energy_bins,
