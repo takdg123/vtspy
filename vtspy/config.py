@@ -36,10 +36,7 @@ class JointConfig:
 		self._filename = config_file
 		path = Path(config_file)
 		if path.is_file() and (files is None):
-			config = self.get_config(config_file)
-			self.fermi_config = config.pop("fermi")
-			self.veritas_config = config.pop("veritas")
-			self.print_info()
+			self.print_info(config_file)
 			self._logging.info(f'a configuration file ({config_file}) is loaded.')
 		else:
 			self.init(files=files, config_file=config_file, **kwargs)
@@ -313,7 +310,7 @@ class JointConfig:
 	        config_file (str): Fermi config filename (yaml)
 	        	Default: config.yaml
 	    """
-		return yaml.load(open(config_file), Loader=yaml.FullLoader)
+		return yaml.load(open(config_file, 'rb'), Loader=yaml.FullLoader)
 
 	@classmethod
 	def print_config(self, config_file="config.yaml"):
