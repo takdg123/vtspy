@@ -206,7 +206,7 @@ class VeritasAnalysis:
         Args:
         status_file (str): the name of status
         """
-        filename = f"/{self._outdir}/{status_file}.pickle".format(status_file)
+        filename = f"./{self._outdir}/{status_file}.pickle".format(status_file)
         if os.path.exists(filename):
             with open(filename, 'rb') as file:
                 self.__dict__.update(pickle.load(file).__dict__)
