@@ -192,7 +192,7 @@ class VeritasAnalysis:
             for file in glob.glob(f"./{self._outdir}/*initial*"):
                 os.system(f"mv {file} ./{self._outdir}/_orig/")
 
-        filename = f"/{self._outdir}/{status_file}.pickle".format(status_file)
+        filename = f"./{self._outdir}/{status_file}.pickle".format(status_file)
         with open(filename, 'wb') as file:
             del(self._logging)
             pickle.dump(self, file)
@@ -206,7 +206,7 @@ class VeritasAnalysis:
         Args:
         status_file (str): the name of status
         """
-        filename = f"/{self._outdir}/{status_file}.pickle".format(status_file)
+        filename = f"./{self._outdir}/{status_file}.pickle".format(status_file)
         if os.path.exists(filename):
             with open(filename, 'rb') as file:
                 self.__dict__.update(pickle.load(file).__dict__)
