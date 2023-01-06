@@ -504,6 +504,7 @@ class JointConfig:
 				'emin': 0.1,
 				'emax': 10,
 				'nbin': 6,
+				'per_decade': True,
 				'format': "mjd",
 				'max_region_number': 6,
 				'radius': 2.0,
