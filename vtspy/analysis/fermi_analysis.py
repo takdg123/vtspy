@@ -572,7 +572,9 @@ class FermiAnalysis():
                 name="energy",
                 interp="log", unit="MeV")
 
-        loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.edges.value))
+            loge_bins = kwargs.pop("loge_bins",  np.log10(self._energy_bins.edges.value))
+        else:
+            loge_bins = self.gta.log_energies
 
         o = self.gta.sed(self.target.name, outfile=outfile, bin_index=kwargs.pop("bin_index", 2.0), loge_bins=loge_bins, write_fits=True, write_npy=True, **kwargs)
         self._logging.info("Generating the SED is completed.")
