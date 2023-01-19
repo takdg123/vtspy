@@ -58,7 +58,7 @@ class VeritasAnalysis:
             **kwargs: passed to VeritasAnalysis.setup
         """
         self._verbosity = verbosity
-
+        
         self.config = JointConfig.get_config(config_file).pop("veritas")
 
         self._logging = logger(self.verbosity)
