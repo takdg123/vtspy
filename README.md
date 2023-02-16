@@ -24,3 +24,4 @@ Donggeun Tak (DESY),
 Pedro Ivo Silva Batista (DESY),
 Arkadipta Sarkar (DESY),
 Colin Adams (Columbia Univ.)
+Stephan O'Brien (McGill Univ.)
