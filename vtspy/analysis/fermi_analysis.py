@@ -387,7 +387,7 @@ class FermiAnalysis():
         if return_output:
             return o
 
-    def analysis(self, jobs = ["ts", "resid", "sed"], status_file="analyzed", **kwargs):
+    def analysis(self, jobs = ["ts", "resid", "sed", "lc"], status_file="analyzed", **kwargs):
         """
         Perform various analyses: TS map, Residual map, and SED.
 
@@ -424,6 +424,12 @@ class FermiAnalysis():
             outfile=status_file+"_sed.fits"
             o = self._calc_sed(outfile=outfile, **kwargs)
             output['sed'] = o
+
+        if "lc" in jobs:
+            outfile=status_file+"_lc.fits"
+            # o = self._lightcurve(outfile=outfile, **kwargs)
+            o = self._lightcurve( **kwargs)
+            output['lc'] = o
 
         self.gta.set_free_param_vector(free)
 
