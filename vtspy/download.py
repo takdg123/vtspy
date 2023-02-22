@@ -206,7 +206,7 @@ class DownloadFermiData:
 
             if "SC" in lk:
                 self.config['data']['scfile'] = f"{datadir}/{fileName}.fits"
-            elif "EV" in lk:
+            elif ("EV" in lk) or ("PH" in lk):
                 with open(f"{datadir}/EV00.lst", "a") as f:
                     f.write(fileName+".fits\n")
 
