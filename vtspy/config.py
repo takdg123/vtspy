@@ -510,7 +510,8 @@ class JointConfig:
 				'radius': 2.0,
 				'exc_on_region_radius': 0.7,
 				'exc_radius': 0.25,
-				},
+				'time_cuts' : None,
+			},
 
 			}
 		return info

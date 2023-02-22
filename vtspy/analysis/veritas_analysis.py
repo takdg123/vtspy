@@ -270,9 +270,33 @@ class VeritasAnalysis:
             self._logging.info("The hdu-index and obs-index files are created.")
 
         self._data_store = DataStore.from_dir(f"{self._datadir}")
+        filtered_selection = self._data_store.obs_table.select_observations(selection)
 
-        self._obs_ids = np.asarray(self._data_store.obs_table.select_observations(selection)["OBS_ID"]).astype("int")
-        
+
+        # Check for a time cut        
+        if self.config["selection"]["time_cuts"] is not None:
+            time_selection = None
+            # select_time_range doesn't take datetime arrays...
+            # loop over the time cut
+            for tc in self.config["selection"]["time_cuts"]: 
+                _selection = filtered_selection.select_time_range(
+                        Time([
+                            tc["tstart"], 
+                            tc["tstop"]
+                            ],
+                        format = "mjd"),
+                        inverted = tc["invert"]
+                    )
+                # Add new rows to the obs_table
+                if time_selection is None:
+                    time_selection = _selection
+                else:
+                    # Add each run to the time selected obs_table
+                    [time_selection.add_row(_selection[r]) for r in range(len(_selection))]
+            # Overwrite the filtered selection
+            filtered_selection = time_selection
+
+        self._obs_ids = np.asarray(filtered_selection["OBS_ID"]).astype("int")        
         self.observations = self._data_store.get_observations(self._obs_ids, required_irf=["aeff", "edisp"])
 
         if len(self.observations)> 1:
